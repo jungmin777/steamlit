@@ -58,7 +58,7 @@ else:
     # Altair 차트 - X축 레이블만 수정
     chart = alt.Chart(score_df).mark_bar().encode(
         x=alt.X('항목', sort=None, axis=alt.Axis(labelAngle=0)),  # X축 레이블 각도 0도(수평)로 설정
-        y='점수',  # Y축은 기본 설정 유지
+        y=alt.Y('점수', sort=None, axis=alt.Axit(labelAngle=90)),  # Y축은 각도 90도
         color=alt.condition(
             alt.datum.점수 < 0,
             alt.value('crimson'),  # 음수면 빨간색
