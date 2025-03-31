@@ -1,25 +1,19 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-
 # 수정된 CSV 파일 경로 (Streamlit Cloud용 상대 경로)
 data_path = "hotel_fin_0331_1.csv"
 df = pd.read_csv(data_path, encoding='euc-kr')
-
 st.set_page_config(page_title="호텔 리뷰 감성 요약", layout="wide")
 st.title("🏨 호텔 리뷰 요약 및 항목별 분석")
-
 # 지역 선택
 regions = df['Location'].unique()
 selected_region = st.radio("📍 지역을 선택하세요", regions, horizontal=True)
-
 # 지역 필터링
 region_df = df[df['Location'] == selected_region]
 region_hotels = region_df['Hotel'].unique()
-
 # 호텔 선택
 selected_hotel = st.selectbox("🏨 호텔을 선택하세요", ["전체 보기"] + list(region_hotels))
-
 # 지도 데이터 준비
 if selected_hotel == "전체 보기":
     # 지역 내 모든 호텔 위치 표시
@@ -61,10 +55,10 @@ else:
         '점수': [hotel_data[col] for col in aspect_columns]
     })
     
-    # Altair 차트
+    # Altair 차트 - 축 레이블 방향 수정
     chart = alt.Chart(score_df).mark_bar().encode(
-        x=alt.X('항목', sort=None),
-        y='점수',
+        x=alt.X('항목', sort=None, axis=alt.Axis(labelAngle=0)),  # 레이블 각도 0도로 설정
+        y=alt.Y('점수', axis=alt.Axis(labelAngle=0)),  # Y축 레이블도 0도로 설정
         color=alt.condition(
             alt.datum.점수 < 0,
             alt.value('crimson'),  # 음수면 빨간색
