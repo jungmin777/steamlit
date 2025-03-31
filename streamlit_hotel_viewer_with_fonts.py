@@ -55,10 +55,10 @@ else:
         '점수': [hotel_data[col] for col in aspect_columns]
     })
     
-    # Altair 차트 - 축 레이블 방향 수정
+    # Altair 차트 - X축 레이블만 수정
     chart = alt.Chart(score_df).mark_bar().encode(
-        x=alt.X('항목', sort=None, axis=alt.Axis(labelAngle=0)),  # 레이블 각도 0도로 설정
-        y=alt.Y('점수', axis=alt.Axis(labelAngle=0)),  # Y축 레이블도 0도로 설정
+        x=alt.X('항목', sort=None, axis=alt.Axis(labelAngle=0)),  # X축 레이블 각도 0도(수평)로 설정
+        y='점수',  # Y축은 기본 설정 유지
         color=alt.condition(
             alt.datum.점수 < 0,
             alt.value('crimson'),  # 음수면 빨간색
