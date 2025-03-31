@@ -1,35 +1,89 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import folium
+from streamlit_folium import folium_static
+from folium.plugins import MarkerCluster
+
 # 수정된 CSV 파일 경로 (Streamlit Cloud용 상대 경로)
 data_path = "hotel_fin_0331_1.csv"
 df = pd.read_csv(data_path, encoding='euc-kr')
 st.set_page_config(page_title="호텔 리뷰 감성 요약", layout="wide")
 st.title("🏨 호텔 리뷰 요약 및 항목별 분석")
+
 # 지역 선택
 regions = df['Location'].unique()
 selected_region = st.radio("📍 지역을 선택하세요", regions, horizontal=True)
+
 # 지역 필터링
 region_df = df[df['Location'] == selected_region]
 region_hotels = region_df['Hotel'].unique()
+
 # 호텔 선택
 selected_hotel = st.selectbox("🏨 호텔을 선택하세요", ["전체 보기"] + list(region_hotels))
+
+# 구글 지도 생성 함수
+def create_google_map(dataframe, zoom_start=12):
+    # 지도 중심점 계산
+    center_lat = dataframe['Latitude'].mean()
+    center_lon = dataframe['Longitude'].mean()
+    
+    # 구글 지도 스타일의 Folium 맵 생성
+    m = folium.Map(location=[center_lat, center_lon], 
+                   zoom_start=zoom_start, 
+                   tiles="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", 
+                   attr="Google")
+    
+    # 여러 마커가 있을 경우 클러스터링
+    if len(dataframe) > 1:
+        marker_cluster = MarkerCluster().add_to(m)
+        
+        # 각 호텔 위치에 마커 추가
+        for idx, row in dataframe.iterrows():
+            tooltip = f"{row['Hotel']}"
+            folium.Marker(
+                location=[row['Latitude'], row['Longitude']],
+                tooltip=tooltip,
+                icon=folium.Icon(color='blue', icon='hotel', prefix='fa')
+            ).add_to(marker_cluster)
+    else:
+        # 단일 호텔 마커
+        for idx, row in dataframe.iterrows():
+            tooltip = f"{row['Hotel']}"
+            folium.Marker(
+                location=[row['Latitude'], row['Longitude']],
+                tooltip=tooltip,
+                popup=f"<strong>{row['Hotel']}</strong>",
+                icon=folium.Icon(color='red', icon='hotel', prefix='fa')
+            ).add_to(m)
+            
+    return m
+
 # 지도 데이터 준비
 if selected_hotel == "전체 보기":
     # 지역 내 모든 호텔 위치 표시
     st.subheader(f"🗺️ {selected_region} 지역 호텔 지도")
-    map_df = region_df[['Latitude', 'Longitude']].dropna()
-    map_df.columns = ['lat', 'lon']
-    st.map(map_df)
+    map_df = region_df[['Hotel', 'Latitude', 'Longitude']].dropna()
+    
+    if not map_df.empty:
+        m = create_google_map(map_df)
+        folium_static(m, width=800)
+    else:
+        st.warning("지도에 표시할 위치 정보가 없습니다.")
 else:
     # 선택된 호텔 정보만 표시
     hotel_data = region_df[region_df['Hotel'] == selected_hotel].iloc[0]
     
-    # 실제 위경도 데이터 사용
+    # 구글 지도 생성
     st.subheader(f"🗺️ '{selected_hotel}' 위치")
-    lat = hotel_data['Latitude']
-    lon = hotel_data['Longitude']
-    st.map(pd.DataFrame({'lat': [lat], 'lon': [lon]}))
+    hotel_map_df = pd.DataFrame({
+        'Hotel': [selected_hotel],
+        'Latitude': [hotel_data['Latitude']],
+        'Longitude': [hotel_data['Longitude']]
+    })
+    
+    m = create_google_map(hotel_map_df, zoom_start=15)
+    folium_static(m, width=800)
     
     # 요약 출력
     st.markdown("### ✨ 선택한 호텔 요약")
@@ -58,7 +112,7 @@ else:
     # Altair 차트 - X축 레이블만 수정
     chart = alt.Chart(score_df).mark_bar().encode(
         x=alt.X('항목', sort=None, axis=alt.Axis(labelAngle=0)),  # X축 레이블 각도 0도(수평)로 설정
-        y=alt.Y('점수', axis=alt.Axis(titleAngle=0)),  # Y축은 각도 90도
+        y=alt.Y('점수', axis=alt.Axis(titleAngle=0)),  # Y축 타이틀 각도 0도
         color=alt.condition(
             alt.datum.점수 < 0,
             alt.value('crimson'),  # 음수면 빨간색
