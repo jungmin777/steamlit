@@ -7,7 +7,7 @@ from folium.plugins import MarkerCluster
 
 # 수정된 CSV 파일 경로 (Streamlit Cloud용 상대 경로)
 data_path = "hotel_fin_0331_1.csv"
-df = pd.read_csv(data_path, encoding='euc-kr')
+df = pd.read_csv(data_path, encoding='utf-8')
 st.set_page_config(page_title="호텔 리뷰 감성 요약", layout="wide")
 st.title("🏨 호텔 리뷰 요약 및 항목별 분석")
 
