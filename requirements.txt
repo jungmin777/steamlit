@@ -1,4 +1,6 @@
 streamlit
 pandas
 altair
-
+folium
+folium_static
+MarkerCluster
