@@ -62,27 +62,13 @@ def create_google_map(dataframe, zoom_start=12):
     else:
         for idx, row in dataframe.iterrows():
             tooltip = f"{row['Hotel']}"
-            # 팝업에 추가 정보 표시
-            popup_html = f"""
-                <strong>{row['Hotel']}</strong><br>
-                주소: {row['주소']}<br><br>
-                <strong>긍정 요약:</strong><br>{row['Refined_Positive']}<br><br>
-                <strong>부정 요약:</strong><br>{row['Refined_Negative']}<br><br>
-                <strong>항목별 점수:</strong><br>
-                소음: {row['소음']}<br>
-                가격: {row['가격']}<br>
-                위치: {row['위치']}<br>
-                서비스: {row['서비스']}<br>
-                청결: {row['청결']}<br>
-                편의시설: {row['편의시설']}
-            """
             folium.Marker(
                 location=[row['Latitude'], row['Longitude']],
                 tooltip=tooltip,
-                popup=popup_html,  # 수정된 부분
+                popup=f"<strong>{row['Hotel']}</strong>",
                 icon=folium.Icon(color='red', icon='hotel', prefix='fa')
             ).add_to(m)
-
+    
     return m
 
 # ---------------- 지도 출력 ----------------
