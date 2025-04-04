@@ -83,45 +83,91 @@ def create_google_map(dataframe, zoom_start=12):
     
     if len(dataframe) > 1:
         marker_cluster = MarkerCluster().add_to(m)
+        # for idx, row in dataframe.iterrows():
+        #     hotel_name = row['Hotel']
+        #     lat = row['Latitude']
+        #     lon = row['Longitude']
+        #     tooltip = f"{hotel_name}"
+
+        #     # 구글 지도 검색 링크 (호텔 이름 기준)
+        #     google_maps_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
+
+        #     popup_html = f"""
+        #         <b>{hotel_name}</b><br>
+        #         <a href="{google_maps_url}" target="_blank">구글 지도에서 보기 🌐</a>
+        #     """
+
+        #     folium.Marker(
+        #         location=[lat, lon],
+        #         tooltip=tooltip,
+        #         popup=folium.Popup(popup_html, max_width=300),
+        #         icon=folium.Icon(color='blue', icon='hotel', prefix='fa')
+        #     ).add_to(marker_cluster)
         for idx, row in dataframe.iterrows():
             hotel_name = row['Hotel']
             lat = row['Latitude']
             lon = row['Longitude']
             tooltip = f"{hotel_name}"
-
-            # 구글 지도 검색 링크 (호텔 이름 기준)
-            google_maps_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
-
+            
+            # 구글 지도 링크들
+            google_maps_search_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
+            google_maps_directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={hotel_name}"
+        
             popup_html = f"""
                 <b>{hotel_name}</b><br>
-                <a href="{google_maps_url}" target="_blank">구글 지도에서 보기 🌐</a>
+                <a href="{google_maps_search_url}" target="_blank">🌐 호텔 정보 보기</a><br>
+                <a href="{google_maps_directions_url}" target="_blank">🧭 길찾기 (현재 위치 → 호텔)</a>
             """
-
+        
             folium.Marker(
                 location=[lat, lon],
                 tooltip=tooltip,
                 popup=folium.Popup(popup_html, max_width=300),
                 icon=folium.Icon(color='blue', icon='hotel', prefix='fa')
             ).add_to(marker_cluster)
+
     else:
+        # for idx, row in dataframe.iterrows():
+        #     hotel_name = row['Hotel']
+        #     lat = row['Latitude']
+        #     lon = row['Longitude']
+        #     tooltip = f"{hotel_name}"
+        #     google_maps_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
+
+        #     popup_html = f"""
+        #         <b>{hotel_name}</b><br>
+        #         <a href="{google_maps_url}" target="_blank">구글 지도에서 보기 🌐</a>
+        #     """
+
+        #     folium.Marker(
+        #         location=[lat, lon],
+        #         tooltip=tooltip,
+        #         popup=folium.Popup(popup_html, max_width=300),
+        #         icon=folium.Icon(color='red', icon='hotel', prefix='fa')
+        #     ).add_to(m)
         for idx, row in dataframe.iterrows():
             hotel_name = row['Hotel']
             lat = row['Latitude']
             lon = row['Longitude']
             tooltip = f"{hotel_name}"
-            google_maps_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
-
+            
+            # 구글 지도 링크들
+            google_maps_search_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
+            google_maps_directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={hotel_name}"
+        
             popup_html = f"""
                 <b>{hotel_name}</b><br>
-                <a href="{google_maps_url}" target="_blank">구글 지도에서 보기 🌐</a>
+                <a href="{google_maps_search_url}" target="_blank">🌐 호텔 정보 보기</a><br>
+                <a href="{google_maps_directions_url}" target="_blank">🧭 길찾기 (현재 위치 → 호텔)</a>
             """
-
+        
             folium.Marker(
                 location=[lat, lon],
                 tooltip=tooltip,
                 popup=folium.Popup(popup_html, max_width=300),
-                icon=folium.Icon(color='red', icon='hotel', prefix='fa')
-            ).add_to(m)
+                icon=folium.Icon(color='blue', icon='hotel', prefix='fa')
+            ).add_to(marker_cluster)
+
     
     return m
 
