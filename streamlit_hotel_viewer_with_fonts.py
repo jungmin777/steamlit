@@ -105,7 +105,7 @@ def create_google_map(dataframe, zoom_start=12):
     m = folium.Map(
         location=[center_lat, center_lon], 
         zoom_start=zoom_start, 
-        tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", 
+        tiles="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", 
         attr="Google"
     )
     
