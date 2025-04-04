@@ -106,7 +106,7 @@ def create_google_map(dataframe, zoom_start=12):
         location=[center_lat, center_lon], 
         zoom_start=zoom_start, 
         tiles='Stamen Toner',
-        attr="Google"
+        attr="folium"
     )
     
     if len(dataframe) > 1:
