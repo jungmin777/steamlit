@@ -24,6 +24,27 @@ region_df = df[df['Location'] == selected_region]
 hotels = region_df['Hotel'].unique()
 selected_hotel = st.selectbox("🏠 호텔을 선택하세요", ["전체 보기"] + list(hotels))
 
+###################
+if selected_hotel == "전체 보기":
+    st.subheader(f"🗺️ {selected_region} 지역 호텔 지도")
+    
+    map_df = region_df[['Hotel', 'Latitude', 'Longitude']].copy()
+    map_df['Latitude'] = pd.to_numeric(map_df['Latitude'], errors='coerce')
+    map_df['Longitude'] = pd.to_numeric(map_df['Longitude'], errors='coerce')
+    map_df = map_df.dropna()
+
+    # 디버깅용 출력
+    st.write("✅ 지도에 표시될 호텔 수:", len(map_df))
+    st.write(map_df.head())
+
+    if not map_df.empty:
+        m = create_google_map(map_df)
+        folium_static(m, width=800)
+    else:
+        st.warning("지도에 표시할 위치 정보가 없습니다.")
+###############
+
+
 # ---------------- 사이드바: 정렬 기준 및 Top 5 ----------------
 st.sidebar.title("🔍 항목별 상위 호텔")
 aspect_to_sort = st.sidebar.selectbox("정렬 기준", aspect_columns)
