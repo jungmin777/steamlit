@@ -105,8 +105,11 @@ def create_google_map(dataframe, zoom_start=12):
     m = folium.Map(
         location=[center_lat, center_lon], 
         zoom_start=zoom_start, 
-        tiles="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", 
-        attr="Google"
+        tiles="OpenStreetMap"
+#         Stamen Toner, Stamen Terrain, Stamen Watercolor 얘네는 attr 안적음
+        
+        # tiles="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", 
+        # attr="Google"
     )
     
     if len(dataframe) > 1:
@@ -159,25 +162,7 @@ def create_google_map(dataframe, zoom_start=12):
     
     return m
 
-###################
-if selected_hotel == "전체 보기":
-    st.subheader(f"🗺️ {selected_region} 지역 호텔 지도")
-    
-    map_df = region_df[['Hotel', 'Latitude', 'Longitude']].copy()
-    map_df['Latitude'] = pd.to_numeric(map_df['Latitude'], errors='coerce')
-    map_df['Longitude'] = pd.to_numeric(map_df['Longitude'], errors='coerce')
-    map_df = map_df.dropna()
 
-    # 디버깅용 출력
-    st.write("✅ 지도에 표시될 호텔 수:", len(map_df))
-    st.write(map_df.head())
-
-    if not map_df.empty:
-        m = create_google_map(map_df)
-        folium_static(m, width=800)
-    else:
-        st.warning("지도에 표시할 위치 정보가 없습니다.")
-###############
 
 # ---------------- 지도 출력 ----------------
 if selected_hotel == "전체 보기":
