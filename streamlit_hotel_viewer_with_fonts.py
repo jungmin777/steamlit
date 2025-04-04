@@ -50,7 +50,7 @@ for idx, row in enumerate(top_hotels.itertuples(), 1):
 #     m = folium.Map(
 #         location=[center_lat, center_lon], 
 #         zoom_start=zoom_start, 
-#         tiles='Stamen Terrain'
+#         tiles='Stamen Terrain',
 #     )
     
 #     if len(dataframe) > 1:
@@ -105,7 +105,8 @@ def create_google_map(dataframe, zoom_start=12):
     m = folium.Map(
         location=[center_lat, center_lon], 
         zoom_start=zoom_start, 
-        tiles='Stamen Toner'
+        tiles='Stamen Toner',
+        attr="Google"
     )
     
     if len(dataframe) > 1:
