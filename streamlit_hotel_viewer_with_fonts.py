@@ -43,61 +43,6 @@ for idx, row in enumerate(top_hotels.itertuples(), 1):
 
 # ---------------- 구글 지도 생성 함수 ----------------
 
-# def create_google_map(dataframe, zoom_start=12):
-#     center_lat = dataframe['Latitude'].mean()
-#     center_lon = dataframe['Longitude'].mean()
-    
-#     m = folium.Map(
-#         location=[center_lat, center_lon], 
-#         zoom_start=zoom_start, 
-#         tiles='Stamen Terrain',
-#     )
-    
-#     if len(dataframe) > 1:
-#         marker_cluster = MarkerCluster().add_to(m)
-#         for idx, row in dataframe.iterrows():
-#             hotel_name = row['Hotel']
-#             lat = row['Latitude']
-#             lon = row['Longitude']
-#             tooltip = f"{hotel_name}"
-
-#             # 구글 지도 검색 링크 (호텔 이름 기준)
-#             google_maps_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
-
-#             popup_html = f"""
-#                 <b>{hotel_name}</b><br>
-#                 <a href="{google_maps_url}" target="_blank">구글 지도에서 보기 🌐</a>
-#             """
-
-#             folium.Marker(
-#                 location=[lat, lon],
-#                 tooltip=tooltip,
-#                 popup=folium.Popup(popup_html, max_width=300),
-#                 icon=folium.Icon(color='blue', icon='hotel', prefix='fa')
-#             ).add_to(marker_cluster)
-#     else:
-#         for idx, row in dataframe.iterrows():
-#             hotel_name = row['Hotel']
-#             lat = row['Latitude']
-#             lon = row['Longitude']
-#             tooltip = f"{hotel_name}"
-#             google_maps_url = f"https://www.google.com/maps/search/?api=1&query={hotel_name}"
-
-#             popup_html = f"""
-#                 <b>{hotel_name}</b><br>
-#                 <a href="{google_maps_url}" target="_blank">구글 지도에서 보기 🌐</a>
-#             """
-
-#             folium.Marker(
-#                 location=[lat, lon],
-#                 tooltip=tooltip,
-#                 popup=folium.Popup(popup_html, max_width=300),
-#                 icon=folium.Icon(color='red', icon='hotel', prefix='fa')
-#             ).add_to(m)
-        
-#     return m
-
-
 def create_google_map(dataframe, zoom_start=12):
     center_lat = dataframe['Latitude'].mean()
     center_lon = dataframe['Longitude'].mean()
