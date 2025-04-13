@@ -141,44 +141,45 @@ else:
 import streamlit as st
 import pandas as pd
 import folium
+from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
-st.title("📍 서울시 공공데이터 지도 시각화")
+st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
-# 파일 리스트와 좌표 컬럼 정보
-files_info = {
+# 파일 이름 및 해당 좌표 컬럼명 매핑
+csv_info = {
     "서울시 외국인전용 관광기념품 판매점 정보.csv": ("위치정보(Y)", "위치정보(X)"),
     "서울시 문화행사 공공서비스예약 정보.csv": ("장소Y좌표", "장소X좌표"),
     "서울시립미술관 전시 정보 (국문).csv": ("y좌표", "x좌표"),
     "서울시 체육시설 공연행사 정보.csv": ("y좌표", "x좌표"),
-    "서울시 종로구 관광데이터 정보 (한국어).csv": ("Y 좌표", "X 좌표"),
+    "서울시 종로구 관광데이터 정보 (한국어).csv": ("Y 좌표", "X 좌표")
 }
 
-uploaded_files = st.file_uploader("📂 CSV 파일들을 업로드하세요", accept_multiple_files=True, type="csv")
+# 서울 중심 좌표
+seoul_center = [37.5665, 126.9780]
+m = folium.Map(location=seoul_center, zoom_start=12)
+marker_cluster = MarkerCluster().add_to(m)
 
-# 지도 초기 위치 설정 (서울 중심)
-seoul_map = folium.Map(location=[37.5665, 126.9780], zoom_start=11)
-
-# 파일별 마커 추가
-for uploaded_file in uploaded_files:
-    filename = uploaded_file.name
-    if filename in files_info:
-        lat_col, lon_col = files_info[filename]
-        df = pd.read_csv(uploaded_file)
-
-        st.write(f"🗂️ {filename} 데이터 미리보기", df.head())
-
-        for idx, row in df.iterrows():
-            try:
-                lat = float(row[lat_col])
-                lon = float(row[lon_col])
-                folium.Marker(location=[lat, lon], popup=filename).add_to(seoul_map)
-            except Exception:
-                continue  # 좌표 변환 실패시 건너뜀
+# 각 파일에서 마커 추가
+for file_name, (lat_col, lng_col) in csv_info.items():
+    try:
+        df = pd.read_csv(f"{file_name}")  # 경로는 필요에 맞게 수정
+        for _, row in df.iterrows():
+            lat = row[lat_col]
+            lng = row[lng_col]
+            if pd.notna(lat) and pd.notna(lng):
+                folium.Marker(
+                    location=[lat, lng],
+                    tooltip=file_name.replace(".csv", ""),
+                    icon=folium.Icon(color='blue', icon='info-sign')
+                ).add_to(marker_cluster)
+    except Exception as e:
+        st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
 
 # 지도 표시
-st.subheader("🗺️ 지도")
-folium_static(seoul_map)
+folium_static(m, width=900, height=600)
+
 
 
 
