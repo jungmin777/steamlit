@@ -133,6 +133,55 @@ if response.status_code == 200:
 else:
     st.error("API 요청 실패")
 
+################
+
+
+########### 지도 시각화
+
+import streamlit as st
+import pandas as pd
+import folium
+from streamlit_folium import folium_static
+
+st.title("📍 서울시 공공데이터 지도 시각화")
+
+# 파일 리스트와 좌표 컬럼 정보
+files_info = {
+    "서울시 외국인전용 관광기념품 판매점 정보.csv": ("위치정보(Y)", "위치정보(X)"),
+    "서울시 문화행사 공공서비스예약 정보.csv": ("장소Y좌표", "장소X좌표"),
+    "서울시립미술관 전시 정보 (국문).csv": ("y좌표", "x좌표"),
+    "서울시 체육시설 공연행사 정보.csv": ("y좌표", "x좌표"),
+    "서울시 종로구 관광데이터 정보 (한국어).csv": ("Y 좌표", "X 좌표"),
+}
+
+uploaded_files = st.file_uploader("📂 CSV 파일들을 업로드하세요", accept_multiple_files=True, type="csv")
+
+# 지도 초기 위치 설정 (서울 중심)
+seoul_map = folium.Map(location=[37.5665, 126.9780], zoom_start=11)
+
+# 파일별 마커 추가
+for uploaded_file in uploaded_files:
+    filename = uploaded_file.name
+    if filename in files_info:
+        lat_col, lon_col = files_info[filename]
+        df = pd.read_csv(uploaded_file)
+
+        st.write(f"🗂️ {filename} 데이터 미리보기", df.head())
+
+        for idx, row in df.iterrows():
+            try:
+                lat = float(row[lat_col])
+                lon = float(row[lon_col])
+                folium.Marker(location=[lat, lon], popup=filename).add_to(seoul_map)
+            except Exception:
+                continue  # 좌표 변환 실패시 건너뜀
+
+# 지도 표시
+st.subheader("🗺️ 지도")
+folium_static(seoul_map)
+
+
+
 
 
 ###########################################
