@@ -1,4 +1,6 @@
 import streamlit as st
+st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+
 import pandas as pd
 import altair as alt
 import folium
@@ -144,7 +146,7 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
-st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+# st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
 # 파일 이름 및 해당 좌표 컬럼명 매핑
@@ -164,7 +166,7 @@ marker_cluster = MarkerCluster().add_to(m)
 # 각 파일에서 마커 추가
 for file_name, (lat_col, lng_col) in csv_info.items():
     try:
-        df = pd.read_csv(f"{file_name}")  # 경로는 필요에 맞게 수정
+        df = pd.read_csv(file_name)  # 경로는 필요에 맞게 수정
         for _, row in df.iterrows():
             lat = row[lat_col]
             lng = row[lng_col]
