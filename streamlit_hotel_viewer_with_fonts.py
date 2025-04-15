@@ -158,6 +158,11 @@ csv_info = {
     "서울시 종로구 관광데이터 정보 (한국어).csv": ("Y 좌표", "X 좌표")
 }
 
+# 엑셀 파일 정보
+excel_info = {
+    "서울시 자랑스러운 한국음식점 정보 (한국어).xlsx": ("Latitude", "Longitude")
+}
+
 # 서울 중심 좌표
 seoul_center = [37.5665, 126.9780]
 m = folium.Map(location=seoul_center, zoom_start=12)
@@ -175,6 +180,22 @@ for file_name, (lat_col, lng_col) in csv_info.items():
                     location=[lat, lng],
                     tooltip=file_name.replace(".csv", ""),
                     icon=folium.Icon(color='blue', icon='info-sign')
+                ).add_to(marker_cluster)
+    except Exception as e:
+        st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
+
+for file_name, (lat_col, lng_col) in excel_info.items():
+    try:
+        df = pd.read_excel(file_name)
+        for _, row in df.iterrows():
+            lat = row[lat_col]
+            lng = row[lng_col]
+            if pd.notna(lat) and pd.notna(lng):
+                folium.Marker(
+                    location=[lat, lng],
+                    tooltip=file_name.replace(".xlsx", ""),
+                    icon=folium.Icon(color='green', icon='cutlery')  # 음식점 느낌 아이콘
                 ).add_to(marker_cluster)
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
