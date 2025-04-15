@@ -4,4 +4,4 @@ altair
 folium
 streamlit_folium
 requests
-
+openpyxl
