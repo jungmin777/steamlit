@@ -144,7 +144,6 @@ if st.button("데이터 불러오기"):
 
 from streamlit_js_eval import get_geolocation
 
-st.set_page_config(page_title="서울시 위치 정보 지도", layout="wide")
 st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
 # ----------------------------------------
