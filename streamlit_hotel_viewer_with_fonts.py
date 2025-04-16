@@ -176,8 +176,15 @@ user_location = get_geolocation()
 
 st.write("📦 사용자 위치 데이터:", user_location)
 
-if user_location and "latitude" in user_location and "longitude" in user_location:
-    center = [user_location["latitude"], user_location["longitude"]]
+if (
+    user_location
+    and "coords" in user_location
+    and "latitude" in user_location["coords"]
+    and "longitude" in user_location["coords"]
+):
+    lat = user_location["coords"]["latitude"]
+    lng = user_location["coords"]["longitude"]
+    center = [lat, lng]
     st.success(f"📍 현재 위치: {center}")
 else:
     center = [37.5665, 126.9780]  # 서울 중심
