@@ -10,12 +10,14 @@ from streamlit_folium import folium_static
 
 
 
+
+
 ###################################################
 
-import streamlit as st
+
 import requests
 import xml.etree.ElementTree as ET
-import pandas as pd
+
 
 # 인증키와 API 기본 URL 설정
 API_KEY = "616d73735a6c6b613338414d616d78"
@@ -140,15 +142,26 @@ if st.button("데이터 불러오기"):
 
 ########### 지도 시각화
 
-import streamlit as st
-import pandas as pd
-import folium
-from folium.plugins import MarkerCluster
-from streamlit_folium import folium_static
+from streamlit_js_eval import get_geolocation
 
+st.set_page_config(page_title="서울시 위치 정보 지도", layout="wide")
 st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
-# 색상 및 아이콘 설정
+# ----------------------------------------
+# 📁 파일 및 좌표 컬럼 정보 설정
+csv_info = {
+    "서울시 외국인전용 관광기념품 판매점 정보.csv": ("위치정보(Y)", "위치정보(X)"),
+    "서울시 문화행사 공공서비스예약 정보.csv": ("장소Y좌표", "장소X좌표"),
+    "서울시립미술관 전시 정보 (국문).csv": ("y좌표", "x좌표"),
+    "서울시 체육시설 공연행사 정보.csv": ("y좌표", "x좌표"),
+    "서울시 종로구 관광데이터 정보 (한국어).csv": ("Y 좌표", "X 좌표")
+}
+excel_info = {
+    "서울시 자랑스러운 한국음식점 정보 (한국어).xlsx": ("Latitude", "Longitude")
+}
+all_info = {**csv_info, **excel_info}
+
+# 🧱 아이콘 및 색상 지정
 icon_config = {
     "서울시 외국인전용 관광기념품 판매점 정보.csv": ("blue", "gift"),
     "서울시 문화행사 공공서비스예약 정보.csv": ("purple", "star"),
@@ -158,69 +171,61 @@ icon_config = {
     "서울시 자랑스러운 한국음식점 정보 (한국어).xlsx": ("green", "cutlery")
 }
 
-# CSV 파일 정보
-csv_info = {
-    "서울시 외국인전용 관광기념품 판매점 정보.csv": ("위치정보(Y)", "위치정보(X)"),
-    "서울시 문화행사 공공서비스예약 정보.csv": ("장소Y좌표", "장소X좌표"),
-    "서울시립미술관 전시 정보 (국문).csv": ("y좌표", "x좌표"),
-    "서울시 체육시설 공연행사 정보.csv": ("y좌표", "x좌표"),
-    "서울시 종로구 관광데이터 정보 (한국어).csv": ("Y 좌표", "X 좌표")
-}
+# ----------------------------------------
+# 🧭 사용자 현재 위치
+user_location = get_geolocation()
+if user_location:
+    center = [user_location["latitude"], user_location["longitude"]]
+    st.success(f"📍 현재 위치: {center}")
+else:
+    center = [37.5665, 126.9780]  # 기본 서울 중심
 
-# 엑셀 파일 정보
-excel_info = {
-    "서울시 자랑스러운 한국음식점 정보 (한국어).xlsx": ("Latitude", "Longitude")
-}
+# ----------------------------------------
+# 📌 카테고리 선택
+category_options = ["전체"] + list(all_info.keys())
+selected_category = st.selectbox(
+    "📂 확인할 카테고리를 선택하세요:",
+    category_options,
+    format_func=lambda x: "전체 보기" if x == "전체" else x.replace(".csv", "").replace(".xlsx", "")
+)
 
-# 서울 중심 좌표
-seoul_center = [37.5665, 126.9780]
-m = folium.Map(location=seoul_center, zoom_start=12)
+# ----------------------------------------
+# 🗺️ 지도 생성
+m = folium.Map(location=center, zoom_start=12)
 marker_cluster = MarkerCluster().add_to(m)
 
-# CSV 파일 마커 추가
-for file_name, (lat_col, lng_col) in csv_info.items():
+# ----------------------------------------
+# 📍 마커 생성 함수
+def add_markers(file_name, lat_col, lng_col):
+    color, icon = icon_config.get(file_name, ("gray", "info-sign"))
     try:
-        df = pd.read_csv(file_name)
-        color, icon = icon_config.get(file_name, ("gray", "info-sign"))
+        df = pd.read_csv(file_name) if file_name.endswith(".csv") else pd.read_excel(file_name)
         for _, row in df.iterrows():
-            lat = row[lat_col]
-            lng = row[lng_col]
+            lat, lng = row[lat_col], row[lng_col]
             if pd.notna(lat) and pd.notna(lng):
                 directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
                 popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
                 folium.Marker(
                     location=[lat, lng],
-                    tooltip=file_name.replace(".csv", ""),
+                    tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
                     popup=folium.Popup(popup_html, max_width=300),
                     icon=folium.Icon(color=color, icon=icon, prefix="fa")
                 ).add_to(marker_cluster)
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
 
-# 엑셀 파일 마커 추가
-for file_name, (lat_col, lng_col) in excel_info.items():
-    try:
-        df = pd.read_excel(file_name)
-        color, icon = icon_config.get(file_name, ("gray", "info-sign"))
-        for _, row in df.iterrows():
-            lat = row[lat_col]
-            lng = row[lng_col]
-            if pd.notna(lat) and pd.notna(lng):
-                directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
-                folium.Marker(
-                    location=[lat, lng],
-                    tooltip=file_name.replace(".xlsx", ""),
-                    popup=folium.Popup(popup_html, max_width=300),
-                    icon=folium.Icon(color=color, icon=icon, prefix="fa")
-                ).add_to(marker_cluster)
-    except Exception as e:
-        st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+# ----------------------------------------
+# 🎯 선택된 카테고리만 지도에 표시
+if selected_category == "전체":
+    for file, (lat_col, lng_col) in all_info.items():
+        add_markers(file, lat_col, lng_col)
+else:
+    lat_col, lng_col = all_info[selected_category]
+    add_markers(selected_category, lat_col, lng_col)
 
-# 지도 표시
-folium_static(m, width=900, height=600)
-
-
+# ----------------------------------------
+# 📍 지도 출력
+folium_static(m, width=1000, height=600)
 
 
 
