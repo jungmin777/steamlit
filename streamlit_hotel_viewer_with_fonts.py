@@ -12,66 +12,66 @@ from streamlit_folium import folium_static
 
 ###################################################
 
-# import streamlit as st
-# import requests
-# import xml.etree.ElementTree as ET
-# import pandas as pd
+import streamlit as st
+import requests
+import xml.etree.ElementTree as ET
+import pandas as pd
 
-# # 인증키와 API 기본 URL 설정
-# API_KEY = "616d73735a6c6b613338414d616d78"
-# BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo"
+# 인증키와 API 기본 URL 설정
+API_KEY = "616d73735a6c6b613338414d616d78"
+BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo"
 
-# # Streamlit UI
-# st.title("서울시 문화공간 정보 전체 보기")
+# Streamlit UI
+st.title("서울시 문화공간 정보 전체 보기")
 
-# start = st.number_input("시작 인덱스", min_value=1, value=1)
-# end = st.number_input("끝 인덱스", min_value=start, value=start + 9)
+start = st.number_input("시작 인덱스", min_value=1, value=1)
+end = st.number_input("끝 인덱스", min_value=start, value=start + 9)
 
-# if st.button("데이터 불러오기"):
-#     url = f"{BASE_URL}/{start}/{end}/"
-#     response = requests.get(url)
+if st.button("데이터 불러오기"):
+    url = f"{BASE_URL}/{start}/{end}/"
+    response = requests.get(url)
 
-#     if response.status_code == 200:
-#         root = ET.fromstring(response.content)
+    if response.status_code == 200:
+        root = ET.fromstring(response.content)
 
-#         rows = []
-#         for item in root.findall(".//row"):
-#             row_data = {
-#                 "번호": item.findtext("NUM"),
-#                 "주제분류": item.findtext("SUBJCODE"),
-#                 "문화시설명": item.findtext("FAC_NAME"),
-#                 "주소": item.findtext("ADDR"),
-#                 "위도": item.findtext("X_COORD"),
-#                 "경도": item.findtext("Y_COORD"),
-#                 "전화번호": item.findtext("PHNE"),
-#                 "팩스번호": item.findtext("FAX"),
-#                 "홈페이지": item.findtext("HOMEPAGE"),
-#                 "관람시간": item.findtext("OPENHOUR"),
-#                 "관람료": item.findtext("ENTR_FEE"),
-#                 "휴관일": item.findtext("CLOSEDAY"),
-#                 "개관일자": item.findtext("OPEN_DAY"),
-#                 "객석수": item.findtext("SEAT_CNT"),
-#                 "대표이미지": item.findtext("MAIN_IMG"),
-#                 "기타사항": item.findtext("ETC_DESC"),
-#                 "시설소개": item.findtext("FAC_DESC"),
-#                 "무료구분": item.findtext("ENTRFREE"),
-#                 "지하철": item.findtext("SUBWAY"),
-#                 "버스정거장": item.findtext("BUSSTOP"),
-#                 "노란버스": item.findtext("YELLOW"),
-#                 "초록버스": item.findtext("GREEN"),
-#                 "파란버스": item.findtext("BLUE"),
-#                 "빨간버스": item.findtext("RED"),
-#                 "공항버스": item.findtext("AIRPORT")
-#             }
-#             rows.append(row_data)
+        rows = []
+        for item in root.findall(".//row"):
+            row_data = {
+                "번호": item.findtext("NUM"),
+                "주제분류": item.findtext("SUBJCODE"),
+                "문화시설명": item.findtext("FAC_NAME"),
+                "주소": item.findtext("ADDR"),
+                "위도": item.findtext("X_COORD"),
+                "경도": item.findtext("Y_COORD"),
+                "전화번호": item.findtext("PHNE"),
+                "팩스번호": item.findtext("FAX"),
+                "홈페이지": item.findtext("HOMEPAGE"),
+                "관람시간": item.findtext("OPENHOUR"),
+                "관람료": item.findtext("ENTR_FEE"),
+                "휴관일": item.findtext("CLOSEDAY"),
+                "개관일자": item.findtext("OPEN_DAY"),
+                "객석수": item.findtext("SEAT_CNT"),
+                "대표이미지": item.findtext("MAIN_IMG"),
+                "기타사항": item.findtext("ETC_DESC"),
+                "시설소개": item.findtext("FAC_DESC"),
+                "무료구분": item.findtext("ENTRFREE"),
+                "지하철": item.findtext("SUBWAY"),
+                "버스정거장": item.findtext("BUSSTOP"),
+                "노란버스": item.findtext("YELLOW"),
+                "초록버스": item.findtext("GREEN"),
+                "파란버스": item.findtext("BLUE"),
+                "빨간버스": item.findtext("RED"),
+                "공항버스": item.findtext("AIRPORT")
+            }
+            rows.append(row_data)
 
-#         if rows:
-#             df = pd.DataFrame(rows)
-#             st.dataframe(df)
-#         else:
-#             st.warning("데이터가 없습니다.")
-#     else:
-#         st.error(f"API 요청 실패. 상태 코드: {response.status_code}")
+        if rows:
+            df = pd.DataFrame(rows)
+            st.dataframe(df)
+        else:
+            st.warning("데이터가 없습니다.")
+    else:
+        st.error(f"API 요청 실패. 상태 코드: {response.status_code}")
 
 ######### 이 위는 api로 조회하는거
 
@@ -80,60 +80,60 @@ from streamlit_folium import folium_static
 ######### 이 아래는 업데이트가 되서 새 데이터가 생기는지 보려고 하는거
 
 
-import streamlit as st
-import requests
-import xml.etree.ElementTree as ET
-import pandas as pd
-import os
-from datetime import date
+# import streamlit as st
+# import requests
+# import xml.etree.ElementTree as ET
+# import pandas as pd
+# import os
+# from datetime import date
 
-# 설정
-API_KEY = "616d73735a6c6b613338414d616d78"
-BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo/1/1/"
-CSV_FILE = "total_count_log.csv"
+# # 설정
+# API_KEY = "616d73735a6c6b613338414d616d78"
+# BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo/1/1/"
+# CSV_FILE = "total_count_log.csv"
 
-st.title("서울시 문화공간 정보 - 데이터 업데이트 체크 (CSV 저장)")
+# st.title("서울시 문화공간 정보 - 데이터 업데이트 체크 (CSV 저장)")
 
-# 오늘 날짜
-today = str(date.today())
+# # 오늘 날짜
+# today = str(date.today())
 
-# API 호출
-response = requests.get(BASE_URL)
+# # API 호출
+# response = requests.get(BASE_URL)
 
-if response.status_code == 200:
-    root = ET.fromstring(response.content)
-    total_count = root.findtext(".//list_total_count")
-    st.info(f"📦 오늘의 total_count: {total_count}")
+# if response.status_code == 200:
+#     root = ET.fromstring(response.content)
+#     total_count = root.findtext(".//list_total_count")
+#     st.info(f"📦 오늘의 total_count: {total_count}")
 
-    # 기존 CSV 파일이 있다면 불러오기
-    if os.path.exists(CSV_FILE):
-        df_log = pd.read_csv(CSV_FILE)
-    else:
-        df_log = pd.DataFrame(columns=["date", "total_count"])
+#     # 기존 CSV 파일이 있다면 불러오기
+#     if os.path.exists(CSV_FILE):
+#         df_log = pd.read_csv(CSV_FILE)
+#     else:
+#         df_log = pd.DataFrame(columns=["date", "total_count"])
 
-    # 이전 값 확인
-    if not df_log.empty:
-        last_row = df_log.iloc[-1]
-        st.write(f"🕓 마지막 저장된 날짜: {last_row['date']}, total_count: {last_row['total_count']}")
+#     # 이전 값 확인
+#     if not df_log.empty:
+#         last_row = df_log.iloc[-1]
+#         st.write(f"🕓 마지막 저장된 날짜: {last_row['date']}, total_count: {last_row['total_count']}")
 
-        if str(last_row["total_count"]) != total_count:
-            st.success("✅ 데이터가 변경되었습니다!")
-        else:
-            st.warning("ℹ️ total_count에는 변화가 없습니다.")
-    else:
-        st.info("처음 실행 중입니다.")
+#         if str(last_row["total_count"]) != total_count:
+#             st.success("✅ 데이터가 변경되었습니다!")
+#         else:
+#             st.warning("ℹ️ total_count에는 변화가 없습니다.")
+#     else:
+#         st.info("처음 실행 중입니다.")
 
-    # 이미 오늘자 기록이 있으면 추가 저장은 하지 않음
-    if today not in df_log["date"].values:
-        df_log.loc[len(df_log)] = [today, total_count]
-        df_log.to_csv(CSV_FILE, index=False)
-        st.success("📄 오늘자 데이터가 CSV에 저장되었습니다.")
-    else:
-        st.info("오늘자 기록은 이미 저장되어 있습니다.")
+#     # 이미 오늘자 기록이 있으면 추가 저장은 하지 않음
+#     if today not in df_log["date"].values:
+#         df_log.loc[len(df_log)] = [today, total_count]
+#         df_log.to_csv(CSV_FILE, index=False)
+#         st.success("📄 오늘자 데이터가 CSV에 저장되었습니다.")
+#     else:
+#         st.info("오늘자 기록은 이미 저장되어 있습니다.")
 
-    st.dataframe(df_log)
-else:
-    st.error("API 요청 실패")
+#     st.dataframe(df_log)
+# else:
+#     st.error("API 요청 실패")
 
 ################
 
@@ -146,10 +146,19 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
-# st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
-# 파일 이름 및 해당 좌표 컬럼명 매핑
+# 색상 및 아이콘 설정
+icon_config = {
+    "서울시 외국인전용 관광기념품 판매점 정보.csv": ("blue", "gift"),
+    "서울시 문화행사 공공서비스예약 정보.csv": ("purple", "star"),
+    "서울시립미술관 전시 정보 (국문).csv": ("orange", "paint-brush"),
+    "서울시 체육시설 공연행사 정보.csv": ("cadetblue", "music"),
+    "서울시 종로구 관광데이터 정보 (한국어).csv": ("red", "camera"),
+    "서울시 자랑스러운 한국음식점 정보 (한국어).xlsx": ("green", "cutlery")
+}
+
+# CSV 파일 정보
 csv_info = {
     "서울시 외국인전용 관광기념품 판매점 정보.csv": ("위치정보(Y)", "위치정보(X)"),
     "서울시 문화행사 공공서비스예약 정보.csv": ("장소Y좌표", "장소X좌표"),
@@ -168,40 +177,50 @@ seoul_center = [37.5665, 126.9780]
 m = folium.Map(location=seoul_center, zoom_start=12)
 marker_cluster = MarkerCluster().add_to(m)
 
-# 각 파일에서 마커 추가
+# CSV 파일 마커 추가
 for file_name, (lat_col, lng_col) in csv_info.items():
     try:
-        df = pd.read_csv(file_name)  # 경로는 필요에 맞게 수정
+        df = pd.read_csv(file_name)
+        color, icon = icon_config.get(file_name, ("gray", "info-sign"))
         for _, row in df.iterrows():
             lat = row[lat_col]
             lng = row[lng_col]
             if pd.notna(lat) and pd.notna(lng):
+                directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
+                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
                 folium.Marker(
                     location=[lat, lng],
                     tooltip=file_name.replace(".csv", ""),
-                    icon=folium.Icon(color='blue', icon='info-sign')
+                    popup=folium.Popup(popup_html, max_width=300),
+                    icon=folium.Icon(color=color, icon=icon, prefix="fa")
                 ).add_to(marker_cluster)
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
 
-
+# 엑셀 파일 마커 추가
 for file_name, (lat_col, lng_col) in excel_info.items():
     try:
         df = pd.read_excel(file_name)
+        color, icon = icon_config.get(file_name, ("gray", "info-sign"))
         for _, row in df.iterrows():
             lat = row[lat_col]
             lng = row[lng_col]
             if pd.notna(lat) and pd.notna(lng):
+                directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
+                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
                 folium.Marker(
                     location=[lat, lng],
                     tooltip=file_name.replace(".xlsx", ""),
-                    icon=folium.Icon(color='green', icon='cutlery')  # 음식점 느낌 아이콘
+                    popup=folium.Popup(popup_html, max_width=300),
+                    icon=folium.Icon(color=color, icon=icon, prefix="fa")
                 ).add_to(marker_cluster)
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
 
 # 지도 표시
 folium_static(m, width=900, height=600)
+
+
 
 
 
