@@ -229,10 +229,26 @@ marker_cluster = MarkerCluster().add_to(m)
 
 # ----------------------------------------
 # 📍 마커 생성 함수
+# 📍 마커 생성 함수 (인코딩 조건 추가)
 def add_markers(file_name, lat_col, lng_col):
     color, icon = icon_config.get(file_name, ("gray", "info-sign"))
     try:
-        df = pd.read_csv(file_name) if file_name.endswith(".csv") else pd.read_excel(file_name)
+        # 인코딩 조건: 영어 파일만 cp949
+        if file_name.endswith(".csv"):
+            if "영어" in file_name or "영문" in file_name:
+                df = pd.read_csv(file_name, encoding="cp949")
+            else:
+                df = pd.read_csv(file_name)
+        else:
+            df = pd.read_excel(file_name)
+
+        # 특별 처리: 시립미술관 영어 파일은 "126.9738,37.56424" 형식 → 분리
+        if file_name == "서울시립미술관 전시 정보 (영문).csv":
+            coords = df.iloc[:, 1].str.split(",", expand=True)
+            df["lat"] = coords[1].astype(float)
+            df["lng"] = coords[0].astype(float)
+            lat_col, lng_col = "lat", "lng"
+
         for _, row in df.iterrows():
             lat, lng = row[lat_col], row[lng_col]
             if pd.notna(lat) and pd.notna(lng):
@@ -246,6 +262,7 @@ def add_markers(file_name, lat_col, lng_col):
                 ).add_to(marker_cluster)
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
 
 # ----------------------------------------
 # 🎯 선택된 카테고리만 지도에 표시
