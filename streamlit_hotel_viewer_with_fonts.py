@@ -242,11 +242,12 @@ def add_markers(file_name, lat_col, lng_col):
         else:
             df = pd.read_excel(file_name)
 
-        # 특별 처리: 시립미술관 영어 파일은 "126.9738,37.56424" 형식 → 분리
-        if file_name == "서울시립미술관 전시 정보 (영문).csv":
+        # 서울시립미술관 전시 정보 (영문)2.csv에 대한 특별 처리
+        if file_name == "서울시립미술관 전시 정보 (영문)2.csv":
+            # 좌표가 "x좌표,y좌표" 형태로 저장되어 있는 경우
             coords = df.iloc[:, 1].str.split(",", expand=True)
-            df["lat"] = coords[1].astype(float)
-            df["lng"] = coords[0].astype(float)
+            df["lat"] = coords[1].astype(float)  # 두 번째 컬럼이 y좌표
+            df["lng"] = coords[0].astype(float)  # 첫 번째 컬럼이 x좌표
             lat_col, lng_col = "lat", "lng"
 
         for _, row in df.iterrows():
@@ -262,6 +263,7 @@ def add_markers(file_name, lat_col, lng_col):
                 ).add_to(marker_cluster)
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
 
 
 # ----------------------------------------
