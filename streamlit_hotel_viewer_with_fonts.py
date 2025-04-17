@@ -236,19 +236,17 @@ def add_markers(file_name, lat_col, lng_col):
         # 인코딩 조건: 영어 파일만 cp949
         if file_name.endswith(".csv"):
             if "영어" in file_name or "영문" in file_name:
-                df = pd.read_csv(file_name, encoding="cp949", header=None)  # 컬럼명이 없으므로 header=None
+                df = pd.read_csv(file_name, encoding="cp949")
             else:
-                df = pd.read_csv(file_name, header=None)  # 컬럼명이 없으므로 header=None
+                df = pd.read_csv(file_name)
         else:
-            df = pd.read_excel(file_name, header=None)  # Excel 파일에도 컬럼명이 없으면 header=None
+            df = pd.read_excel(file_name)
 
-        # 서울시립미술관 전시 정보 (영문)2.csv에 대한 특별 처리
-        if file_name == "서울시립미술관 전시 정보 (영문)2.csv":
-            # 좌표가 "x좌표,y좌표" 형태로 저장되어 있는 경우
-            # 해당 컬럼을 문자열로 변환 후 split 적용
-            coords = df.iloc[:, 1].astype(str).fillna('').str.split(",", expand=True)
-            df["lat"] = coords[1].astype(float)  # 두 번째 컬럼이 y좌표
-            df["lng"] = coords[0].astype(float)  # 첫 번째 컬럼이 x좌표
+        # 특별 처리: 시립미술관 영어 파일은 "126.9738,37.56424" 형식 → 분리
+        if file_name == "서울시립미술관 전시 정보 (영문).csv":
+            coords = df.iloc[:, 1].str.split(",", expand=True)
+            df["lat"] = coords[1].astype(float)
+            df["lng"] = coords[0].astype(float)
             lat_col, lng_col = "lat", "lng"
 
         for _, row in df.iterrows():
