@@ -197,7 +197,7 @@ elif language == "중국어":
 # 🧭 사용자 현재 위치
 user_location = get_geolocation()
 
-st.write("📦 사용자 위치 데이터:", user_location)
+############ st.write("📦 사용자 위치 데이터:", user_location)
 
 if (
     user_location
@@ -208,10 +208,10 @@ if (
     lat = user_location["coords"]["latitude"]
     lng = user_location["coords"]["longitude"]
     center = [lat, lng]
-#    st.success(f"📍 현재 위치: {center}")
+    st.success(f"📍 현재 위치: {center}")
 else:
     center = [37.5665, 126.9780]  # 서울 중심
-#    st.warning("⚠️ 현재 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
+    st.warning("⚠️ 현재 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
 
 # ----------------------------------------
 # 📌 카테고리 선택
