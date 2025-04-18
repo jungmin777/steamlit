@@ -147,9 +147,12 @@ from streamlit_js_eval import get_geolocation
 st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
 # ----------------------------------------
-# ----------------------------------------
-# 🌐 언어 선택
-language = st.radio("🌐 언어 선택", ["한국어", "영어", "중국어"], horizontal=True)
+# 🌐 언어 선택 (오른쪽 상단 위치 느낌으로 배치)
+col1, col2, col3 = st.columns([6, 1, 2])  # 비율 조정: col3이 오른쪽
+
+with col3:
+    language = st.selectbox("🌐 언어 선택", ["한국어", "영어", "중국어"])
+
 
 # 📁 파일 및 좌표 컬럼 정보 설정 (언어별 분리)
 csv_info_ko = {
