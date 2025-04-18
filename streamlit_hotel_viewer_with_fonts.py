@@ -165,7 +165,7 @@ excel_info_ko = {
 
 csv_info_en = {
     "서울시 종로구 관광데이터 정보 (영어).csv": ("Y 좌표", "X 좌표"),
-    "서울시립미술관 전시 정보 (영문).csv": ("Latitude", "Longitude")  # ✅ 고정된 컬럼명으로 변경
+    "서울시립미술관 전시 정보 (영문)2.csv": ("Latitude", "Longitude")  # ✅ 고정된 컬럼명으로 변경
 }
 
 
