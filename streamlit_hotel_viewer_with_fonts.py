@@ -165,8 +165,9 @@ excel_info_ko = {
 
 csv_info_en = {
     "서울시 종로구 관광데이터 정보 (영어).csv": ("Y 좌표", "X 좌표"),
-    "서울시립미술관 전시 정보 (영문)2.csv": ("126.9738", "37.56424")  # 가상의 고정 좌표 사용
+    "서울시립미술관 전시 정보 (영문).csv": ("Latitude", "Longitude")  # ✅ 고정된 컬럼명으로 변경
 }
+
 
 csv_info_cn = {
     "서울시 종로구 관광데이터 정보 (중국어_간체).csv": ("Y 좌표", "X 좌표")
@@ -229,7 +230,6 @@ marker_cluster = MarkerCluster().add_to(m)
 
 # ----------------------------------------
 # 📍 마커 생성 함수
-# 📍 마커 생성 함수 (인코딩 조건 추가)
 def add_markers(file_name, lat_col, lng_col):
     color, icon = icon_config.get(file_name, ("gray", "info-sign"))
     try:
@@ -241,14 +241,6 @@ def add_markers(file_name, lat_col, lng_col):
                 df = pd.read_csv(file_name)
         else:
             df = pd.read_excel(file_name)
-
-        # ✅ 특별 처리: 시립미술관 영어 파일 → 고정 좌표 지정
-        if file_name == "서울시립미술관 전시 정보 (영문).csv":
-            fixed_lat = 37.56424
-            fixed_lng = 126.9738
-            df["lat"] = fixed_lat
-            df["lng"] = fixed_lng
-            lat_col, lng_col = "lat", "lng"
 
         for _, row in df.iterrows():
             lat, lng = row[lat_col], row[lng_col]
@@ -263,6 +255,7 @@ def add_markers(file_name, lat_col, lng_col):
                 ).add_to(marker_cluster)
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
 
 
 
