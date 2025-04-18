@@ -235,7 +235,7 @@ def add_markers(file_name, lat_col, lng_col):
     try:
         # 인코딩 조건: 영어 파일만 cp949
         if file_name.endswith(".csv"):
-            if "영어" in file_name:
+            if "영어" in file_name or "중국" in file_name:
                 df = pd.read_csv(file_name, encoding="cp949")
             elif "영문" in file_name:
                 df = pd.read_csv(file_name, encoding="utf-8-sig")
