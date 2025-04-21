@@ -168,7 +168,7 @@ language = language_map[selected_language]
 csv_info_ko = {
     "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
     "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
-    "서울시립미술관 전시 정보 (국문).csv": ("y좌표", "x좌표"),
+    "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
     "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
     "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
 }
@@ -179,7 +179,7 @@ excel_info_ko = {
 csv_info_en = {
     "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("Location Information (Y Coordinate)", "Location Information (X Coordinate)"),
     "서울시 문화행사 공공서비스예약 정보(영문).csv": ("Location Y Coordinate", "Location X Coordinate"),
-    "서울시립미술관 전시 정보 (영문).csv": ("y Coordinate", "x Coordinate"),
+    "서울시립미술관 전시정보 (영문).csv": ("y Coordinate", "x Coordinate"),
     "서울시 체육시설 공연행사 정보 (영문).csv": ("Y Coordinate", "X Coordinate"),
     "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표")
 }
@@ -187,7 +187,7 @@ csv_info_en = {
 csv_info_cn = {
     "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("位置坐标(Y)","位置坐标(X)"),
     "서울시 문화행사 공공서비스예약 정보(중문).csv": ("场所Y坐标", "场所X坐标"),
-    "서울시립미술관 전시 정보 (중문).csv": ("y坐标","x坐标"),
+    "서울시립미술관 전시정보 (중문).csv": ("y坐标","x坐标"),
     "서울시 체육시설 공연행사 정보 (중문).csv": ("y 坐标","x 坐标"),
     "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표")
 }
