@@ -281,11 +281,59 @@ marker_cluster = MarkerCluster().add_to(m)
 # 📍 마커 생성 함수
 # ----------------------------------------
 # 📍 마커 생성 함수 (언어별 명칭 출력 포함)
+# def add_markers(file_name, lat_col, lng_col):
+#     color, icon = icon_config.get(file_name, ("gray", "info-sign"))
+
+#     try:
+#         # 데이터 불러오기
+#         if file_name.endswith(".csv"):
+#             if "영어" in file_name or "중국" in file_name:
+#                 df = pd.read_csv(file_name, encoding="cp949")
+#             elif "영문" in file_name:
+#                 df = pd.read_csv(file_name, encoding="utf-8-sig")
+#             else:
+#                 df = pd.read_csv(file_name)
+#         else:
+#             df = pd.read_excel(file_name)
+
+#         # 🎯 명칭 컬럼 지정 (언어별)
+#         name_col = '명칭 못찾음'
+#         if "음식점" in file_name:
+#             if language == "영어" and "명칭(영어)" in df.columns:
+#                 name_col = "명칭(영어)"
+#             else:
+#                 name_col = "명칭"
+#         elif "전시" in file_name or "관광" in file_name or "기념품" in file_name or "문화행사" in file_name or "체육시설" in file_name:
+#             for col in df.columns:
+#                 if "명칭" in col or "행사명" in col or "전시명" in col or "장소명" in col:
+#                     name_col = col
+#                     break
+
+#         for _, row in df.iterrows():
+#             lat, lng = row[lat_col], row[lng_col]
+#             if pd.notna(lat) and pd.notna(lng):
+#                 # 구글 길찾기 링크
+#                 directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
+
+#                 # 팝업 내용
+#                 title = row[name_col] if name_col and name_col in row and pd.notna(row[name_col]) else file_name.replace(".csv", "").replace(".xlsx", "")
+#                 popup_html = f"<b>{title}</b><br><a href='{directions_url}' target='_blank'>📍 길찾기 (구글 지도)</a>"
+
+#                 # 마커 생성
+#                 folium.Marker(
+#                     location=[lat, lng],
+#                     tooltip=title,
+#                     popup=folium.Popup(popup_html, max_width=300),
+#                     icon=folium.Icon(color=color, icon=icon, prefix="fa")
+#                 ).add_to(marker_cluster)
+
+#     except Exception as e:
+#         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+# 📍 마커 생성 함수
 def add_markers(file_name, lat_col, lng_col):
     color, icon = icon_config.get(file_name, ("gray", "info-sign"))
-
     try:
-        # 데이터 불러오기
+        # 파일 읽기
         if file_name.endswith(".csv"):
             if "영어" in file_name or "중국" in file_name:
                 df = pd.read_csv(file_name, encoding="cp949")
@@ -296,37 +344,20 @@ def add_markers(file_name, lat_col, lng_col):
         else:
             df = pd.read_excel(file_name)
 
-        # 🎯 명칭 컬럼 지정 (언어별)
-        name_col = '명칭 못찾음'
-        if "음식점" in file_name:
-            if language == "영어" and "명칭(영어)" in df.columns:
-                name_col = "명칭(영어)"
-            else:
-                name_col = "명칭"
-        elif "전시" in file_name or "관광" in file_name or "기념품" in file_name or "문화행사" in file_name or "체육시설" in file_name:
-            for col in df.columns:
-                if "명칭" in col or "행사명" in col or "전시명" in col or "장소명" in col:
-                    name_col = col
-                    break
+        # 데이터 절반만 사용
+        df_half = df.head(len(df) // 2)
 
-        for _, row in df.iterrows():
+        for _, row in df_half.iterrows():
             lat, lng = row[lat_col], row[lng_col]
             if pd.notna(lat) and pd.notna(lng):
-                # 구글 길찾기 링크
                 directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-
-                # 팝업 내용
-                title = row[name_col] if name_col and name_col in row and pd.notna(row[name_col]) else file_name.replace(".csv", "").replace(".xlsx", "")
-                popup_html = f"<b>{title}</b><br><a href='{directions_url}' target='_blank'>📍 길찾기 (구글 지도)</a>"
-
-                # 마커 생성
+                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
                 folium.Marker(
                     location=[lat, lng],
-                    tooltip=title,
+                    tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
                     popup=folium.Popup(popup_html, max_width=300),
                     icon=folium.Icon(color=color, icon=icon, prefix="fa")
                 ).add_to(marker_cluster)
-
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
 
