@@ -1,0 +1,811 @@
+,키,명칭,행정 시,행정 구,행정 동,전화번호,홈페이지주소,HTML사용여부,X 좌표,Y 좌표
+0,BE_IW10-0963,Arario Museum In Space,Seoul,Jongno-gu,Gahoe-dong,02-736-5700,http://www.arariomuseum.org/main.php,Y ,126.9883535,37.5778587
+1,BE_IW10-0964,gahoemuseum,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9856623,37.5821369
+2,BE_IW10-0965,Donglim Knot Workshop ,Seoul,Jongno-gu,Gahoe-dong,02-3673-2778,,Y ,126.9856211,37.5817921
+3,BE_IW10-0966,Myeongin Museum,Seoul,Jongno-gu,Gahoe-dong,02-766-0272,,Y ,126.9860057,37.5775225
+4,BE_IW10-0967,Whanki Museum,Seoul,Jongno-gu,Buam-dong,02-391-7701,htp://www.whankimuseum.org,Y ,126.9664362,37.5944071
+5,BE_IW10-0968,Zaha Museum,Seoul,Jongno-gu,Buam-dong,02-395-3222,http://www.zahamuseum.com,Y ,126.9603349,37.5893894
+6,BE_IW10-0969,YooGeum Museum,Seoul,Jongno-gu,Buam-dong,02-394-3451,http://www.yoogeum.org,Y ,126.9626533,37.5936708
+7,BE_IW10-0970,Seoul Museum,Seoul,Jongno-gu,Buam-dong,02-395-0100,,Y ,126.9623571,37.5950336
+8,BE_IW10-0971,shuim Museum,Seoul,Jongno-gu,Buam-dong,02-396-9277,http://www.shuim.org,Y ,126.9556804,37.5995016
+9,BE_IW10-0972,Kokdu Museum,Seoul,Jongno-gu,Ihwa-dong,02-766-3315,http://www.kokdumuseum.com,Y ,127.0037106,37.5836832
+10,BE_IW10-0973,Arko Art Center,Seoul,Jongno-gu,Ihwa-dong,02-760-4850~3,http://www.arkoartcenter.or.kr,Y ,127.002897,37.5799333
+11,BE_IW10-0974,Lock Museum,Seoul,Jongno-gu,Ihwa-dong,02-766-6494,http:// www.lockmuseum.co.kr,Y ,127.0046646,37.5798116
+12,BE_IW10-0975,Medical Museum,Seoul,Jongno-gu,Ihwa-dong,02-2072-2636,http://www.medicalmuseum.org,Y ,127.0006005,37.5805685
+13,BE_IW10-0976,House of Jang Myeon,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.9996628,37.5875716
+14,BE_IW10-0977,Museum of Korea Straw and Plants Handicraft,Seoul,Jongno-gu,Hyehwa-dong,02-743-8787,http://www.zipul.com,Y ,126.9998511,37.5849195
+15,BE_IW10-0978,Poem Museum,Seoul,Jongno-gu,Hyehwa-dong,,http://www.poem.ac,Y ,126.9989147,37.5865497
+16,BE_IW10-0979,The Hahn Moo-Sook House,Seoul,Jongno-gu,Hyehwa-dong,02-762-3093,http://www.hahnmoosook.com,Y ,126.9985908,37.5877952
+17,BE_IW10-0980,Seoul Educatuon Museum,Seoul,Jongno-gu,Samcheong-dong,02-2011-5780,http://www.edumuseum.sen.go.kr,Y ,126.9832525,37.579777
+18,BE_IW10-0981,Worlld Jewellery Museum,Seoul,Jongno-gu,Samcheong-dong,02-730-1610,http://www.wjmuseum.com,Y ,126.9818197,37.5809883
+19,BE_IW10-0982,Bukchon Museum,Seoul,Jongno-gu,Samcheong-dong,02-736-3957,http://www.bomulgun.com,Y ,126.981996,37.5824258
+20,BE_IW10-0983,Asian Art Museum,Seoul,Jongno-gu,Samcheong-dong,02-486-0191,http://www.dymuseum.com,Y ,126.983363,37.5840319
+21,BE_IW10-0984,National Folk Museum of Korea,Seoul,Jongno-gu,Cheongunhyoja-dong,02-3704-3114,http://www.nfm.go.kr,Y ,126.9792284,37.5789315
+22,BE_IW10-0985,Asian Art Museum,Seoul,Jongno-gu,Samcheong-dong,02-723-0190,http://www.dymuseum.com,Y ,126.9835526,37.5838767
+23,BE_IW10-0986,Worlld Jewellery Museum,Seoul,Jongno-gu,Samcheong-dong,02-730-1610,http://www.wjmuseum.com,Y ,126.9818118,37.5809802
+24,BE_IW10-0987,"National Museum of Contemporary Art, Seoul",Seoul,Jongno-gu,Samcheong-dong,02-370-1500,http://www.mmca.go.kr,Y ,126.981863,37.586577
+25,BE_IW10-0988,Owl Antiques Museum,Seoul,Jongno-gu,Samcheong-dong,02-3210-2902,http://www.owlmuseum.co.kr,Y ,126.982947,37.5870892
+26,BE_IW10-0989,Bukchon Cultural Center,Seoul,Jongno-gu,Gahoe-dong,02-2133-1371,http://bukchon.seoul.go.kr,Y ,126.9862703,37.5790851
+27,BE_IW10-0990,Good performances Information Center,Seoul,Jongno-gu,Ihwa-dong,1599-7838,,Y ,127.0025153,37.580334
+28,BE_IW10-0991,Seoul Theater Center,Seoul,Jongno-gu,Hyehwa-dong,02-1599-7838,www.e-stc.or.kr,Y ,127.0013295,37.5834282
+29,BE_IW10-0992,Daehak-Ro Ticket,Seoul,Jongno-gu,Ihwa-dong,,http://대학로티켓.com,Y ,127.0041553,37.5807613
+30,BE_IW10-0993,Han Sang Soo Embroidery Museum,Seoul,Jongno-gu,Gahoe-dong,,http://www.hansangsoo.com,Y ,126.9856578,37.5827349
+31,BE_IW10-0994,gahoemuseum,Seoul,Jongno-gu,Gahoe-dong,,www.gahoemuseum.org/,Y ,126.985625,37.5821333
+32,BE_IW10-0995,Donglim Knot Workshop ,Seoul,Jongno-gu,Gahoe-dong,02-3673-2778,http://shimyoungmi.com/,Y ,126.9856168,37.5818022
+33,BE_IW10-0996,Arario Museum In Space,Seoul,Jongno-gu,Gahoe-dong,02-736-5700,http://www.arariomuseum.org/main.php,Y ,126.9883535,37.5778587
+34,BE_IW10-0997,House of Go Hui-dong,Seoul,Jongno-gu,Gahoe-dong,02-2148-4165  ,,Y ,126.9889494,37.5831289
+35,BE_IW10-0998,Bukchon Museum,Seoul,Jongno-gu,Gahoe-dong,02-766-8402,blog.naver.com/bukchon_art,Y ,126.9846114,37.5800058
+36,BE_IW10-0999,Korea Art Museum,Seoul,Jongno-gu,Gahoe-dong,02-766-6000,,Y ,126.988909,37.5808302
+37,BE_IW10-1000,myeonginmuseum,Seoul,Jongno-gu,Gahoe-dong,02-766-0272,http://www.myeonginmuseum.com/,Y ,126.985201,37.5801787
+38,BE_IW10-1001,Marronnier Park,Seoul,Jongno-gu,Ihwa-dong,02-2148-1114,http://www.visitseoul.net/kr/article/article.do?_method=view&m=0004003002017&p=03&art_id=501&lang=kr,Y ,127.0027269,37.5805221
+39,BE_IW10-1002,Naksan Park,Seoul,Jongno-gu,Ihwa-dong,02-743-7985,http://www.visitseoul.net/kr/article/article.do?_method=view&m=0004003002017&p=kr&art_id=751&lang=kr&tab=map,Y ,127.0072752,37.5804538
+40,BE_IW10-1003,Ihwa Mural Village,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.004338,37.577008
+41,BE_IW10-1004,Lock Museum,Seoul,Jongno-gu,Ihwa-dong,02-766-6494,http://lockmuseum.co.kr/,Y ,127.0046257,37.5798114
+42,BE_IW10-1005,Museum of Korea Straw and Plants Handicraft,Seoul,Jongno-gu,Hyehwa-dong,02-743-8787,http://www.zipul.co.kr,Y ,126.9998609,37.584911
+43,BE_IW10-1006,Kokdu Museum,Seoul,Jongno-gu,Ihwa-dong,02-766-3315,http://www.kokdumuseum.com/,Y ,127.0037278,37.5837122
+44,BE_IW10-1007,Medical Museum,Seoul,Jongno-gu,Ihwa-dong,02-2072-2635,http://medicalmuseum.org/,Y ,127.0004228,37.5808572
+45,BE_IW10-1008,The Hahn Moo-Sook House,Seoul,Jongno-gu,Hyehwa-dong,02-732-3093,http://www.hahnmoosook.com,Y ,126.9986652,37.5878149
+46,BE_IW10-1009,House of Jang Myeon,Seoul,Jongno-gu,Hyehwa-dong,070-8239-1063,http://www.changmyun.com,Y ,126.9994549,37.5875519
+47,BE_IW10-1010,Gallery Mokkumto,Seoul,Jongno-gu,Ihwa-dong,02-764-0700,http://www.mokkumto.com,Y ,127.0035361,37.5822908
+48,BE_IW10-1011,Wellside Gallery,Seoul,Jongno-gu,Ihwa-dong,02-3675-3737,http://www.isamtoh.com/gallery/about.asp,Y ,127.002344,37.5815262
+49,BE_IW10-1012,Arko Art Center,Seoul,Jongno-gu,Ihwa-dong,02-760-4850,http://www.arkoartcenter.or.kr,Y ,127.0032562,37.5805023
+50,BE_IW10-1013,Gallery Jungmiso,Seoul,Jongno-gu,Ihwa-dong,02-743-5378,http://galleryjungmiso.byus.net/,Y ,127.0047277,37.5782168
+51,BE_IW10-1014,Gallery Iang.com,Seoul,Jongno-gu,Hyehwa-dong,02-3672-0201,http://www..galleryiang.com,Y ,127.0020304,37.5842657
+52,BE_IW10-1016,Yun Dong-ju Literary Museum,Seoul,Jongno-gu,Cheongunhyoja-dong,02-2148-4175,http://www.yundongju.or.kr,Y ,126.9670686,37.5920969
+53,BE_IW10-1017,Park Nosu Art Museum,Seoul,Jongno-gu,Cheongunhyoja-dong,02-2148-4171,jfac.or.kr/,Y ,126.9668231,37.5813277
+54,BE_IW10-1015,Gallery  Dongsoong,Seoul,Jongno-gu,Hyehwa-dong,02-1588-4965,http://www.dongsoong.kr,Y ,127.0008177,37.5841313
+55,BE_IW10-0419,Changdeokgung Palace,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,http://www.cdg.go.kr,Y ,126.9913206,37.5827758
+56,BE_IW10-0420,Honghwamun Gate,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+57,BE_IW10-0421,Observatory,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+58,BE_IW10-0422,Changgyeonggung Tongmyeongjeon,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+59,BE_IW10-0423,Changgyeonggung Myeongjeongmun Gate & Hanggak,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+60,BE_IW10-0070,Art Sonje Museum,Seoul,Jongno-gu,Samcheong-dong,02-733-8945,http://www.artsonje.org,Y ,126.98185,37.5794229
+61,BE_IW10-0500,Segeomjeong Pavilion Site,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9602738,37.6008165
+63,BE_IW10-0777,Seoul Ten-story Stone Pagoda of Wongaksa Temple Site,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9842159,37.571359
+64,BE_IW10-0778,March First Independence Movement Monument,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.988348,37.571206
+65,BE_IW10-0779,The Statue of Shin Saimdang,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9655759,37.572297
+66,BE_IW10-0780,Admiral Yi Sun-sin,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767571,37.5802853
+67,BE_IW10-0781,Five-Story Stone Pagoda in Hongedong,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+68,BE_IW10-0782,Three-story Stone Pagodas from Galhangsa Temple Site,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+164,BE_IW10-0501,Bosingak Pavilion Site,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9835841,37.5698422
+165,BE_IW10-0502,Hwanghakjeong Pavilion,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9685375,37.5764899
+166,BE_IW10-0503,Site of Prince Anpyeong Yi Yong's House,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9628406,37.5916177
+167,BE_IW10-0504,Chimnyugak Pavilion,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+168,BE_IW10-0505,Seokpajeong Pavilion,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9738314,37.5961355
+169,BE_IW10-0506,Tapgol Park Octagonal Pavilion,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.988348,37.571206
+170,BE_IW10-0507,Weapon Factory of Gigiguk (Arsenal Bureau),Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9827091,37.5861164
+171,BE_IW10-0508,Seoul Modern Post Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9826182,37.5744559
+172,BE_IW10-0509,Gyeonggeundang and Okcheopdang Halls in the Office of the Royal Genealogy,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9831241,37.5807844
+173,BE_IW10-0510,Well in the Site of the Office of the Royal Genealogy,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9805749,37.5795174
+174,BE_IW10-0511,Site of Jeongupwon Temple,Seoul,Jongno-gu,Sungin1-dong,,,Y ,127.0162555,37.5796166
+175,BE_IW10-0512,"Kyeongmogungji Shrine of the Crown Prince Sado, Seoul",Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.0006005,37.5805685
+176,BE_IW10-0513,Site of Uam Song Siyeol's House,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.996944,37.5907127
+177,BE_IW10-0514,Poet Yun Dongju's Boarding House,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9656793,37.5814513
+178,BE_IW10-0515,"Poet of 'Flame' and 'Dagger' of Our Epoch, Kim Su-yeong's House  ",Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9847482,37.5688039
+180,BE_IW10-0517,House of Park Inhwan(1926-1956),Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9888131,37.5797298
+181,BE_IW10-0518,House of Jeong Jiyong of <Home>,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9852823,37.5790115
+182,BE_IW10-0519,House of Kim Seong-su(1891-1955),Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9872551,37.5809038
+183,BE_IW10-0520,House of Kim Yujeong of <Camellia>,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9675984,37.5747602
+184,BE_IW10-0521,House of Lee Gwangsu(1892-1950),Seoul,Jongno-gu,Buam-dong,,,Y ,126.9560406,37.6002694
+185,BE_IW10-0522,Poet of Modernism Kim Girim,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.0021671,37.5754324
+186,BE_IW10-0523,House of Go Huidong(1886-1965),Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9889583,37.5831391
+187,BE_IW10-0524,House of Ma Haesong(1905-1966),Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.9976368,37.583196
+188,BE_IW10-0525,House of Park Jonghwa(1901-1981),Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9673329,37.6122517
+189,BE_IW10-0526,Birthplace of Gansong Jeon Hyeongpil,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9902999,37.570077
+190,BE_IW10-0527,House of Han Yongun(1879-1944),Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9870346,37.5815152
+191,BE_IW10-0528,Hanging Painting of Cheongryangsan Mountain,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.013769,37.5755637
+192,BE_IW10-0529,Uigyeomdeungpilsuwolgwaneumdo,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.013769,37.5755637
+193,BE_IW10-0530,Religious Text of the Zen Buddhism edited by Kim Su-on,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9688348,37.5707649
+194,BE_IW10-0531,Statue of the Buddha of Jogyesa Temple,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9823368,37.5739012
+195,BE_IW10-0532,"Flagpole supports of Janguisa Temple Site, Seoul",Seoul,Jongno-gu,Buam-dong,,,Y ,126.9611862,37.6026161
+196,BE_IW10-0533,The Central Temple of Cheondogyo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9862771,37.5753081
+197,BE_IW10-0534,Guksadang Shrine of Inwangsan Mountain,Seoul,Jongno-gu,Muak-dong,,,Y ,126.959582,37.5787901
+198,BE_IW10-0535,Shrine of Bohyeonsan in Pyeongchang-dong,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9660988,37.6143202
+199,BE_IW10-0536,Cheongnyongsa Temple,Seoul,Jongno-gu,Sungin1-dong,,,Y ,127.0167666,37.5799125
+200,BE_IW10-0537,Inwangsa Temple,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9562643,37.5758501
+201,BE_IW10-0538,Myogaksa Temple,Seoul,Jongno-gu,Sungin1-dong,,,Y ,127.0187664,37.5755039
+202,BE_IW10-0539,Jogyesa Temple,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9823368,37.5739012
+203,BE_IW10-0540,Anyangam Temple,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.0133571,37.5754539
+204,BE_IW10-0541,Ilseonsa Temple,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9741928,37.6227107
+205,BE_IW10-0542,Seunggasa Temple,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9740093,37.6314807
+206,BE_IW10-0543,Sorimsa Temple,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9588964,37.6014902
+207,BE_IW10-0544,Munsusa Temple,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9725258,37.6312731
+208,BE_IW10-0545,Daegaksa Temple,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9920769,37.5736651
+209,BE_IW10-0546,Gamroam Temple,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,127.0066373,37.5753306
+210,BE_IW10-0547,Daeungjeon Hall of Jogyesa Temple,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9823368,37.5739012
+211,BE_IW10-0548,"Seated Rock-carved Buddha in Gugi-dong Bukhansan Mountain, Seoul",Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9594761,37.6269949
+212,BE_IW10-0549,Vajracchedika prajnaparamita Sutra (The Diamond Sutra),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.979642,37.573033
+213,BE_IW10-0550,Rock-carved Avalokitesvara Bodhisattva of Anyangam Temple,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.013769,37.5755637
+214,BE_IW10-0551,Seated Stone Buddha,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+215,BE_IW10-0552,"Seated Stone Buddhist Monk Seunggadaesa of Seunggasa Temple, Seoul",Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9594761,37.6269949
+216,BE_IW10-0553,Samsipbungongdeoksogyeong,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.013769,37.5755637
+217,BE_IW10-0554,Hanging Scroll of Jogyesa Temple's Daeungjeon Hall _ Painting of Sakyamuni Buddha of Jogyesa Temle,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9823368,37.5739012
+218,BE_IW10-0555,Celestial Planisphere Map Carved on a Stone Slab,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767338,37.5764273
+219,BE_IW10-0556,Prohibition of Admittance,Seoul,Jongno-gu,Sungin2-dong,,,Y ,127.0183336,37.57298
+220,BE_IW10-0557,Chotdaebawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9580981,37.5760084
+221,BE_IW10-0558,Malbawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9580981,37.5760084
+223,BE_IW10-0559,Mojabawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9580981,37.5760084
+224,BE_IW10-0560,Gichabawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9580981,37.5760084
+225,BE_IW10-0561,Samobawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9580981,37.5760084
+226,BE_IW10-0562,Gwangtonggyo Bridge,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9803876,37.5695042
+229,BE_IW10-0566,"Observatory of the Department of Astronomy (Gwansanggam of the Joseon Dynasty), Seoul",Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9880143,37.5780886
+230,BE_IW10-0567,Site of Hwangseong Newspaper,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9797265,37.5703153
+231,BE_IW10-0568,Site of the Department of Weapon (Hwagidogam of the Joseon Dynasty),Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9831241,37.5807844
+232,BE_IW10-0569,Site of Hanseong Court of Law,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9803876,37.5695042
+233,BE_IW10-0773,The Statue of Okpa Lee Jongil,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9811467,37.5738539
+234,BE_IW10-0774,The Statue of Lee Yulgok,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9655759,37.572297
+235,BE_IW10-0775,The Statue of patriotic martyr Kim Sangok,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.002437,37.5809403
+236,BE_IW10-0424,Okcheongyo(Bridge),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+237,BE_IW10-0425,Changgyeonggung Myeongjeongjeon,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+238,BE_IW10-0426,Changgyeonggung Punggidae,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+239,BE_IW10-0427,Gyeonghuigung Heunghwamun Gate,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.968813,37.570792
+240,BE_IW10-0428,Gyeonghuigungji,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9679963,37.5721918
+241,BE_IW10-0429,Gyeongbokgung Amisan Chimney,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+242,BE_IW10-0430,Gyeongbokgung Jagyeongjeon,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+243,BE_IW10-0431,Ounjeong,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+244,BE_IW10-0432,Gyeongbokgung Palace,Seoul,Jongno-gu,Cheongunhyoja-dong,,http://www.royalpalace.go.kr/,Y ,126.97691,37.5772775
+245,BE_IW10-0433,Heunginjimun Gate,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,127.0097033,37.5711486
+246,BE_IW10-0434,Changuimun?Gate,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9692916,37.5891866
+247,BE_IW10-0435,Gwanghuimun Gate,Seoul,Jung-gu,Gwanghui-dong,,,Y ,127.0050407,37.564438
+248,BE_IW10-0436,Hyehwamun Gate,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,127.0005764,37.5869186
+249,BE_IW10-0437,Souimun,Seoul,Jung-gu,Sogong-dong,,,Y ,126.970438,37.562758
+250,BE_IW10-0438,Fortress Wall of Seoul ,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9659005,37.5815283
+251,BE_IW10-0439,Donuimun,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.968813,37.570792
+252,BE_IW10-0440,Sungnyemun Gate,Seoul,Jung-gu,Sogong-dong,,,Y ,126.975324,37.5599933
+253,BE_IW10-0441,Sukjeongmun Gate,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9808095,37.5885407
+254,BE_IW10-0442,Hongjimun Gate & Tangchundaeseong Fortress,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9582734,37.598465
+255,BE_IW10-0443,Jongmyo Shrine,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,jm.cha.go.kr/,Y ,126.9940942,37.5746664
+256,BE_IW10-0444,Jongmyo Shrine Fish Well,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9862921,37.574515
+257,BE_IW10-0445,Jongmyo Jung Jun,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9940942,37.5746664
+258,BE_IW10-0446,JongmyoYeongNyeongJun,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9951424,37.569936
+259,BE_IW10-0447,Sajikdan,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9672703,37.5759436
+260,BE_IW10-0448,Sajikdan Gate,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9672703,37.5759436
+261,BE_IW10-0449,"SeoulMunMyo<DaeSungJun, MyeongRyunDang, Dongmu, Seomu, Sammun>",Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9957415,37.5858106
+262,BE_IW10-0450,TangPyeongBi,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9931,37.5875
+263,BE_IW10-0451,Munmyo & Seonggyungwan,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9957415,37.5858106
+264,BE_IW10-0452,Sung bo sa,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.9963338,37.5865853
+265,BE_IW10-0453,Dongmyo Shrine,Seoul,Jongno-gu,Sungin2-dong,,,Y ,127.0183336,37.57298
+266,BE_IW10-0454,Seoul YukSangGung,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9735214,37.5855189
+267,BE_IW10-0455,SunHuiGung Teo,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9685889,37.5850472
+268,BE_IW10-0457,ChungIl YeoGwan(inn),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9801469,37.5714324
+269,BE_IW10-0458,GuGongUbJunSeubSo Main Building,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.0029213,37.5788244
+270,BE_IW10-0459,East Building of Choongang High School ,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9864633,37.5843579
+271,BE_IW10-0460,West Building of Choongang High School ,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9864633,37.5843579
+272,BE_IW10-0461,PaiWha Girls' HighSchool Dormitory,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9677086,37.5781422
+273,BE_IW10-0462,Gyeonggyojang ,Seoul,Jongno-gu,Gyonam-dong,,,Y ,126.968182,37.5682877
+274,BE_IW10-0463,Seoul DaeHan Clinic,Seoul,Jongno-gu,Ihwa-dong,,,Y ,126.9987981,37.579166
+275,BE_IW10-0464,Saemoonan Presbyterian Church,Seoul,Jongno-gu,Sajik-dong,,http://www.saemoonan.org/,Y ,126.9734104,37.5706533
+276,BE_IW10-0465,The Central Temple of Cheondogyo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9862771,37.5753081
+277,BE_IW10-0466,Kyunggi High school,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9828,37.5806
+278,BE_IW10-0467,Chongkyo Church,Seoul,Jongno-gu,Sajik-dong,,www.chongkyo.net,Y ,126.979642,37.573033
+279,BE_IW10-0468,SeungDong Church,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9861167,37.5715664
+280,BE_IW10-0469,the Dong-A Daily News company building,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9776664,37.569797
+281,BE_IW10-0470,HyeHwa Catholic church,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,127.0026116,37.5863859
+282,BE_IW10-0471,main building of Choongang High School ,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9864633,37.5843579
+283,BE_IW10-0472,Former Main Building of Seoul University,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.002897,37.5799333
+285,BE_IW10-0474,HaeGong SinIkHui house,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9723239,37.5819933
+286,BE_IW10-0475,WonSeoDong BaekHeungBum house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.988488,37.5837108
+287,BE_IW10-0476,HyeHwaDong KimSangHyub house,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,127.0013976,37.5895801
+288,BE_IW10-0477,House of Yun Po-seon,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9837587,37.5790018
+289,BE_IW10-0478,Gye-dong Modem Korean houses,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9864295,37.5790692
+290,BE_IW10-0479,Seoul GyeDong BaeRyum house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9866095,37.5813154
+291,BE_IW10-0480,OkInDong Park No Su house,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9667572,37.5813721
+292,BE_IW10-0481,House of Kim Seunghyeon in Unni-dong (Unhyeongung palace Yeongnodang Villa),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9866426,37.5764528
+293,BE_IW10-0482,Villa of Bangye Yun Ung-ryeol,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9621504,37.590248
+294,BE_IW10-0483,"Site of Yi Gwangsu's Villa in Hongji-dong, Seoul",Seoul,Jongno-gu,Buam-dong,,,Y ,126.9560406,37.6002694
+295,BE_IW10-0484,"House of Park Jonghwa in Pyeongchang-dong, Seoul",Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9673329,37.6122517
+296,BE_IW10-0485,"House of Jang Myeon in Myeongryun-dong, Seoul ",Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.979642,37.573033
+297,BE_IW10-0486,"Atelier and House of Lee Sangbeom in Nuha-dong, Seoul",Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9684084,37.5788517
+298,BE_IW10-0487,"House of Go Huidong in Wonseo-dong, Seoul",Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9889583,37.5831391
+299,BE_IW10-0488,"House of Hong Nanpa in Hongpa-dong, Seoul",Seoul,Jongno-gu,Gyonam-dong,,,Y ,126.9651141,37.5716567
+300,BE_IW10-0489,"Ihwajang House, Seoul",Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.0064395,37.5783498
+301,BE_IW10-0490,House of Lee Ju-ku in Gahoe-dong,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9837718,37.5836876
+302,BE_IW10-0491,House of Hong Jongmun in Chebu-dong,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9701009,37.5775321
+303,BE_IW10-0492,House of Min Byeongok in Kyeongun-dong,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9859435,37.5747066
+304,BE_IW10-0493,House of Kim Hyeongtae in Gahoe-dong,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9849052,37.5829296
+305,BE_IW10-0494,House of Han Clan in Gahoe-dong ,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.98572,37.5808485
+306,BE_IW10-0495,House of Baek Inje in Gahoe-dong,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9841689,37.580804
+307,BE_IW10-0496,Seokpajeong Byeoldang Villa,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9586308,37.5992338
+308,BE_IW10-0497,Ounjeong Gazebo,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+309,BE_IW10-0498,Well in the Site of the Office of the Royal Genealogy,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.978388,37.56661
+310,BE_IW10-0499,Site of Baeksa Lee Hangbok's House (Pilun Pavilion),Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9663079,37.5781153
+346,BE_IW10-0912,Police Museum,Seoul,Jongno-gu,Sajik-dong,02-3150-3681,http://www.policemuseum.go.kr,Y ,126.9696697,37.5690134
+347,BE_IW10-0913,Seoul Museum of History,Seoul,Jongno-gu,Sajik-dong,,http://www.museum.seoul.kr,Y ,126.9688348,37.5707649
+348,BE_IW10-0915,Sungkok Museum,Seoul,Jongno-gu,Sajik-dong,02-737-7650,http://www.sungkokmuseum.com,Y ,126.9700536,37.5735038
+349,BE_IW10-0916,Gimjongyoung Museum,Seoul,Jongno-gu,Pyeongchang-dong,02-3217-6484,http://www.kimchongyung.com,Y ,126.9776575,37.6130429
+350,BE_IW10-0917,Kimi Art,Seoul,Jongno-gu,Pyeongchang-dong,02-394-6411,,Y ,126.9743334,37.6129684
+351,BE_IW10-0918,Young-in Literary Museum,Seoul,Jongno-gu,Pyeongchang-dong,02-379-3182,,Y ,126.9717407,37.6119149
+352,BE_IW10-0919,Hwajeong Museum,Seoul,Jongno-gu,Pyeongchang-dong,02-2075-0114,http://www.hjmuseum.or.kr/museum/main.asp,Y ,126.9659835,37.6046315
+353,BE_IW10-0920,Sejong Story?Choongmoogong Story,Seoul,Jongno-gu,Sajik-dong,02-399-1114,http://yisunshinstory.or.kr,Y ,126.9760754,37.5722306
+354,BE_IW10-0921,Korea History Museum,Seoul,Jongno-gu,Sajik-dong,02-3703-9200,http://www.much.go.kr,Y ,126.9779223,37.5739219
+355,BE_IW10-0922,Daelim Art Museum,Seoul,Jongno-gu,Sajik-dong,02-720-0667,http://www.daelimmuseum.org/index.do,Y ,126.9733074,37.5774958
+358,BE_IW10-0925,Sangmyung University Museum,Seoul,Jongno-gu,Pyeongchang-dong,,http://museum.smu.ac.kr,Y ,126.975966,37.6105555
+359,BE_IW10-0926,ganaart center,Seoul,Jongno-gu,Pyeongchang-dong,,http://www.ganaart.com,Y ,126.9751895,37.612236
+360,BE_IW10-0927,Total Art Museum,Seoul,Jongno-gu,Pyeongchang-dong,,http://www.totalmuseum.org,Y ,126.9757439,37.6121142
+390,BE_IW10-0957,Jongno Cultural Center,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2148-4087~8,,Y ,126.9803164,37.5760934
+391,BE_IW10-0958,Sejong Cultural Center,Seoul,Jongno-gu,Sajik-dong,02-399-1111,http://www.sejongpac.or.kr/,Y ,126.9760754,37.5722306
+392,BE_IW10-0959,Korea Art Museum,Seoul,Jongno-gu,Gahoe-dong,02-766-6000,,Y ,126.989118,37.5791366
+393,BE_IW10-0960,House of Go Hui-dong,Seoul,Jongno-gu,Gahoe-dong,02-2148-4165,,Y ,126.9889583,37.5831391
+394,BE_IW10-0961,Han Sang Soo Embroidery Museum,Seoul,Jongno-gu,Gahoe-dong,,http://www.hansangsoo.com,Y ,126.9856526,37.5827384
+395,BE_IW10-0962,Bukchon Museum,Seoul,Jongno-gu,Gahoe-dong,02-766-8402,blog.naver.com/bukchon_art,Y ,126.9846114,37.5800058
+396,BE_IW10-0571,Site of Heunghwamoon Gate,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.972266,37.5704148
+397,BE_IW10-0572,Site of Heungdeoksa Temple,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.9975,37.5891
+398,BE_IW10-0573,Site of Central Military Camp (Hullyeondogam of the Joseon Dynasty),Seoul,Jongno-gu,Sajik-dong,,,Y ,126.972266,37.5704148
+399,BE_IW10-0574,Site of the Department of Meritorious Retainer (Chunghunbu of the Joseon Dynasty),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9834954,37.5754369
+400,BE_IW10-0575,Site of Martyrdom of Choe Si-hyeong,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9922221,37.5710835
+401,BE_IW10-0576,Site of Honghwamoon Gate,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,127.0037831,37.5878339
+402,BE_IW10-0577,Site of the Hojo (One of the Joseon Dynasty's Six Organs of Government),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9780181,37.5710617
+403,BE_IW10-0578,Site of Hyejeonggyo Bridge,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.979642,37.573033
+404,BE_IW10-0579,Site of the Hyeongjo (One of the Joseon Dynasty's Six Organs of Government),Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9702003,37.5839605
+405,BE_IW10-0580,Site of Hyeon Jingeon's House,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9630068,37.5914055
+406,BE_IW10-0581,Site of Hanyang Infirmary,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9892967,37.5717158
+407,BE_IW10-0582,Site of Hanseong Telegram Service ,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9767571,37.5802853
+408,BE_IW10-0583,Site of the General Ji Cheongcheon's House,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9817303,37.5862815
+409,BE_IW10-0584,Site of Ji Seokyeong's House,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9885,37.5725
+410,BE_IW10-0585,Site of Hanseongbu Central Part of the Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9947753,37.5702931
+411,BE_IW10-0586,Site of Hanseongbu Northern Part of the Government Office,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9798723,37.5777304
+412,BE_IW10-0587,Site of Hanseongbu Eastern Part of the Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9979711,37.5718913
+413,BE_IW10-0588,Site of Hanseong Publishing Corporation ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9826493,37.5747639
+414,BE_IW10-0589,Site of Pyeongchang Warehouse,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9666929,37.6061187
+415,BE_IW10-0590,Sit of Tongnyewon Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9901288,37.5766756
+416,BE_IW10-0591,Site of Tangchundae Hanji Village,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9608133,37.6011658
+418,BE_IW10-0593,Site of Chwiunjeong Pavilion,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9849145,37.5873918
+419,BE_IW10-0594,Site of Jojiseo Government Office,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9612883,37.6028904
+420,BE_IW10-0595,Site of Joseon Newspaper Company Building ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9841943,37.5688055
+421,BE_IW10-0596,Site of Joseon Theater,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9871968,37.5708915
+422,BE_IW10-0597,Site of Joseon Independence Alliance,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9852696,37.5759208
+423,BE_IW10-0598,Site of Chongyungcheong Military Encampment,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9609583,37.6031805
+424,BE_IW10-0599,Site of Cheongsongdang Village School,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9692916,37.5891866
+425,BE_IW10-0600,Site of Cheokhwabi Monument,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.985973,37.5691073
+426,BE_IW10-0601,Site of Changuigung Palace,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9722336,37.5779723
+427,BE_IW10-0602,Site of Jindan Society,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9853047,37.5794084
+428,BE_IW10-0603,Site of Jeonokseo Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9778487,37.5705957
+429,BE_IW10-0604,Site of Junghakdang Village School,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9800251,37.5756422
+430,BE_IW10-0605,Site of Juncheonsa Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9893086,37.5684728
+431,BE_IW10-0606,Site of Jukdonggung Palace,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.984469,37.5724164
+432,BE_IW10-0607,Site of Jwapodocheong Police Bureau,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9912948,37.5701252
+433,BE_IW10-0608,Site of Jongchimgyo Bridge,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9716,37.5754
+434,BE_IW10-0609,Site of the Office of the Royal Genealogy ,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9805749,37.5795174
+435,BE_IW10-0610,Site of Jongbusi Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9901739,37.5764133
+436,BE_IW10-0611,Site of Lee Seokhyeong's Birthplace,Seoul,Jongno-gu,Ihwa-dong,,,Y ,126.9987981,37.579166
+437,BE_IW10-0612,Site of Lee Sang's House,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9713447,37.5785049
+438,BE_IW10-0613,Site of Jeyonggam Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9792124,37.5744174
+439,BE_IW10-0614,Site of Jesaengwon ,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9873971,37.5784138
+440,BE_IW10-0615,Site of Jeong Cheol's Birthplace,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.969628,37.5856345
+441,BE_IW10-0616,Site of Jeong Dojeon's House,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.979262,37.5729289
+442,BE_IW10-0617,Site of Car Barn,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,126.9838679,37.570451
+443,BE_IW10-0618,Site of Jeonuigam Government Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9826182,37.5744559
+444,BE_IW10-0619,Site of Yukuijeon Market,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9895626,37.5705897
+445,BE_IW10-0620,Site of Jangheunggo Government Office,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9728685,37.5761659
+446,BE_IW10-0621,Site of Jangwonseo Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9831241,37.5807844
+447,BE_IW10-0622,Site of Jangyewon Office,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9748993,37.57196
+449,BE_IW10-0624,Site of Jasugung Palace,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9682289,37.5822949
+450,BE_IW10-0625,Site of Ihyeongung Palace,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9990685,37.5724941
+451,BE_IW10-0626,Site of Leehangbok's house,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9663079,37.5781153
+452,BE_IW10-0627,Site of the Ijo,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.979642,37.573033
+453,BE_IW10-0628,Site of house Leeyulgok lived,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9854649,37.5731065
+454,BE_IW10-0629,Site of Yongdonggung Palace,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9806,37.5737
+455,BE_IW10-0630,Site of Leesangjae's house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9847947,37.580111
+456,BE_IW10-0631,Site of Imun gate,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9871408,37.5704428
+457,BE_IW10-0632,Site of Premier Leedongnyeong,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.993694,37.5716584
+458,BE_IW10-0633,Site of Uijeongbu,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.979642,37.573033
+459,BE_IW10-0634,Site of Uiyeonggo,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9750315,37.5736161
+460,BE_IW10-0635,Site of Uigeumbu,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9828,37.5711
+461,BE_IW10-0636,Site of Yanghyeongo,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.9965038,37.5876981
+462,BE_IW10-0637,Site of Yajugae,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.974814,37.570423
+463,BE_IW10-0638,Site of Military officer academy,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9761849,37.5704858
+464,BE_IW10-0639,Site of Wolsa Leejeonggwi's house,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.9977977,37.5819565
+465,BE_IW10-0640,Site of Wongaksa,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9734104,37.5706533
+466,BE_IW10-0717,Site of Donyimun Gate,Seoul,Jongno-gu,Gyonam-dong,,,Y ,126.9668,37.567967
+467,BE_IW10-0718,Site of Giroso Office,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.979642,37.573033
+468,BE_IW10-0719,Site of Gidang Hyeonsangyun's house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9855992,37.5854729
+469,BE_IW10-0720,Site of the Western Camp of Gumwiyoung,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9891192,37.5797453
+470,BE_IW10-0721,Site of Geumwiyeong,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9889201,37.5768571
+471,BE_IW10-0722,Site of Kyujanggak,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9805749,37.5795174
+472,BE_IW10-0723,Site of Naejasi,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9716,37.5754
+473,BE_IW10-0724,Site of Naesusa,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9722,37.572942
+474,BE_IW10-0725,Site of Kwansanggam,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9880143,37.5780886
+475,BE_IW10-0726,Government Gyodong Elementary School,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9877457,37.5748447
+476,BE_IW10-0727,Site of Gongjo,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9752391,37.5722383
+477,BE_IW10-0728,Site of Kyeodonggung Palace,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9873971,37.5784138
+478,BE_IW10-0729,Site of Gyeongjoamun,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9782088,37.5721655
+479,BE_IW10-0730,Site of Gyeongugung Shrine,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9865825,37.5773448
+480,BE_IW10-0731,Site of Kimsangyong's house,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9686906,37.5867398
+481,BE_IW10-0732,Site of Kimsangok's house,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9780787,37.570444
+482,BE_IW10-0733,Site of Kimgajin's house,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9720433,37.5772317
+483,BE_IW10-0734,Site of Gyeonggi Gamyeong,Seoul,Jongno-gu,Gyonam-dong,,,Y ,126.9669627,37.5673135
+484,BE_IW10-0735,Site of Gamgodang,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9826151,37.5780462
+485,BE_IW10-0736,Site of Seonchang,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9919031,37.5707132
+486,BE_IW10-0737,Junganghaklim,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,127.0003884,37.5916677
+487,BE_IW10-0738,JongroYMCA,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.985291,37.5706082
+488,BE_IW10-0739,Yousimsa,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9870006,37.5821604
+489,BE_IW10-0740,Site of Kwonyul Dowon Sujib,Seoul,Jongno-gu,Gyonam-dong,,,Y ,126.9640074,37.5732095
+490,BE_IW10-0741,Site of Gwanghyeowon,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9847615,37.578045
+491,BE_IW10-0742,Site of Gwansugyo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9906,37.5691
+492,BE_IW10-0743,Site of Gyeongsiseo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9890881,37.5705405
+493,BE_IW10-0744,Site of Gueongseong Electric Railway,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.0103711,37.570918
+494,BE_IW10-0745,Site of Gyeongmogung Palace,Seoul,Jongno-gu,Ihwa-dong,,,Y ,126.9990217,37.5773513
+495,BE_IW10-0746,Seungdong Church,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9861167,37.5715664
+496,BE_IW10-0747,In front of Bosingak Pavilion,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9835841,37.5698422
+497,BE_IW10-0748,Boseongsa ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9811467,37.5738539
+498,BE_IW10-0749,Octagonal Seven-story Stone Pagoda in Changgyeonggung Palace ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+499,BE_IW10-0750,Monument 3.1 Spirit of praise,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9895626,37.5705897
+500,BE_IW10-0751,Chimabawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9580981,37.5760084
+501,BE_IW10-0752,Maebawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.9580981,37.5760084
+502,BE_IW10-0753,Daehanminguk Mother's Charter Monument,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9655759,37.572297
+503,BE_IW10-0754,Hamseokheon Poem Monument ,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.002437,37.5809403
+504,BE_IW10-0755,Seoul University Remains Memorial Monument,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.002437,37.5809403
+505,BE_IW10-0757,Monument of 20th Anniversary Hanguk Ilbo ,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9808095,37.5885407
+506,BE_IW10-0758,Hamabi Stone,Seoul,Jongno-gu,Sungin2-dong,,,Y ,127.0183336,37.57298
+507,BE_IW10-0759,Seonbawi Rock,Seoul,Jongno-gu,Muak-dong,,,Y ,126.956449,37.5793566
+508,BE_IW10-0760,Relievo Print of 3.1 Independence ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9895626,37.5705897
+510,BE_IW10-0762,Tapgol Park Memorial Stone,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9895626,37.5705897
+511,BE_IW10-0763,Manhae Han Yongun Poetry Tombstone,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9895626,37.5705897
+512,BE_IW10-0764,"Stele for the Construction of Daewongaksa Temple at Wongaksa Temple Site, Seoul",Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9886344,37.5710789
+513,BE_IW10-0765,Site of the Monument on Bukhansan Mountain Commemorating the Border Inspection by King Jinheung,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.955532,37.6238013
+514,BE_IW10-0766,Monument for the 40th Anniversary of the Inauguration of King Gojong,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9775912,37.5705151
+515,BE_IW10-0767,Min Lord Chungjeong,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9826182,37.5744559
+517,BE_IW10-0769,The Statue of Yeom Sangseop,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.977675,37.570053
+518,BE_IW10-0770,The Statue of Inspector General Choe Gyusik,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9693998,37.5907634
+519,BE_IW10-0771,The Statue of Lee Sangjae,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.977675,37.570053
+520,BE_IW10-0772,Son Byeonghui,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.988348,37.571206
+525,BE_IW10-0005,Cheongun Park,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9672486,37.5905601
+526,BE_IW10-0006,Sajik Park,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9681422,37.5767822
+527,BE_IW10-0007,The Bugak Mountain Highway,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9821995,37.6076042
+528,BE_IW10-0008,Srairways of Rose,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.979262,37.5729289
+529,BE_IW10-0009,Cheongwadae Sarangchae,Seoul,Jongno-gu,Cheongunhyoja-dong,02-723-0300, http://www.cwdsarangchae.kr,Y ,126.9732577,37.5826171
+530,BE_IW10-0010,Naksan Park,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.004494,37.5838167
+531,BE_IW10-0011,Yun Dong-ju Hill,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9661694,37.5891677
+532,BE_IW10-0012,[Ihwa dong]Ihwa Mural Village,Seoul,Jongno-gu,Ihwa-dong,02-2148-5303~4,,Y ,127.0072115,37.5778598
+533,BE_IW10-0013,Jongno Tower,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9838679,37.570451
+534,BE_IW10-0014,Site of Magnolia's most rapidly bloom,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.979262,37.5729289
+536,BE_IW10-0016,The Bugak Mountain Octagonal Pavilion,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9807535,37.6019212
+537,BE_IW10-0017,Horse rock of Samcheong Park,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9808095,37.5885407
+538,BE_IW10-0018,[Sejongno] Gwanghwamun Plaza,Seoul,Jongno-gu,Sajik-dong,02-120,http://square.sisul.or.kr/index.jsp,Y ,126.9773352,37.5703945
+540,BE_IW10-0641,Site of Wupodocheong,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.979642,37.573033
+541,BE_IW10-0642,Site of Usangak,Seoul,Jongno-gu,Sungin1-dong,,,Y ,127.0154862,37.5792582
+542,BE_IW10-0643,Site of Umiguan,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9843088,37.5747426
+543,BE_IW10-0644,Site of house Monk Yongseong lived,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.992966,37.5721762
+544,BE_IW10-0189,Buddhist Museum of Art,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-739-2991,http://www.Buddha.co.kr,Y ,126.9827322,37.5741253
+545,BE_IW10-0190,Kumho Museum of Art,Seoul,Jongno-gu,Samcheong-dong,02-720-5114,http://www.kumhomuseum.com,Y ,126.9798219,37.577477
+546,BE_IW10-0191,Daboseong Antique Shop(Gallery),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,"02-730-0310, 7566",http://www.daboseong.co.kr,Y ,126.9862771,37.5753081
+547,BE_IW10-0192,Gallery La Mer,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-730-5454,http://www.gallerylamer.com/,Y ,126.9846413,37.5724798
+548,BE_IW10-0193,Art Space Pool,Seoul,Jongno-gu,Pyeongchang-dong,02-396-4805,http://www.altpool.org,Y ,126.9592181,37.6064155
+549,BE_IW10-0194,Gong Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-735-9938,http://www.gonggallery.com,Y ,126.9854287,37.5737939
+550,BE_IW10-0195,Gallery Ihn,Seoul,Jongno-gu,Samcheong-dong,02-732-4677~8,http://www.galleryihn.com,Y ,126.9804626,37.5817592
+551,BE_IW10-0196,Ice Gallery,Seoul,Jongno-gu,Samcheong-dong,02-737-8830,http://www.icegallery.co.kr,Y ,126.9825512,37.5793438
+552,BE_IW10-0197,The British Council,Seoul,Jongno-gu,Sajik-dong,02-3702-0600,http://www.britishcouncil.or.kr,Y ,126.9722191,37.5697705
+553,BE_IW10-0198,Bukchon Traditional Culture Center,Seoul,Jongno-gu,Gahoe-dong,"02-3707-8388, 8270",http://bukchon.seoul.go.kr,Y ,126.9864295,37.5790692
+554,BE_IW10-0199,China Cultural Center in Seoul,Seoul,Jongno-gu,Sajik-dong,02-733-8307~9,http://www.cccseoul.org,Y ,126.9713733,37.5746207
+555,BE_IW10-0200,Japan Cultural Center,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-765-3011~3,http://www.kr.emb-japan.go.jp/cult/cul_guide_hist.htm,Y ,126.9866557,37.5768055
+556,BE_IW10-0201,Yoo's Family,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-3673-0323,http://www.yoosfamily.com,Y ,126.9912619,37.5765847
+557,BE_IW10-0202,1m Classic Art Hall,Seoul,Jongno-gu,Ihwa-dong,"02-766-0884, 743-5001",http://www.playingcenter.com/03_G_10.htm,Y ,127.0037106,37.5836832
+558,BE_IW10-0203,SM Star Hall,Seoul,Jongno-gu,Ihwa-dong,"02-747-2070, 2090",,Y ,127.003714,37.5816082
+559,BE_IW10-0204,PCM Daehangno Ja-u Theater,Seoul,Jongno-gu,Ihwa-dong,02-739-8288,http://www.i-pmc.co.kr/theaterinfo/free.asp,Y ,127.0036117,37.5827718
+560,BE_IW10-0205,Gallery Jungmiso,Seoul,Jongno-gu,Ihwa-dong,02-743-5378,http://www.galleryjungmiso.com,Y ,127.0047288,37.5782411
+561,BE_IW10-0206,Space Lou,Seoul,Jongno-gu,Hyehwa-dong,02-765-1883,http://cafe.naver.com/spacelou,Y ,126.9990421,37.5824099
+562,BE_IW10-0207,Kimdongsoo Playhouse,Seoul,Jongno-gu,Ihwa-dong,02-3675-4675,,Y ,127.0025796,37.5765253
+563,BE_IW10-0208,Ggum Art Hall,Seoul,Jongno-gu,Ihwa-dong,02-766-2022,http://www.ggumart.com,Y ,127.0021477,37.582714
+564,BE_IW10-0209,Naksan Theater,Seoul,Jongno-gu,Hyehwa-dong,02-3676-5551,,Y ,127.0025623,37.5836856
+565,BE_IW10-0210,Art Space Ak-Eo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-766-2555,,Y ,127.0005765,37.5837647
+566,BE_IW10-0211,Art Theater Moon,Seoul,Jongno-gu,Hyehwa-dong,02-745-8960,http://blog.naver.com/ellip77?Redirect=Log&logNo=60050220660,Y ,126.9969592,37.58307
+567,BE_IW10-0212,Arts Play Theater,Seoul,Jongno-gu,Ihwa-dong,02-747-4702,,Y ,127.0025176,37.5822992
+568,BE_IW10-0213,Ashre Culture Center,Seoul,Jongno-gu,Ihwa-dong,02-744-0456,,Y ,127.0034997,37.5801274
+569,BE_IW10-0214,Beautiful Theater,Seoul,Jongno-gu,Ihwa-dong,02-946-0502,,Y ,127.0000335,37.5847132
+570,BE_IW10-0215,"ARKO Arts Theater(Main Hall,Small Hall)",Seoul,Jongno-gu,Ihwa-dong,02-760-4840~3,http://artstheater.arko.or.kr,Y ,127.002897,37.5799333
+571,BE_IW10-0216,ARKO Art Center,Seoul,Jongno-gu,Ihwa-dong,02-760-4850~2,http://www.arkoartcenter.or.kr,Y ,127.002897,37.5799333
+572,BE_IW10-0217,Theater The Other,Seoul,Jongno-gu,Ihwa-dong,02-742-1602,,Y ,127.0034997,37.5801274
+573,BE_IW10-0218,Theater SH,Seoul,Jongno-gu,Ihwa-dong,02-747-2265~6,http://www.theatersh.com,Y ,127.0034928,37.5799234
+574,BE_IW10-0219,"Inkel Art Hall 1,2",Seoul,Jongno-gu,Hyehwa-dong,02-741-0251,http://www.inkelarthall.com,Y ,127.0000193,37.5837064
+575,BE_IW10-0220,INA Theater,Seoul,Jongno-gu,Hyehwa-dong,02-763-2151,http://cafe.daum.net/inatheater,Y ,127.0005825,37.5839131
+576,BE_IW10-0221,Gallery IANG,Seoul,Jongno-gu,Hyehwa-dong,02-3672-0201,http://www.galleryiang.com,Y ,127.0020828,37.5842584
+577,BE_IW10-0222,ERANG Theater,Seoul,Jongno-gu,Ihwa-dong,02-766-1717,http://erang.naool.com,Y ,127.0042836,37.5797085
+578,BE_IW10-0223,The Museum Of Medicine,Seoul,Jongno-gu,Ihwa-dong,02-2072-2635,http://www.medicalmuseum.org,Y ,126.9991995,37.5769331
+579,BE_IW10-0224,"Wonderspace(Triangle,Square,Circle)",Seoul,Jongno-gu,Hyehwa-dong,02-763-1355,www.wonderspace.co.kr/,Y ,127.0023442,37.5846227
+580,BE_IW10-0225,Woosuk Repertory Theater,Seoul,Jongno-gu,Hyehwa-dong,02-765-7501,http://edu.woosuk.ac.kr/~theater/theater/wcome.htm,Y ,126.9973146,37.5843775
+581,BE_IW10-0226,Yechong Hall,Seoul,Jongno-gu,Ihwa-dong,02-744-7871,http://www.yechong.or.kr/,Y ,127.002392,37.5812068
+582,BE_IW10-0227,Life theater Tree & Water,Seoul,Jongno-gu,Hyehwa-dong,02-745-2124,http://www.treeandwater.com,Y ,127.0003603,37.584876
+583,BE_IW10-0228,"Showtic Theater 1,2",Seoul,Jongno-gu,Ihwa-dong,02-744-2588,http://www.showtic.co.kr/,Y ,127.0030548,37.5830151
+584,BE_IW10-0229,Stage Hwanhui,Seoul,Jongno-gu,Ihwa-dong,02-743-1974,http://cafe.daum.net/stagehwanhui,Y ,126.9996944,37.584735
+585,BE_IW10-0230,Hongsa Theater,Seoul,Jongno-gu,Sajik-dong,02-2677-1918,,Y ,127.0008036,37.5843532
+586,BE_IW10-0231,Hummings Art Hall,Seoul,Jongno-gu,Ihwa-dong,02-764-8760,,Y ,127.0024462,37.582508
+588,BE_IW10-0233,Haneol Theater,Seoul,Jongno-gu,Hyehwa-dong,02-766-7010,http://www.haneol.net/,Y ,126.9985235,37.5847055
+589,BE_IW10-0234,Hanyang Repertory Theater,Seoul,Jongno-gu,Hyehwa-dong,02-764-6460,,Y ,127.0019925,37.5839674
+590,BE_IW10-0235,Arts Council Korea,Seoul,Jongno-gu,Ihwa-dong,"02-760-4500, 4600",http://www.arko.or.kr,Y ,127.0029704,37.5811989
+591,BE_IW10-0236,Hakchon Blue,Seoul,Jongno-gu,Ihwa-dong,02-763-8233,http://www.hakchon.co.kr/,Y ,127.0037202,37.5820901
+592,BE_IW10-0237,Hakchon Green,Seoul,Jongno-gu,Ihwa-dong,02-763-8233,http://www.hakchon.co.kr/,Y ,127.0030779,37.5839027
+593,BE_IW10-0238,Dongsoong Stage Theater,Seoul,Jongno-gu,Hyehwa-dong,02-763-3396,http://club.cyworld.com/club/main/club_main.asp?club_id=50494709,Y ,127.0005348,37.5864953
+594,BE_IW10-0239,Dongsoong Gallery,Seoul,Jongno-gu,Hyehwa-dong,02-745-0011,,Y ,127.0009638,37.5841497
+595,BE_IW10-0240,Dongduk Women`s University Performing Arts Center,Seoul,Jongno-gu,Ihwa-dong,02-940-4578,,Y ,127.0033277,37.5837434
+596,BE_IW10-0241,The Good Theater,Seoul,Jongno-gu,Hyehwa-dong,02-741-7251,http://cafe.daum.net/theaterill,Y ,127.0019925,37.5839674
+597,BE_IW10-0242,Daehangno Theater Woori,Seoul,Jongno-gu,Ihwa-dong,02-745-0308,http://www.jtculture.com/theater01.htm,Y ,127.0025176,37.5822992
+598,BE_IW10-0243,Hypertheque NADA,Seoul,Jongno-gu,Ihwa-dong,02-766-3390,http://cafe.naver.com/inada/,Y ,127.0037106,37.5836832
+599,BE_IW10-0244,Theater Poonggimulan Center,Seoul,Jongno-gu,Cheongunhyoja-dong,070-8113-3108,,Y ,126.9988242,37.5844353
+600,BE_IW10-0570,Site of Hanseong Provisional Government,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9713114,37.5739782
+601,BE_IW10-0020,Samcheongdong [Movie 'Blossom Again' (2005)],Seoul,Jongno-gu,Gahoe-dong,,http://www.sarangni.co.kr,Y ,126.9864295,37.5790692
+602,BE_IW10-0021,Jil-siru[SBS Drama 'Golden Bride' (2007)],Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,http://www.jilsr.com ,Y ,126.9906319,37.5749057
+603,BE_IW10-0022,Changdeokgung Palace[Movie 'Chihwaseon' (2002)],Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,http://www.chihwaseon.com,Y ,126.9913206,37.5827758
+604,BE_IW10-0023,"[Winter sonata] Source of Korean Wave, Choongang High School",Seoul,Jongno-gu,Gahoe-dong,,http://www.kbs.co.kr/end_program/drama/winter/,Y ,126.9864633,37.5843579
+605,BE_IW10-0024,be famous for Drama Filming Site 'Pyeongchang-dong',Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9684778,37.6064054
+606,BE_IW10-0025,Gwanghwamun Plaza[KBS Drama 'Iris' (2009)],Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9773352,37.5703945
+607,BE_IW10-0026,Buam-dong [MBC Drama 'Wifequeen' (2009)],Seoul,Jongno-gu,Buam-dong,,http://www.imbc.com/broad/tv/drama/wifequeen/ ,Y ,126.9640471,37.5924399
+608,BE_IW10-0027,Company Building of Space [SBS Drama 'A Gentlemans Dignity' (2012)],Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9887515,37.5777066
+609,BE_IW10-0028,Marronnier Park [SBS Drama 'Okprince'(2012)],Seoul,Jongno-gu,Ihwa-dong,,http://tv.sbs.co.kr/okprince/ ,Y ,127.002437,37.5809403
+610,BE_IW10-0029,Bukchon [MBC Drama 'She was Pretty'(2015)],Seoul,Jongno-gu,Gahoe-dong,,http://www.imbc.com/broad/tv/drama/she/index.html,Y ,126.9832136,37.5831181
+611,BE_IW10-0030,Song's Kitchen [MBC Drama 'Triple'(2009)],Seoul,Jongno-gu,Buam-dong,02-395-1713,http://www.imbc.com/broad/tv/drama/triple/ ,Y ,126.9601611,37.6006352
+612,BE_IW10-0031,Yun Dong-ju Hill [MBC Drama 'Fated to Love You'(2014)],Seoul,Jongno-gu,Cheongunhyoja-dong,,http://www.imbc.com/broad/tv/drama/dlove/ ,Y ,126.9668414,37.5919912
+613,BE_IW10-0032,Caf? Mone[MBC Drama 'GreatestLove'(2011)],Seoul,Jongno-gu,Pyeongchang-dong,,http://www.imbc.com/broad/tv/drama/greatestlove/ ,Y ,126.974791,37.6123885
+614,BE_IW10-0033,Baekseok-dong 2gil 31[Movie 'Eungyo' (2012)],Seoul,Jongno-gu,Buam-dong,,,Y ,126.9698026,37.5984038
+615,BE_IW10-0034,Hyangwonjeong Pavilion in Gyeongbokgung Palace [MBC Drama 'The Moon Embracing the Sun'(2012)],Seoul,Jongno-gu,Cheongunhyoja-dong,,http://www.imbc.com/broad/tv/drama/sunNmoon ,Y ,126.9769632,37.5806903
+616,BE_IW10-0035,Naksan Park[MBC Drama 'The king 2 hearts'(2012)],Seoul,Jongno-gu,Ihwa-dong,,http://www.imbc.com/broad/tv/drama/king2hearts ,Y ,127.004494,37.5838167
+617,BE_IW10-0036,Pastel de Nata[SBS Drama 'The Heirs'(2013)],Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9837107,37.5773893
+618,BE_IW10-0037,Caf? Hakrim[SBS Drama 'Love from Star'(2013)],Seoul,Jongno-gu,Hyehwa-dong,,http://program.sbs.co.kr/builder/programMainList.do?pgm_id=22000001041,Y ,127.0016508,37.58193
+619,BE_IW10-0038,"Cheongun Park[SBS Drama 'The winter, Wind rises'(2013)]",Seoul,Jongno-gu,Cheongunhyoja-dong,,http://baramibunda.sbs.co.kr/,Y ,126.9664689,37.5907647
+620,BE_IW10-0039,Buam-dong [SBS Drama 'Brilliant Legacy' (2009)],Seoul,Jongno-gu,Buam-dong,,http://tv.sbs.co.kr/usan/ ,Y ,126.9640471,37.5924399
+621,BE_IW10-0040,"Gyeongbokgung Palace, Ilmin Museum of Art [Movie 'Windstruck'(2004)]",Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9776683,37.5695517
+622,BE_IW10-0041,Naksan Park and surroundings of Changsin-dong ssangyoung Apartment[KBS Drama 'Birth Of The Rich'(2010)],Seoul,Jongno-gu,Changsin3-dong,,,Y ,127.0140195,37.5805173
+623,BE_IW10-0042,Green House[SBS Drama 'Secret Garden'(2010)],Seoul,Jongno-gu,Pyeongchang-dong,,http://tv.sbs.co.kr/secretgarden/,Y ,126.9705299,37.610502
+624,BE_IW10-0043,Gyedong-gil[MBC Drama 'Twinkle Twinkle'(2011)],Seoul,Jongno-gu,Gahoe-dong,,http://www.imbc.com/broad/tv/drama/shining,Y ,126.9866683,37.5803116
+625,BE_IW10-0044,Ihwa Mural Village [SBS Drama 'Okprince'(2012)],Seoul,Jongno-gu,Ihwa-dong,,http://tv.sbs.co.kr/okprince/ ,Y ,127.0072663,37.5781516
+626,BE_IW10-0045,DaeO bookstore[KBS Drama 'Shark'(2013)],Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9693362,37.5797358
+627,BE_IW10-0046,Kim jongyoung museum[MBC Drama 'GreatestLove'(2011)],Seoul,Jongno-gu,Pyeongchang-dong,02-3217-6484 ,http://www.imbc.com/broad/tv/drama/greatestlove/ ,Y ,126.9776575,37.6130429
+628,BE_IW10-0047,Samcheong Park [SBS Drama 'Love from Star'(2013)],Seoul,Jongno-gu,Samcheong-dong,,http://program.sbs.co.kr/builder/programMainList.do?pgm_id=22000001041,Y ,126.9808095,37.5885407
+629,BE_IW10-0048,Baekseok-dong gil 124[MBC Drama 'scandal'(2013)],Seoul,Jongno-gu,Buam-dong,,http://www.imbc.com/broad/tv/drama/scd/ ,Y ,126.9693549,37.5959344
+630,BE_IW10-0049,Yongjeong[MBC Drama 'Jang Bo-ri is Here!'(2014)],Seoul,Jongno-gu,Gahoe-dong,02-747-3000,http://www.imbc.com/broad/tv/drama/jangbori/ ,Y ,126.9885806,37.5794631
+631,BE_IW10-0050,Caf? sanmotoonge[MBC Drama 'coffee prince'(2007)],Seoul,Jongno-gu,Buam-dong,,http://www.imbc.com/broad/tv/drama/coffeeprince/index.html ,Y ,126.967964,37.5954183
+632,BE_IW10-0051,Woonkyung foundation[MBC Drama 'Jang Bo-ri is Here!'(2014)],Seoul,Jongno-gu,Sajik-dong, 02-737-1710,http://www.imbc.com/broad/tv/drama/jangbori/ ,Y ,126.9665334,37.5749349
+633,BE_IW10-0052,710 an other man[KBS Drama 'The Queen of Office'(2013)],Seoul,Jongno-gu,Buam-dong,,http://www.kbs.co.kr/drama/misskim/,Y ,126.966375,37.5937565
+634,BE_IW10-0053,Yeorangjae[MBC Drama 'Personal Taste' (2010)],Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9847947,37.580111
+635,BE_IW10-0054,Pak Nosoo Museum,Seoul,Jongno-gu,Cheongunhyoja-dong,02-2148-4171,,Y ,126.9667572,37.5813721
+638,BE_IW10-0055,Yun Dong-ju Literary House,Seoul,Jongno-gu,Cheongunhyoja-dong,02-2148-4175,http://www.yundongju.or.kr,Y ,126.9670686,37.5920969
+639,BE_IW10-0057,Gwanghwamun Korea Culture Center ,Seoul,Jongno-gu,Sajik-dong,02-737-0621~2,http://www.yeshanc.com,Y ,126.9742559,37.5704258
+640,BE_IW10-0058,Dongsoong Art Center,Seoul,Jongno-gu,Ihwa-dong,02-766-3390,http://www.dsartcenter.co.kr,Y ,127.0037106,37.5836832
+641,BE_IW10-0059,Seoul Seniors Welfare Center,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-739-9501~3,http://www.seoulnoin.or.kr,Y ,126.9856233,37.5760011
+642,BE_IW10-0060,Pulib Culture Center in Jongno,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,"02-763-5579,744-5579",http://jongro.pulib.com,Y ,126.9911999,37.5706616
+643,BE_IW10-0061,Jongno Comprehensive Social Welfare Center,Seoul,Jongno-gu,Changsin3-dong,02-766-8282,http://www.jongno.or.kr/,Y ,127.0123574,37.5772068
+644,BE_IW10-0062,Youth Culture Center,Seoul,Jongno-gu,Hyehwa-dong,02-3675-1318,http://www.ijongno.co.kr,Y ,126.9933773,37.5906337
+645,BE_IW10-0063,Eastern Women Culture Center,Seoul,Jongno-gu,Changsin2-dong,"02-3675-5861,731-0649",http://www.ijongno.co.kr,Y ,127.0099877,37.5769475
+646,BE_IW10-0064,Gana Art Center,Seoul,Jongno-gu,Pyeongchang-dong,02-720-1020,http://www.ganaart.com,Y ,126.9751895,37.612236
+647,BE_IW10-0065,Olympic Memorial Civic Center,Seoul,Jongno-gu,Hyehwa-dong,02-745-6701~5,http://www.ijongno.co.kr,Y ,126.9988431,37.5903653
+648,BE_IW10-0066,Unhyeongung Culture Center,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-766-9090,http://www.unhyeongung.or.kr,Y ,126.9871246,37.5761263
+649,BE_IW10-0067,Jongno Senior Welfare Service Center,Seoul,Jongno-gu,Ihwa-dong,02-742-9500~2,http://www.jongnonoin.or.kr/,Y ,127.0060252,37.5767323
+650,BE_IW10-0068,Jongno Culture and Sports Center,Seoul,Jongno-gu,Sajik-dong,02-732-9392~3,http://www.ijongno.co.kr,Y ,126.9647006,37.5743945
+651,BE_IW10-0069,Women Resources Development Center ,Seoul,Jongno-gu,Buam-dong,"02-765-1326,7,1334",http://www.sbwomen.or.kr,Y ,127.0005725,37.5821171
+652,BE_IW10-0307,Guerrilla Theater,Seoul,Jongno-gu,Hyehwa-dong,02-763-1268,http://cafe.daum.net/theaterguerrilla,Y ,127.0004578,37.5874595
+653,BE_IW10-0308,Hollywood Classic,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-3672-4232,http://www.bravosilver.org,Y ,126.9878024,37.5725833
+654,BE_IW10-0645,Site of Sonbyeonghui's house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9847684,37.5803381
+655,BE_IW10-0646,Site of Ogansumun Gate,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9838679,37.570451
+656,BE_IW10-0647,Site of the Wejo,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.979642,37.573033
+657,BE_IW10-0648,Site of Yeoinsijang,Seoul,Jongno-gu,Sungin2-dong,,,Y ,127.0176267,37.571855
+658,BE_IW10-0649,Site of Yeounhyeong's house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.987,37.5804
+659,BE_IW10-0650,Site of Yeodan Altar,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9770283,37.6110973
+660,BE_IW10-0651,Site of Eouigung Palace,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,127.0018918,37.574964
+661,BE_IW10-0652,Site of Eoyugu's house,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,127.0003237,37.5841909
+662,BE_IW10-0653,Site of Eoyeongcheong,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9971783,37.5728094
+663,BE_IW10-0654,Site of Sundial Base,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9954564,37.5713843
+664,BE_IW10-0655,Site of Andong Secondary Palace,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9828999,37.5773
+665,BE_IW10-0656,Site of Ssanghongmun Gate,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9719206,37.5826487
+666,BE_IW10-0657,Site of Sengmunwon,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.987,37.5804
+667,BE_IW10-0658,Site of Sunhwagung Palace,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.986,37.5717
+668,BE_IW10-0659,Site of Supyogyo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9893086,37.5684728
+669,BE_IW10-0660,Site of Sujin Measurement School,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9806,37.5737
+670,BE_IW10-0661,Site of Sujingung Shrine,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9810035,37.5726695
+671,BE_IW10-0662,Site of Songhakseon,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9894942,37.5777794
+672,BE_IW10-0663,Site of Songsiyeol's house,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,127.0005764,37.5869186
+673,BE_IW10-0664,Site of Sechang Segwan Press,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9915496,37.5706809
+674,BE_IW10-0665,Place of King Sejong born,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9701873,37.5801426
+675,BE_IW10-0666,Segumjeongchaulam Rock,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9605171,37.6009603
+676,BE_IW10-0667,Place Seongsammun lived,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9821397,37.5816563
+677,BE_IW10-0668,Site of Seongonggam,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9761849,37.5704858
+678,BE_IW10-0669,Site of Seokyanglu,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.0042691,37.5769839
+679,BE_IW10-0670,Center of Seoul Mark Stone,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.986,37.5717
+680,BE_IW10-0671,Site of Seoul University,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.002707,37.5804832
+681,BE_IW10-0672,Former Site of Seobukhakhoe,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9870345,37.5739678
+682,BE_IW10-0673,Site of Sangcunwon,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.0124949,37.5733026
+683,BE_IW10-0674,Site of Saheonbu Goverment,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9759138,37.5733807
+684,BE_IW10-0675,Site of Saposeo Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9798861,37.574137
+686,BE_IW10-0677,Site of Saonseo Office,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9743068,37.5746556
+687,BE_IW10-0678,Site of Sayeokwon Office,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.970072,37.574891
+688,BE_IW10-0679,Site of Saseomsa Temple,Seoul,Jongno-gu,Hyehwa-dong,,,Y ,126.9977942,37.5834472
+689,BE_IW10-0680,Site of Saboksi Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9790119,37.5739157
+690,BE_IW10-0681,Site of Sogyeokseo Office,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9811382,37.5814132
+691,BE_IW10-0682,Site of Saganwon Office,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9798313,37.5780538
+692,BE_IW10-0683,Site of Bibyeonsa Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.993,37.582
+693,BE_IW10-0684,Site of Bukpyeonggwan Office,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,127.0081764,37.5719426
+694,BE_IW10-0685,Site of Buchim Rock,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9634598,37.5973772
+695,BE_IW10-0686,Site of Bongsangsa Office,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9723176,37.5717624
+696,BE_IW10-0687,Site of Byeongjoe Office,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767571,37.5802853
+697,BE_IW10-0688,Site of Bokjeong Well,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9820324,37.582129
+698,BE_IW10-0689,Former Site of Byeolgigun Army Training Camp,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.965905,37.6050461
+699,BE_IW10-0690,Site of Seosupjagak Watchtower,Seoul,Jongno-gu,Ihwa-dong,,,Y ,126.979642,37.573033
+700,BE_IW10-0691,Site of Parkinhwan's house,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.979642,37.573033
+701,BE_IW10-0692,Site of Parkgyusu's house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.985125,37.5781
+702,BE_IW10-0693,Site of Minyeonghwan 's house,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9827322,37.5741253
+703,BE_IW10-0694,Site of Mangsaseong's house,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9833213,37.5838981
+704,BE_IW10-0695,Site of Deunggwajeong Archary Pavilion,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9685375,37.5764899
+705,BE_IW10-0696,Site of Donghakdang,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,127.0074286,37.5713338
+706,BE_IW10-0697,Dongmangbong,Seoul,Jongno-gu,Sungin1-dong,,,Y ,127.0173078,37.5775502
+707,BE_IW10-0698,Donga Ilbo Building Site,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9825512,37.5793438
+709,BE_IW10-0700,Site of Donnyeongbu Office,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9884967,37.5740499
+711,BE_IW10-0701,Site of Indepencence Declaration Distribution,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.98595,37.575067
+712,BE_IW10-0702,Site of Dojeonggung Shrine,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9662961,37.5744029
+713,BE_IW10-0703,Site of Doyeomseo Office,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.979642,37.573033
+714,BE_IW10-0704,Site of Daehan-Cheonil Main Bank ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9841943,37.5688055
+715,BE_IW10-0705,Site of Daesimwon Court,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9823968,37.571117
+716,BE_IW10-0706,Original Site of Daedongdan ,Seoul,Jongno-gu,Pyeongchang-dong,,,Y ,126.9574,37.6179
+717,BE_IW10-0707,Site of Nongsanamun Office,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9725957,37.5864696
+718,BE_IW10-0708,Site of General Nobaeklin's house,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9864633,37.5843579
+719,BE_IW10-0709,Baeksecheongpung-bawi Rock,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.967287,37.5865804
+720,BE_IW10-0710,Site of Baeklokjeong Archary Pavilion,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9853667,37.5861106
+721,BE_IW10-0711,Site of Baeklyeonsa,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9829311,37.5880397
+722,BE_IW10-0712,Site of General Nami,Seoul,Jongno-gu,Ihwa-dong,,,Y ,127.0019111,37.578353
+723,BE_IW10-0713,Site of Kimjeonghui's house,Seoul,Jongno-gu,Sajik-dong,,,Y ,126.9722336,37.5779723
+724,BE_IW10-0714,Site of Kimokgyun's house,Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9828,37.5806
+725,BE_IW10-0715,Site of Kimsuyoung's house,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,127.0075945,37.5714186
+726,BE_IW10-0716,Site of Kimsangheon's house,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9711429,37.5852907
+727,BE_IW10-0126,PKM Gallery,Seoul,Jongno-gu,Samcheong-dong,02-734-9467~8,http://www.pkmgallery.com,Y ,126.9826982,37.5790477
+728,BE_IW10-0127,Ilmin Museum of Art,Seoul,Jongno-gu,Sajik-dong,02-2020-2055,http://www.ilmin.org,Y ,126.9776683,37.5695517
+729,BE_IW10-0128,Artside,Seoul,Jongno-gu,Sajik-dong,02-725-1020,http://www.artside.org/,Y ,126.9729516,37.578275
+730,BE_IW10-0129,Sejong Center for the Performing Arts Museum of Art,Seoul,Jongno-gu,Sajik-dong,02-399-1512~4,http://www.sejongpac.or.kr,Y ,126.9760754,37.5722306
+731,BE_IW10-0130,KIM YOUNG SEOB PHOTOGALLERY,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-6331~2,http://www.gallerykim.com,Y ,126.9841901,37.5743045
+732,BE_IW10-0131,Chohyung Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-736-4804~5,,Y ,126.9848536,37.5720231
+733,BE_IW10-0132,Dukwon Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-723-7771,,Y ,126.9865138,37.5729565
+734,BE_IW10-0133,Gallery Lux,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,http://www.gallerylux.net,Y ,126.9844248,37.5741999
+735,BE_IW10-0134,Gallery SUN&MOON,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,http://amkorea.com/cgi-bin/amkorea/board/ttboard.cgi?act=read&db=seoul_sunmoon&page=1&idx=1,Y ,126.9857228,37.5743664
+736,BE_IW10-0135,Art Council Korea Arko Art Center,Seoul,Jongno-gu,Ihwa-dong,02-760-4601~4,http://art.arko.or.kr,Y ,127.002897,37.5799333
+737,BE_IW10-0136,Gana Art Center,Seoul,Jongno-gu,Pyeongchang-dong,02-720-1020,http://www.ganaartgallery.com,Y ,126.9751895,37.612236
+738,BE_IW10-0137,Gallery Samkyoung,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-735-1262,,Y ,126.986821,37.5732985
+739,BE_IW10-0138,Pak No-soo Art Museum,Seoul,Jongno-gu,Cheongunhyoja-dong,02-2148-4171,,Y ,126.9667572,37.5813721
+740,BE_IW10-0139,"Imageroot, Sangwon Museum of Art",Seoul,Jongno-gu,Pyeongchang-dong,02-396-3185,http://www.imageroot.co.kr,Y ,126.9765863,37.6116273
+741,BE_IW10-0140,Bukchon Art Museum,Seoul,Jongno-gu,Gahoe-dong,02-741-2296,http://www.bukchonartmuseum.com,Y ,126.9847684,37.5803381
+742,BE_IW10-0141,Daelim Museum,Seoul,Jongno-gu,Sajik-dong,02-720-0667,http://www.daelimmuseum.org,Y ,126.9733074,37.5774958
+743,BE_IW10-0142,Art Sonje Center,Seoul,Jongno-gu,Samcheong-dong,02-733-8945,http://artsonje.org,Y ,126.98185,37.5794229
+744,BE_IW10-0143,Zaha Museum,Seoul,Jongno-gu,Buam-dong,02-395-3222,http://www.zahamuseum.com,Y ,126.9603349,37.5893894
+745,BE_IW10-0144,Artplanet,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-6444,,Y ,126.9834469,37.5750728
+746,BE_IW10-0145,Gallery Sang,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-730-0030,http://www.gallerysang.co.kr,Y ,126.9865325,37.5723401
+747,BE_IW10-0146,Tong-in Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-735-9094,http://www.tonginstore.com/,Y ,126.9858474,37.5735325
+748,BE_IW10-0147,Gallery Daea,Seoul,Jongno-gu,Samcheong-dong,02-725-2550,http://www.artinseoul.co.kr,Y ,126.9799075,37.5779041
+749,BE_IW10-0148,Insa Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-735-2655,,Y ,126.985695,37.5739901
+750,BE_IW10-0149,Dongho Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-722-3665,,Y ,126.9854649,37.5731065
+751,BE_IW10-0150,Rho Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-3558,http://www.rhogallery.com,Y ,126.9840927,37.574868
+752,BE_IW10-0151,Samtoh Gallery,Seoul,Jongno-gu,Ihwa-dong,02-3675-3737,,Y ,127.0023394,37.5815498
+753,BE_IW10-0152,Gallery Seokyoung,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-0434,,Y ,126.9844027,37.5740936
+754,BE_IW10-0153,Korea Craft & Design Foundation,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-9040,http://www.kcpf.or.kr,Y ,126.9841228,37.5740281
+755,BE_IW10-0154,Kukje Gallery,Seoul,Jongno-gu,Samcheong-dong,02-735-8449,http://www.kukje.org,Y ,126.9804724,37.5807298
+756,BE_IW10-0155,Gallery Hyundai,Seoul,Jongno-gu,Samcheong-dong,02-734-6111~4,http://www.galleryhyundai.com,Y ,126.9798969,37.5773258
+757,BE_IW10-0156,Moran Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-737-0057,http://www.moranmuseum.org/main.html,Y ,126.9854649,37.5731065
+758,BE_IW10-0157,Moin Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-739-9291~2,http://www.moingallery.co.kr,Y ,126.9847262,37.5736757
+759,BE_IW10-0158,Topohaus,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-722-9883,http://www.topohaus.com,Y ,126.9844027,37.5740936
+760,BE_IW10-0159,Sun Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-734-0458,http://www.sungallery.co.kr,Y ,126.9856369,37.5729699
+761,BE_IW10-0160,The Soho,Seoul,Jongno-gu,Sajik-dong,02-722-1999,http://www.thesoho.co.kr,Y ,126.9692755,37.5778954
+762,BE_IW10-0161,The Woljeon Museum of Art,Seoul,Jongno-gu,Samcheong-dong,02-732-3777,,Y ,126.9815311,37.5829635
+763,BE_IW10-0162,Insa Art Center,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-736-1020,http://www.ganaartgallery.com,Y ,126.9846029,37.573887
+764,BE_IW10-0163,Jongno Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-737-0326,,Y ,126.985205,37.5743408
+765,BE_IW10-0164,Gwang Art Gallery,Seoul,Jongno-gu,Sajik-dong,02-399-1151~1154,http://www.sejongpac.or.kr,Y ,126.9760754,37.5722306
+766,BE_IW10-0165,Sungkok Art Museum,Seoul,Jongno-gu,Sajik-dong,02-737-7650,http://www.sungkokmuseum.com,Y ,126.9700536,37.5735038
+768,BE_IW10-0166,Total Museum of Contemporary Art,Seoul,Jongno-gu,Pyeongchang-dong,02-379-3994,http://www.totalmuseum.org,Y ,126.9759443,37.6121075
+769,BE_IW10-0167,Gallery doll,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-739-1406,http://www.gallerydoll.com,Y ,126.9841714,37.573006
+770,BE_IW10-0168,Baiksong Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-730-5824,http://www.artbaiksong.com,Y ,126.985327,37.5732968
+771,BE_IW10-0169,Kukje Gallery,Seoul,Jongno-gu,Samcheong-dong,02-735-8449,http://www.kukje.org,Y ,126.9804724,37.5807298
+772,BE_IW10-0170,Garam Art Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-6170,http://www.garamgallery.co.kr,Y ,126.9856175,37.574298
+773,BE_IW10-0171,Cheonggye Art Studio,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2285-3392,http://www.sfac.or.kr/cheonggye_studio/cheonggye06.asp,Y ,126.992899,37.5688002
+774,BE_IW10-0172,Whanki Museum,Seoul,Jongno-gu,Buam-dong,02-391-7701~2,http://www.whankimuseum.org,Y ,126.9664362,37.5944071
+775,BE_IW10-0173,Kyung-in Museum of Fine Art,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-4448,http://www.kyunginart.co.kr,Y ,126.985618,37.5745209
+776,BE_IW10-0174,Hakgojae,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-739-4937,http://hakgojae.com,Y ,126.9841605,37.574813
+777,BE_IW10-0175,Bon Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-2366,http://www.bongallery.com,Y ,126.9826395,37.5749208
+778,BE_IW10-0176,Art Sonje Center,Seoul,Jongno-gu,Samcheong-dong,02-733-8945,http://www.artsonje.org,Y ,126.98185,37.5794229
+779,BE_IW10-0177,Kumho Art Gallery,Seoul,Jongno-gu,Samcheong-dong,02-720-5114,http://www.kumhoarthall.co.kr,Y ,126.9798219,37.577477
+780,BE_IW10-0178,Savina Museum of Contemporary Art,Seoul,Jongno-gu,Samcheong-dong,02-736-4371,http://www.savinamuseum.com,Y ,126.984583,37.576588
+781,BE_IW10-0179,Gallery Gaia,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong, 02-733-3373,http://www.galerie-gaia.net,Y ,126.9834469,37.5750728
+782,BE_IW10-0180,Gallery Miz,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-735-4151,http://www.mizgallery.com,Y ,126.985152,37.5740529
+783,BE_IW10-0181,Kwanhoon Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-6469,http://www.kwanhoongallery.com/new/index.htm,Y ,126.9843622,37.5736791
+784,BE_IW10-0182,Dongsanbang Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-6945,,Y ,126.9833743,37.5729287
+785,BE_IW10-0183,Dongseo Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-722-9086,,Y ,126.9853652,37.5736068
+786,BE_IW10-0184,Dansung Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-735-5588,,Y ,126.9852857,37.5738973
+787,BE_IW10-0245,Poli Media Theater,Seoul,Jongno-gu,Ihwa-dong,02-3675-2754,,Y ,127.0035361,37.5822908
+788,BE_IW10-0246,TinTin Hall,Seoul,Jongno-gu,Ihwa-dong,02-745-5570,http://www.tintinhall.co.kr,Y ,127.0035347,37.5825002
+789,BE_IW10-0247,Chungwoon Art Theater,Seoul,Jongno-gu,Ihwa-dong,02-764-7606,http://club.cyworld.com/club/main/club_main.asp?club_id=52632090,Y ,127.0025796,37.5765253
+790,BE_IW10-0248,Chunga Theater,Seoul,Jongno-gu,Hyehwa-dong,02-741-1837,http://blog.daum.net/cheongatheater,Y ,127.0026068,37.5839943
+791,BE_IW10-0249,Champ Theater,Seoul,Jongno-gu,Ihwa-dong,02-742-0333,,Y ,127.005289,37.5803585
+792,BE_IW10-0250,"Changjo Concert Hall 1,2",Seoul,Jongno-gu,Hyehwa-dong,02-747-7001,http://www.changjo1.co.kr,Y ,127.0019925,37.5839674
+793,BE_IW10-0251,Museum of Korea Straw and Plants Handicraft,Seoul,Jongno-gu,Hyehwa-dong,02-743-8787~8,http://www.zipul.co.kr,Y ,126.9998511,37.5849195
+794,BE_IW10-0252,Ziller Hall,Seoul,Jongno-gu,Ihwa-dong,02-741-9700,http://www.zillerzone.com,Y ,127.0035347,37.5825002
+795,BE_IW10-0253,Joungbo Theater,Seoul,Jongno-gu,Ihwa-dong,02-3673-0554~5,,Y ,127.0037217,37.5824981
+796,BE_IW10-0254,Open Theather,Seoul,Jongno-gu,Hyehwa-dong,02-743-6474,,Y ,127.0003131,37.5836998
+797,BE_IW10-0255,Yeonwoo Theater,Seoul,Jongno-gu,Hyehwa-dong,"02-744-7090, 5701",,Y ,127.0017452,37.5869953
+798,BE_IW10-0256,Play Laboratory Hyehwa-dong 1st Number,Seoul,Jongno-gu,Hyehwa-dong,02-762-0810,,Y ,127.0013447,37.5863933
+799,BE_IW10-0257,Pine Theater,Seoul,Jongno-gu,Samcheong-dong,02-744-1891,,Y ,126.9992015,37.582469
+800,BE_IW10-0258,Amusing Theater,Seoul,Jongno-gu,Ihwa-dong,02-744-4817,,Y ,127.0041525,37.5807781
+801,BE_IW10-0259,Theater Egg & Nucleus,Seoul,Jongno-gu,Ihwa-dong,02-745-8833,,Y ,127.003686,37.5799382
+802,BE_IW10-0260,Artistan Hall,Seoul,Jongno-gu,Sajik-dong,02-786-3134,http://www.artistan.co.kr,Y ,127.2733626,37.0152241
+803,BE_IW10-0261,Art Hall Starcity,Seoul,Jongno-gu,Hyehwa-dong,02-747-9139,,Y ,127.0005725,37.5821171
+804,BE_IW10-0262,Shinyon Art Hall,Seoul,Jongno-gu,Ihwa-dong,02-3676-0282,http://www.shinyon.co.kr,Y ,127.0024445,37.5832665
+805,BE_IW10-0263,Studio 76,Seoul,Jongno-gu,Hyehwa-dong,02-764-3076,,Y ,127.0019523,37.5836053
+806,BE_IW10-0264,Lock Museum,Seoul,Jongno-gu,Ihwa-dong,02-766-6494,http://www.lockmuseum.org,Y ,127.0046646,37.5798116
+807,BE_IW10-0265,Theater Picasso,Seoul,Jongno-gu,Hyehwa-dong,02-3672-7971,,Y ,127.0006524,37.5827031
+808,BE_IW10-0266,Theather Festival,Seoul,Jongno-gu,Hyehwa-dong,02-741-3934,http://www.galaplanner.co.kr,Y ,127.0008522,37.5818529
+809,BE_IW10-0267,Haeorm Theater,Seoul,Jongno-gu,Hyehwa-dong,070-7566-5469,http://theatre.ohpy.com/,Y ,127.0000379,37.5845573
+810,BE_IW10-0268,Modli Theater,Seoul,Jongno-gu,Hyehwa-dong,02-741-6487,,Y ,127.0004884,37.5866414
+811,BE_IW10-0269,Marronnier Theater,Seoul,Jongno-gu,Ihwa-dong,02-744-0686,,Y ,127.004584,37.5805932
+812,BE_IW10-0270,Madang Sesil Theater,Seoul,Jongno-gu,Ihwa-dong,02-747-5773,,Y ,127.0046429,37.5787032
+813,BE_IW10-0271,Lemeilleur Theater,Seoul,Jongno-gu,Ihwa-dong,02-747-2232,,Y ,127.0041525,37.5807781
+814,BE_IW10-0272,Lunatic Theater,Seoul,Jongno-gu,Ihwa-dong,02-3674-1010,,Y ,127.0042638,37.5801187
+815,BE_IW10-0273,Robot Museum,Seoul,Jongno-gu,Ihwa-dong,02-741-8861,http://www.robotmuseum.co.kr,Y ,127.0035867,37.582977
+816,BE_IW10-0274,Life Theater,Seoul,Jongno-gu,Hyehwa-dong,02-742-3577,,Y ,127.0009807,37.5838873
+817,BE_IW10-0275,Doore Hall 4,Seoul,Jongno-gu,Ihwa-dong,02-741-5978,,Y ,127.0028377,37.58278
+818,BE_IW10-0276,Doore Hall 3,Seoul,Jongno-gu,Ihwa-dong,02-741-5970,,Y ,127.0032731,37.5824989
+819,BE_IW10-0277,Doore Hall 2,Seoul,Jongno-gu,Ihwa-dong,02-741-5978,http://www.cyworld.com/doore2,Y ,127.003718,37.5818876
+820,BE_IW10-0278,Imagine Share Theater,Seoul,Jongno-gu,Ihwa-dong,02-521-6284,http://www.nonostory.co.kr,Y ,127.0046646,37.5798116
+821,BE_IW10-0279,"Sangmyung Art Hall 1,2",Seoul,Jongno-gu,Ihwa-dong,02-2075-2173,http://cart.smu.ac.kr/sub/sub06_01.htm,Y ,127.0027294,37.5833598
+822,BE_IW10-0280,Blackbox Theater,Seoul,Jongno-gu,Ihwa-dong,02-744-8025,,Y ,127.0025706,37.581897
+823,BE_IW10-0281,Baewoo Sesang Theater,Seoul,Jongno-gu,Ihwa-dong,02-743-2274,http://club.cyworld.com/kimkapsoo,Y ,127.0024153,37.5829685
+824,BE_IW10-0282,Very Busy Theater,Seoul,Jongno-gu,Ihwa-dong,02-984-7567,http://club.cyworld.com/club/main/club_main.asp?club_id=51400869,Y ,127.0043019,37.581453
+825,BE_IW10-0283,"Miracle Theater 1,2",Seoul,Jongno-gu,Ihwa-dong,02-742-7261~2,http://www.artpama.co.kr/theater/theater.htm,Y ,127.0041525,37.5807781
+826,BE_IW10-0284,"Culture Space 1,2",Seoul,Jongno-gu,Ihwa-dong,02-762-0010,http://www.e-eda.com,Y ,127.0035361,37.5822908
+827,BE_IW10-0285,Culture Space Ellim Hall,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,070-7787-2356,http://www.ds.or.kr/cm/sub06.htm,Y ,127.0047888,37.5794029
+828,BE_IW10-0286,Mokkumto Gallery,Seoul,Jongno-gu,Ihwa-dong,02-764-0700,http://www.mokkumto.com,Y ,127.0035361,37.5822908
+829,BE_IW10-0287,Theater Dareuge Nolja,Seoul,Jongno-gu,Ihwa-dong,02-3672-8276,http://www.songarak.co.kr/,Y ,127.0039212,37.5800235
+830,BE_IW10-0288,Sewoo Art Center,Seoul,Jongno-gu,Ihwa-dong,02-2248-1234,http://www.sewooartcenter.com/main.html,Y ,127.0039755,37.5819611
+831,BE_IW10-0289,Sungkyun Theater,Seoul,Jongno-gu,Sajik-dong,02-747-5035,http://cafe.naver.com/sktheater,Y ,126.9979936,37.5841545
+832,BE_IW10-0290,Theatre Jungmiso,Seoul,Jongno-gu,Ihwa-dong,02-3672-3001,http://www.jungmiso.com,Y ,127.0047288,37.5782411
+833,BE_IW10-0291,Sundol Theatre,Seoul,Jongno-gu,Hyehwa-dong,02-747-3226,http://club.cyworld.com/club/main/club_main.asp?club_id=52664509,Y ,126.9997673,37.5868349
+834,BE_IW10-0292,Seoul Theater Center,Seoul,Jongno-gu,Hyehwa-dong,02-743-9333,http://www.e-stc.or.kr,Y ,127.0013254,37.5834167
+835,BE_IW10-0293,"Samtoh Bluebird Theater 1,2",Seoul,Jongno-gu,Ihwa-dong,02-763-8969,https://www.isamtoh.com/blue_bird/blue_main.asp,Y ,127.0023394,37.5815498
+836,BE_IW10-0294,Samtoh Gallery,Seoul,Jongno-gu,Ihwa-dong,02-3675-3737,https://www.isamtoh.com/gallery/main.asp,Y ,127.0023394,37.5815498
+837,BE_IW10-0295,Sangsang Blue Sangsang White Theater,Seoul,Jongno-gu,Ihwa-dong,02-747-7491~2,,Y ,127.0032958,37.583306
+838,BE_IW10-0296,Doore Hall 1,Seoul,Jongno-gu,Ihwa-dong,02-741-5978,http://www.cyworld.com/doore2,Y ,127.003718,37.5818876
+839,BE_IW10-0297,"Dongsoong Art Center(Dongsoong Hall,Theater)",Seoul,Jongno-gu,Ihwa-dong,02-766-3444,http://www.dsartcenter.co.kr,Y ,127.0037106,37.5836832
+840,BE_IW10-0298,Art Madang 1~4,Seoul,Jongno-gu,Ihwa-dong,02-747-2117~9,http://www.artmadang.co.kr,Y ,127.0039392,37.5766353
+841,BE_IW10-0299,Daehangno Starcity 1~3,Seoul,Jongno-gu,Hyehwa-dong,02-747-9139,,Y ,127.0005725,37.5821171
+842,BE_IW10-0300,Daehangno Live Theater,Seoul,Jongno-gu,Ihwa-dong,02-745-5538,http://www.livetheater.co.kr,Y ,127.0037068,37.5812024
+843,BE_IW10-0301,Daehangno Theater,Seoul,Jongno-gu,Ihwa-dong,02-764-6052,http://www.dat.or.kr,Y ,127.0025796,37.5765253
+844,BE_IW10-0302,Daehangno Practice Room,Seoul,Jongno-gu,Ihwa-dong,02-747-7805,http://www.sfac.or.kr/sub.asp?page=1114111114,Y ,127.0034767,37.5831733
+845,BE_IW10-0303,Danmak Theater,Seoul,Jongno-gu,Ihwa-dong,02-765-1544,,Y ,127.004594,37.5833263
+846,BE_IW10-0304,Naon theater,Seoul,Jongno-gu,Hyehwa-dong,02-3675-3677,http://cafe.naver.com/naonculture,Y ,126.9994075,37.5877182
+847,BE_IW10-0305,Kkamang Theater,Seoul,Jongno-gu,Ihwa-dong,02-3672-8868,,Y ,127.004012,37.5812365
+848,BE_IW10-0306,Mabangzen,Seoul,Jongno-gu,Hyehwa-dong,02-3676-7849,http://www.mabangzen.com,Y ,126.9983131,37.5851262
+849,BE_IW10-0185,Mokkumto Gallery,Seoul,Jongno-gu,Ihwa-dong,02-764-0750,http://www.mokkumto.com,Y ,127.0035361,37.5822908
+850,BE_IW10-0186,Gallery Sejul,Seoul,Jongno-gu,Pyeongchang-dong,02-391-9171,http://www.sejul.com,Y ,126.9751244,37.6134542
+851,BE_IW10-0187,Do Art(Dongmundang Gallery),Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-737-2505,http://www.doart.co.kr,Y ,126.9840363,37.5749107
+852,BE_IW10-0188,Gongpyeong Art Center,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-9512,,Y ,126.9835909,37.571894
+853,BE_IW10-0071,Bukchon Traditional Culture Center,Seoul,Jongno-gu,Gahoe-dong,"02-3707-8388,8270",http://bukchon.seoul.go.kr,Y ,126.9864295,37.5790692
+854,BE_IW10-0072,Dongin Institute of Culture,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-762-4034,http://www.donginuni.com,Y ,126.9891376,37.5751138
+855,BE_IW10-0073,Jongno-gu Community Center,Seoul,Jongno-gu,Changsin1-dong,02-3672-2530~1,http://www.ijongno.co.kr,Y ,127.0141832,37.573445
+856,BE_IW10-0074,Playing Culture Center,Seoul,Jongno-gu,Ihwa-dong,"02-766-0884,743-5001",http://www.playingcenter.com,Y ,127.0037106,37.5836832
+857,BE_IW10-0075,Kokdu Museum,Seoul,Jongno-gu,Ihwa-dong,02-766-3315,http://www.kokdumuseum.com,Y ,127.0037106,37.5836832
+858,BE_IW10-0076,Museum of Korean Buddhist Art,Seoul,Jongno-gu,Gahoe-dong,02-766-6000,http://www.buddhistmuseum.co.kr,Y ,126.9890523,37.5808209
+859,BE_IW10-0077,Bukchon Museum Old Fragrance,Seoul,Jongno-gu,Samcheong-dong,02-736-3957,http://www.bomulgun.com,Y ,126.9829816,37.5844644
+860,BE_IW10-0078,Presseum,Seoul,Jongno-gu,Sajik-dong,"02-2020-1830, 1850",http://www.presseum.or.kr,Y ,126.9776683,37.5695517
+861,BE_IW10-0079,Korean National Police Heritage Museum,Seoul,Jongno-gu,Sajik-dong,02-3150-3681,http://www.policemuseum.go.kr,Y ,126.9696697,37.5690134
+862,BE_IW10-0080,Yoogeum Museum,Seoul,Jongno-gu,Buam-dong,02-394-3451,http://www.yoogeum.org,Y ,126.9626533,37.5936708
+863,BE_IW10-0081,Han Sang Soo Embroidery Museum,Seoul,Jongno-gu,Gahoe-dong,02-744-1545,http://www.hansangsoo.com,Y ,126.9856526,37.5827384
+864,BE_IW10-0082,Young-In Literary House,Seoul,Jongno-gu,Pyeongchang-dong,02-379-3182,http://www.young-in.kr/main/index.asp,Y ,126.9722711,37.6143517
+865,BE_IW10-0083,Asian Art Museum,Seoul,Jongno-gu,Samcheong-dong,02-723-0190,http://www.dymuseum.com,Y ,126.9835366,37.5838703
+866,BE_IW10-0084,Central Buddhist Museum,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2011-1960~8,http://museum.buddhism.or.kr,Y ,126.9823368,37.5739012
+867,BE_IW10-0085,Hwajeong Museum,Seoul,Jongno-gu,Pyeongchang-dong,02-2025-0114,http://www.hjmuseum.or.kr,Y ,126.9659835,37.6046315
+868,BE_IW10-0086,Choonwondang Museum of Korean Medicine,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-3672-2005,http://www.cwdmuseum.com,Y ,126.9902811,37.5716027
+869,BE_IW10-0087,Chesin Memorial Hall,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-734-8369,,Y ,126.9826182,37.5744559
+870,BE_IW10-0088,Tax Museum,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-397-1633~6,http://www.nts.go.kr/museum/index.asp,Y ,126.9798861,37.574137
+871,BE_IW10-0089,Museum of Korea Straw and Plants Handicraft,Seoul,Jongno-gu,Hyehwa-dong,02-743-8787~8,http://www.zipul.co.kr,Y ,126.9998511,37.5849195
+872,BE_IW10-0090,Museum of Humanities,Seoul,Jongno-gu,Gahoe-dong,02-747-6688,http://www.kmoh.org,Y ,126.9864633,37.5843579
+873,BE_IW10-0091,Children's Museum,Seoul,Jongno-gu,Cheongunhyoja-dong,02-3704-4540,http://www.kidsnfm.go.kr,Y ,126.9769632,37.5806903
+874,BE_IW10-0092,Shuim Museum,Seoul,Jongno-gu,Buam-dong,"02-396-9277, 02-391-2765",http://www.shuim.org,Y ,126.9556804,37.5995016
+875,BE_IW10-0093,Lock Museum,Seoul,Jongno-gu,Ihwa-dong,02-766-6494,http://www.lockmuseum.org,Y ,127.0046646,37.5798116
+876,BE_IW10-0094,World Jewellery Museum,Seoul,Jongno-gu,Samcheong-dong,02-730-1610,http://www.wjmuseum.com,Y ,126.9818122,37.5809821
+877,BE_IW10-0095,Seoul History Museum,Seoul,Jongno-gu,Sajik-dong,02-724-0114,http://www.museum.seoul.kr,Y ,126.9688348,37.5707649
+878,BE_IW10-0096,Sungkyunkwan University Museum,Seoul,Jongno-gu,Hyehwa-dong,02-760-1216~7,http://wiz.skku.edu/museum,Y ,126.9957415,37.5858106
+879,BE_IW10-0097,Seoul National University Hospital The Museum Of Medicine,Seoul,Jongno-gu,Ihwa-dong,"02-2072-2635,6",http://www.medicalmuseum.org,Y ,127.0006005,37.5805685
+880,BE_IW10-0098,Seoul Education Museum,Seoul,Jongno-gu,Samcheong-dong,02-736-2859,http://www.edumuseum.seoul.kr,Y ,126.9831241,37.5807844
+881,BE_IW10-0099,Seoul National University Museum of Dentistry,Seoul,Jongno-gu,Ihwa-dong,02-740-8799,http://www.dentmuseum.or.kr,Y ,127.0006005,37.5805685
+882,BE_IW10-0100,Myeongin Museum,Seoul,Jongno-gu,Gahoe-dong,02-766-0272,,Y ,126.9852012,37.5801787
+883,BE_IW10-0101,The Owl Art & Craft Museum,Seoul,Jongno-gu,Samcheong-dong,02-3210-2902,http://www.owlmuseum.co.kr,Y ,126.982947,37.5870892
+884,BE_IW10-0102,Bona Museum,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-6621,http://www.bonamuseum.com,Y ,126.984533,37.5735668
+885,BE_IW10-0103,Samseong Museum of Publishing,Seoul,Jongno-gu,Pyeongchang-dong,02-394-6544,http://www.ssmop.org,Y ,126.9570008,37.6087606
+886,BE_IW10-0104,Mokin Museum&Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-722-5066,http://www.mokinmuseum.com,Y ,126.9836659,37.5739201
+887,BE_IW10-0105,Tteok Museum,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-741-5447,http://www.tkmuseum.or.kr,Y ,126.9906319,37.5749057
+888,BE_IW10-0106,Robot Museum,Seoul,Jongno-gu,Ihwa-dong,02-741-8861~2,http://robotmuseum.co.kr,Y ,127.0035867,37.582977
+889,BE_IW10-0107,Dong-Lim Knot Museum,Seoul,Jongno-gu,Gahoe-dong,02-3673-2778,http://www.shimyoungmi.com,Y ,126.9856211,37.5817921
+890,BE_IW10-0108,Seoul National Science Museum,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-3668-2200,http://www.ssm.go.kr,Y ,126.9969615,37.582279
+891,BE_IW10-0109,National Folk Museum of Korea,Seoul,Jongno-gu,Cheongunhyoja-dong,02-3704-3114,http://www.nfm.go.kr,Y ,126.9769632,37.5806903
+892,BE_IW10-0110,National Palace Museum of Korea,Seoul,Jongno-gu,Cheongunhyoja-dong,02-3701-7500,http://www.gogung.go.kr,Y ,126.9767338,37.5764273
+893,BE_IW10-0111,Hahn Moo-Sook House,Seoul,Jongno-gu,Hyehwa-dong,02-762-3093,http://www.hahnmoosook.com,Y ,126.9985908,37.5877952
+894,BE_IW10-0112,The Korea Museum of Modern Costume,Seoul,Jongno-gu,Jongno5.6ga-dong,02-734-7340,http://www.kmmc.or.kr,Y ,127.0055357,37.5754801
+895,BE_IW10-0113,Gahoe Museum,Seoul,Jongno-gu,Gahoe-dong,02-741-0466,http://www.gahoemuseum.org,Y ,126.9856623,37.5821369
+896,BE_IW10-0114,Korean Modern Poetry Museum,Seoul,Jongno-gu,Hyehwa-dong,02-744-0130,http://www.poem.ac,Y ,126.9989147,37.5865497
+897,BE_IW10-0115,The Catholic University Museum of the Liturgy,Seoul,Jongno-gu,Hyehwa-dong,02-740-9707,http://museum.catholic.ac.kr/index.jsp,Y ,127.0037658,37.5859908
+898,BE_IW10-0116,Sangmyung Art Center,Seoul,Jongno-gu,Buam-dong,02-2287-7186~7,http://www.smarts.or.kr,Y ,126.9550229,37.6028282
+899,BE_IW10-0117,Sangmyung University Museum,Seoul,Jongno-gu,Pyeongchang-dong,02-781-7920,http://museum.smu.ac.kr,Y ,126.975966,37.6105555
+900,BE_IW10-0118,The Korea Association of Youth Center,Seoul,Jongno-gu,Ihwa-dong,02-766-9363,http://www.youthnet.or.kr,Y ,127.0046697,37.5761237
+901,BE_IW10-0119,The Catholic University Songsin Campus Theological Library,Seoul,Jongno-gu,Hyehwa-dong,02-740-9720?1,http://lib.catholic.ac.kr,Y ,127.0037658,37.5859908
+902,BE_IW10-0120,Lovely Library in Jongno ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2148-3932,http://lib.jongno.go.kr,Y ,126.979642,37.573033
+903,BE_IW10-0121,Jongno Public Library,Seoul,Jongno-gu,Sajik-dong,02-721-0711~6,http://jnlib.sen.go.kr,Y ,126.9672703,37.5759436
+904,BE_IW10-0122,Education Information Digital Library,Seoul,Jongno-gu,Sajik-dong,02-2100-6117,http://library.mest.go.kr,Y ,126.9754237,37.574848
+905,BE_IW10-0123,Jeongdok Public Library,Seoul,Jongno-gu,Samcheong-dong,02-2011-5799,http://jdlib.sen.go.kr,Y ,126.9831241,37.5807844
+906,BE_IW10-0124,Children's Public Library,Seoul,Jongno-gu,Sajik-dong,02-731-2300,http://www.childrenlib.go.kr,Y ,126.9672703,37.5759436
+907,BE_IW10-0125,The Dongduk Art Gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-6458,http://www.gallerydongduk.com,Y ,126.9831904,37.5750317
+908,BE_IW10-0309,CGV Daehangno,Seoul,Jongno-gu,Hyehwa-dong,02-2017-1300,http://www.cgv.co.kr,Y ,126.9998487,37.5834726
+909,BE_IW10-0310,Indie Space,Seoul,Jongno-gu,Sajik-dong,02-738-0366,http://www.indiespace.kr,Y ,126.9717998,37.5705968
+910,BE_IW10-0311,Seoul Cinema,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2277-3014,http://www.seoulcinema.com,Y ,126.9919525,37.5697647
+911,BE_IW10-0312,Cinecube Gwanghwamun,Seoul,Jongno-gu,Sajik-dong,02-2002-7770,http://www.icinecube.com,Y ,126.9722191,37.5697705
+912,BE_IW10-0313,Seoul Art Cinema,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-741-9782,http://www.cinematheque.seoul.kr,Y ,126.9878024,37.5725833
+913,BE_IW10-0314,Lotte Cinema Piccadilly,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,1544-8855,http://www.lottecinema.co.kr/LHS/LHFS/Contents/CinemaInfo/Cinema.aspx?CinemaGroupCode=0001&CinemaCode=9039&ScreenType=100,Y ,126.9912336,37.5710436
+914,BE_IW10-0315,CineCode Sonje,Seoul,Jongno-gu,Samcheong-dong,02-730-3200,http://www.cinecode.co.kr,Y ,126.98185,37.5794229
+915,BE_IW10-0317,Embassy of the Republic of Portugal,Seoul,Jongno-gu,Gahoe-dong,02-3675-2251,prt.mofat.go.kr/kor/eu/prt/main/index.jsp,Y ,126.988419,37.5789779
+916,BE_IW10-0318,Embassy of Papua New Guinea,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2198-5771,png.mofat.go.kr/kor/as/png/main/index.jsp,Y ,126.9818252,37.5725734
+917,BE_IW10-0319,Embassy of the Republic of Panama,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-734-8610,pan.mofat.go.kr/kor/am/pan/main/index.jsp,Y ,126.9812259,37.5750998
+918,BE_IW10-0320,Embassy of the Democratic Republic of Congo,Seoul,Jongno-gu,Sajik-dong,02-722-7958,congo.mofat.go.kr/kor/af/congo/main/index.jsp,Y ,126.9732496,37.5727874
+919,BE_IW10-0321,Embassy of the Czech Republic,Seoul,Jongno-gu,Sajik-dong,02-725-6765,www.mzv.cz/seoul/,Y ,126.9704081,37.5715232
+920,BE_IW10-0322,Embassy of the People's Republic of China,Seoul,Jung-gu,Myeong-dong,02-738-1038,www.koreanembassy.cn/,Y ,126.9830613,37.5627724
+921,BE_IW10-0323,Embassy of Japan,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2170-5200,www.kr.emb-japan.go.jp/,Y ,126.9800727,37.5751689
+922,BE_IW10-0324,Embassy of Israel,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-3210-8500,seoul.mfa.gov.il/,Y ,126.9789341,37.569513
+923,BE_IW10-0325,Embassy of the Republic of Honduras,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-738-8402,hnd.mofat.go.kr/kor/am/hnd/main/index.jsp,Y ,126.9838679,37.570451
+924,BE_IW10-0326,Embassy of the Republic of Venezuela,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-1546,www.venezuelaemb.or.kr/,Y ,126.9823968,37.571117
+925,BE_IW10-0327,United States Embassy,Seoul,Jongno-gu,Sajik-dong,02-397-4114,korean.seoul.usembassy.gov/,Y ,126.9782294,37.5744404
+926,BE_IW10-0328,Embassy of New Zealand,Seoul,Jung-gu,Sogong-dong,02-3701-7700,www.nzembassy.com/korea,Y ,126.9710859,37.5675045
+927,BE_IW10-0329,Netherlands Embassy,Seoul,Jung-gu,Sogong-dong,02-737-9514,southkorea.nlembassy.org/,Y ,126.9710859,37.5675045
+928,BE_IW10-0330,Apostolic Nunciature,Seoul,Jongno-gu,Cheongunhyoja-dong,02-736-5725,www.vatican-korea.go.kr/,Y ,126.9727464,37.5852536
+929,BE_IW10-0331,Mission to EU,Seoul,Jongno-gu,Sajik-dong,02-3704-1700,,Y ,126.9739223,37.5697332
+930,BE_IW10-0332,Australian Embassy,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-2003-0100,www.southkorea.embassy.gov.au/seolkorean/home,Y ,126.9778487,37.5705957
+931,BE_IW10-0333,Embassy of Finland,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-6737,www.finland.or.kr,Y ,126.9778487,37.5705957
+932,BE_IW10-0334,Embassy of the Republic of Poland,Seoul,Jongno-gu,Samcheong-dong,02-723-9681,www.seul.polemb.net/,Y ,126.9798723,37.5777304
+933,BE_IW10-0335,Embassy of Vietnam,Seoul,Jongno-gu,Samcheong-dong,02-739-2065,www.venezuelaemb.or.kr/,Y ,126.9845803,37.5864665
+934,BE_IW10-0336,Embassy of Brunei Darussalam,Seoul,Jongno-gu,Cheongunhyoja-dong,02-790-1078,brn.mofat.go.kr/kor/as/brn/main/index.jsp,Y ,126.9690609,37.5879002
+935,BE_IW10-0337,Embassy of Switzerland,Seoul,Yongsan-gu,Hannam-dong,02-739-9511,www.eda.admin.ch/seoul.html,Y ,127.002629,37.5343949
+936,BE_IW10-0338,Embassy of Ireland,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-774-6455,www.eda.admin.ch/seoul.html,Y ,126.9790119,37.5739157
+938,BE_IW10-0339,Embassy of the Republic of Austria,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-732-9071,www.bmeia.gv.at/kr/botschaft/seoul.html,Y ,126.9778487,37.5705957
+939,BE_IW10-0340,Embassy of the Republic of Ecuador,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-739-2401,ecu.mofat.go.kr/kor/am/ecu/main/index.jsp,Y ,126.9823968,37.571117
+941,BE_IW10-0344,Bukchon Hanok Village,Seoul,Jongno-gu,Gahoe-dong,,,Y ,126.9848026,37.5801049
+942,BE_IW10-0345,Kyung-in Museum of Fine Art,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,02-733-4448,http://www.kyunginart.co.kr,Y ,126.9857423,37.5745985
+943,BE_IW10-0346,Tongin art gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9857995,37.5734865
+944,BE_IW10-0347,gallery Sang,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9865325,37.5723401
+945,BE_IW10-0348,attraction hiding in an alley,Seoul,Jongno-gu,Samcheong-dong,,http://club.cyworld.com/ClubV1/Home.cy/50766527,Y ,126.9823164,37.5802949
+946,BE_IW10-0349,"gallery, museum, book cafe",Seoul,Jongno-gu,Samcheong-dong,,,Y ,126.9817658,37.5849785
+947,BE_IW10-0350,insa gallery,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.985695,37.5739901
+948,BE_IW10-0351,shuim museum,Seoul,Jongno-gu,Buam-dong,02-396-9277,,Y ,126.9556779,37.5995037
+949,BE_IW10-0352,Yun Dong-joo Literary House ,Seoul,Jongno-gu,Cheongunhyoja-dong,02-2148-4175,,Y ,126.9670686,37.5920969
+950,BE_IW10-0353,chopstick gallery,Seoul,Jongno-gu,Buam-dong,02-3417-0119,,Y ,126.9648801,37.5929146
+951,BE_IW10-0354,Jaha art gallery,Seoul,Jongno-gu,Buam-dong,02-395-3222,,Y ,126.9603062,37.5893771
+952,BE_IW10-0355,spur of a hill,Seoul,Jongno-gu,Buam-dong,02-391-4737,,Y ,126.9679756,37.5954257
+955,BE_IW10-0358,Unhyeongung Palace,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9871246,37.5761263
+957,BE_IW10-0360,710 anotherman dinning cafe,Seoul,Jongno-gu,Buam-dong,02-395-5092,,Y ,126.9621349,37.5939389
+958,BE_IW10-0361,pomok fabric,Seoul,Jongno-gu,Jongno5.6ga-dong,,,Y ,127.0089118,37.5703924
+959,BE_IW10-0362,"medical instruments, medicine",Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9987995,37.5705893
+960,BE_IW10-0363,home applicable electronics,Seoul,Jung-gu,Euljiro-dong,,,Y ,126.9953665,37.5680551
+961,BE_IW10-0364,Jongmyo flower,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9975554,37.5696294
+962,BE_IW10-0365,"plaque, insignia",Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9906,37.5691
+963,BE_IW10-0366,antique,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.985618,37.5745209
+964,BE_IW10-0367,accessories jewelry,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9973057,37.5698077
+965,BE_IW10-0368,stationery toy,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.014448,37.5712335
+966,BE_IW10-0369,pet,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.0127015,37.5705633
+967,BE_IW10-0370,instrumental,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9878024,37.5725833
+968,BE_IW10-0371,shoes,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.0105251,37.5702907
+969,BE_IW10-0372,"food, machine",Seoul,Jung-gu,Euljiro-dong,,,Y ,127.0039676,37.5688357
+982,BE_IW10-0385,Gyeongbokgung Palace,,,,02-3700-3900~1,,Y ,126.976907,37.5772746
+983,BE_IW10-0386,Changdeokgung Daejojen Painting of Phoenix ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+984,BE_IW10-0387,Changdeokgung Huijeongdang ChongSuckJungJulGyeongDo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+985,BE_IW10-0388,Changdeokgung Huijeongdang GeumGangSanManMulChoSeungGyeongDo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+986,BE_IW10-0389,Changdeokgung GyeongHungak SamSeonGwanPaDo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+987,BE_IW10-0390, Changdeokgung Gyeonghungak Joilseongwando,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+988,BE_IW10-0391,Tabgol Park,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.988348,37.571206
+989,BE_IW10-0392,Seoul JiJangAm MokJoBiRoJaNaBulJwaSang,Seoul,Jongno-gu,Changsin2-dong,,,Y ,127.0087852,37.5776552
+990,BE_IW10-0393,Seoul BuAmDong BaekSeokDongCheon,Seoul,Jongno-gu,Buam-dong,,,Y ,126.9663345,37.6004294
+994,BE_IW10-0397,Mt.Baegak region,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.965862,37.584838
+995,BE_IW10-0398,a seated stone statue of Buddha,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+996,BE_IW10-0399,Changdeokgung Daejojeon Baekhakdo,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+997,BE_IW10-0400,Dongkwan king shrine,Seoul,Jongno-gu,Sungin2-dong,,,Y ,127.0183336,37.57298
+998,BE_IW10-0401,Anyangam Hermitage Ma-aeGwanEumBoSalJwaSang,Seoul,Jongno-gu,Changsin1-dong,,,Y ,127.0133571,37.5754539
+999,BE_IW10-0402,"Seoul Cheonggyecheon Stream remains [GwangTongGyoZi, SuPyoGyoZi, OganSumunJi]",Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.985973,37.5691073
+1002,BE_IW10-0405,Gyeongbokgung GeunJungJun,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9769632,37.5806903
+1003,BE_IW10-0406,Gyeongbokgung Gyunghoiru,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9769632,37.5806903
+1004,BE_IW10-0407,Gyeongbokgung Jagyeongjeon Sipjangsaeng Chimney,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+1005,BE_IW10-0408,Gyeongbokgung Punggidae,Seoul,Jongno-gu,Cheongunhyoja-dong,,,Y ,126.9767743,37.5866061
+1006,BE_IW10-0409,Changgyeonggung Palace Grand Greenhouse,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9950431,37.5805909
+1007,BE_IW10-0410,Changgyeonggung Palace ,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,http://cgg.cha.go.kr,Y ,126.9950431,37.5805909
+1008,BE_IW10-0411,Deoksugung Palace,Seoul,Jung-gu,Sogong-dong,,,Y ,126.979642,37.573033
+1009,BE_IW10-0412,Donhwamun Gate,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+1010,BE_IW10-0413,Changdeokgung Palace Dae Jo Jun,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+1011,BE_IW10-0414,Unhyeongung Palace,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,http://www.unhyeongung.or.kr,Y ,126.9871246,37.5761263
+1012,BE_IW10-0415,Changdeokgung Palace Dae Jo Jun,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+1013,BE_IW10-0416,Changdeokgung Huijeongdang,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+1014,BE_IW10-0417,Changdeokgung Seonjeongjeon,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
+1015,BE_IW10-0418,Changdeokgung Injeongjeon,Seoul,Jongno-gu,Jongno1.2.3.4ga-dong,,,Y ,126.9913206,37.5827758
