@@ -166,23 +166,30 @@ language = language_map[selected_language]
 
 # 📁 파일 및 좌표 컬럼 정보 설정 (언어별 분리)
 csv_info_ko = {
-    "서울시 외국인전용 관광기념품 판매점 정보.csv": ("위치정보(Y)", "위치정보(X)"),
-    "서울시 문화행사 공공서비스예약 정보.csv": ("장소Y좌표", "장소X좌표"),
+    "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
+    "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
     "서울시립미술관 전시 정보 (국문).csv": ("y좌표", "x좌표"),
-    "서울시 체육시설 공연행사 정보.csv": ("y좌표", "x좌표"),
-    "서울시 종로구 관광데이터 정보 (한국어).csv": ("Y 좌표", "X 좌표")
+    "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
+    "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
 }
 excel_info_ko = {
-    "서울시 자랑스러운 한국음식점 정보 (한국어).xlsx": ("Latitude", "Longitude")
+    "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("Latitude", "Longitude")
 }
 
 csv_info_en = {
-    "서울시 종로구 관광데이터 정보 (영어).csv": ("Y 좌표", "X 좌표"),
-    "서울시립미술관 전시 정보 (영문)2.csv": ("Latitude", "Longitude")  # ✅ 고정된 컬럼명으로 변경
+    "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("Location Information (Y Coordinate)", "Location Information (X Coordinate)"),
+    "서울시 문화행사 공공서비스예약 정보(영문).csv": ("Location Y Coordinate", "Location X Coordinate"),
+    "서울시립미술관 전시 정보 (영문).csv": ("y Coordinate", "x Coordinate"),
+    "서울시 체육시설 공연행사 정보 (영문).csv": ("Y Coordinate", "X Coordinate"),
+    "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표")
 }
 
 csv_info_cn = {
-    "서울시 종로구 관광데이터 정보 (중국어_간체).csv": ("Y 좌표", "X 좌표")
+    "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("位置坐标(Y)","位置坐标(X)"),
+    "서울시 문화행사 공공서비스예약 정보(중문).csv": ("场所Y坐标", "场所X坐标"),
+    "서울시립미술관 전시 정보 (중문).csv": ("y坐标","x坐标"),
+    "서울시 체육시설 공연행사 정보 (중문).csv": ("y 坐标","x 坐标"),
+    "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표")
 }
 
 ############################ 나중에  사용할거임
@@ -198,16 +205,36 @@ csv_info_cn = {
 
 # 🧱 아이콘 및 색상 지정 (공통)
 icon_config = {
-    "서울시 외국인전용 관광기념품 판매점 정보.csv": ("blue", "gift"),
-    "서울시 문화행사 공공서비스예약 정보.csv": ("purple", "star"),
+    # 관광기념품 판매점
+    "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("blue", "gift"),
+    "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("blue", "gift"),
+    "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("blue", "gift"),
+
+    # 문화행사
+    "서울시 문화행사 공공서비스예약 정보(국문).csv": ("purple", "star"),
+    "서울시 문화행사 공공서비스예약 정보(영문).csv": ("purple", "star"),
+    "서울시 문화행사 공공서비스예약 정보(중문).csv": ("purple", "star"),
+
+    # 미술관 전시
     "서울시립미술관 전시 정보 (국문).csv": ("orange", "paint-brush"),
     "서울시립미술관 전시 정보 (영문).csv": ("orange", "paint-brush"),
-    "서울시 체육시설 공연행사 정보.csv": ("cadetblue", "music"),
-    "서울시 종로구 관광데이터 정보 (한국어).csv": ("red", "camera"),
-    "서울시 종로구 관광데이터 정보 (영어).csv": ("red", "camera"),
+    "서울시립미술관 전시 정보 (중문).csv": ("orange", "paint-brush"),
+
+    # 체육시설 공연행사
+    "서울시 체육시설 공연행사 정보(국문).csv": ("cadetblue", "music"),
+    "서울시 체육시설 공연행사 정보(영문).csv": ("cadetblue", "music"),
+    "서울시 체육시설 공연행사 정보(중문).csv": ("cadetblue", "music"),
+
+    # 종로구 관광정보
+    "서울시 종로구 관광데이터 정보 (국문).csv": ("red", "camera"),
+    "서울시 종로구 관광데이터 정보 (영문).csv": ("red", "camera"),
+    "서울시 종로구 관광데이터 정보 (중국어).csv": ("red", "camera"),
     "서울시 종로구 관광데이터 정보 (중국어_간체).csv": ("red", "camera"),
-    "서울시 자랑스러운 한국음식점 정보 (한국어).xlsx": ("green", "cutlery")
+
+    # 자랑스러운 한국음식점 (엑셀, 언어공통)
+    "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("green", "cutlery")
 }
+
 
 # 언어에 따라 전체 파일 리스트 구성
 if language == "한국어":
@@ -253,10 +280,13 @@ marker_cluster = MarkerCluster().add_to(m)
 
 # ----------------------------------------
 # 📍 마커 생성 함수
+# ----------------------------------------
+# 📍 마커 생성 함수 (언어별 명칭 출력 포함)
 def add_markers(file_name, lat_col, lng_col):
     color, icon = icon_config.get(file_name, ("gray", "info-sign"))
+
     try:
-        # 인코딩 조건: 영어 파일만 cp949
+        # 데이터 불러오기
         if file_name.endswith(".csv"):
             if "영어" in file_name or "중국" in file_name:
                 df = pd.read_csv(file_name, encoding="cp949")
@@ -267,24 +297,39 @@ def add_markers(file_name, lat_col, lng_col):
         else:
             df = pd.read_excel(file_name)
 
+        # 🎯 명칭 컬럼 지정 (언어별)
+        name_col = '명칭 못찾음'
+        if "음식점" in file_name:
+            if language == "영어" and "명칭(영어)" in df.columns:
+                name_col = "명칭(영어)"
+            else:
+                name_col = "명칭"
+        elif "전시" in file_name or "관광" in file_name or "기념품" in file_name or "문화행사" in file_name or "체육시설" in file_name:
+            for col in df.columns:
+                if "명칭" in col or "행사명" in col or "전시명" in col or "장소명" in col:
+                    name_col = col
+                    break
+
         for _, row in df.iterrows():
             lat, lng = row[lat_col], row[lng_col]
             if pd.notna(lat) and pd.notna(lng):
+                # 구글 길찾기 링크
                 directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
+
+                # 팝업 내용
+                title = row[name_col] if name_col and name_col in row and pd.notna(row[name_col]) else file_name.replace(".csv", "").replace(".xlsx", "")
+                popup_html = f"<b>{title}</b><br><a href='{directions_url}' target='_blank'>📍 길찾기 (구글 지도)</a>"
+
+                # 마커 생성
                 folium.Marker(
                     location=[lat, lng],
-                    tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
+                    tooltip=title,
                     popup=folium.Popup(popup_html, max_width=300),
                     icon=folium.Icon(color=color, icon=icon, prefix="fa")
                 ).add_to(marker_cluster)
+
     except Exception as e:
         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
-
-
-
-
-
 
 # ----------------------------------------
 # 🎯 선택된 카테고리만 지도에 표시
@@ -298,6 +343,7 @@ else:
 # ----------------------------------------
 # 📍 지도 출력
 folium_static(m, width=1000, height=600)
+
 
 
 
