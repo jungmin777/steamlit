@@ -4,6 +4,8 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 from streamlit_js_eval import get_geolocation
+import random
+from geopy.distance import geodesic
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 # -------------------------------
 # 초기 세션 상태 설정
@@ -140,6 +142,7 @@ def map_page():
     m = folium.Map(location=center, zoom_start=12)
     marker_cluster = MarkerCluster().add_to(m)
 
+
     def add_markers(file_name, lat_col, lng_col):
         color, icon = icon_config.get(file_name, ("gray", "info-sign"))
         try:
@@ -152,20 +155,50 @@ def map_page():
                     df = pd.read_csv(file_name)
             else:
                 df = pd.read_excel(file_name)
-            df_half = df.head(len(df) // 2)
-            for _, row in df_half.iterrows():
+    
+            df = df.dropna(subset=[lat_col, lng_col])  # 결측 제거
+    
+            for _, row in df.iterrows():
                 lat, lng = row[lat_col], row[lng_col]
                 if pd.notna(lat) and pd.notna(lng):
+                    current_location = (lat, lng)
+    
+                    # 주변 추천 장소 500m 이내 필터링
+                    nearby_places = df[
+                        df.apply(
+                            lambda r: 0 < geodesic(current_location, (r[lat_col], r[lng_col])).meters <= 500,
+                            axis=1
+                        )
+                    ]
+    
+                    # 랜덤으로 최대 3곳 선택
+                    recommended = nearby_places.sample(n=min(3, len(nearby_places)))
+    
+                    # 추천 장소 HTML 구성
+                    recommendation_html = ""
+                    for _, rec in recommended.iterrows():
+                        rec_lat, rec_lng = rec[lat_col], rec[lng_col]
+                        rec_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={rec_lat},{rec_lng}"
+                        recommendation_html += f'<li><a href="{rec_url}" target="_blank">📍 추천 장소: {rec_lat:.5f}, {rec_lng:.5f}</a></li>'
+    
                     directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-                    popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
+                    popup_html = f'''
+                        <b>📍 현재 장소</b><br>
+                        <a href="{directions_url}" target="_blank">길찾기</a><br><br>
+                        <b>🎯 주변 추천 장소 (500m 이내)</b>
+                        <ul style="padding-left: 1.2em;">{recommendation_html}</ul>
+                    '''
+    
                     folium.Marker(
                         location=[lat, lng],
                         tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
                         popup=folium.Popup(popup_html, max_width=300),
                         icon=folium.Icon(color=color, icon=icon, prefix="fa")
                     ).add_to(marker_cluster)
+    
         except Exception as e:
             st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
 
     if selected_category == "전체":
         for file, (lat_col, lng_col) in all_info.items():
