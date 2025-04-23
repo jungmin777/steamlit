@@ -7,137 +7,99 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
+import sqlite3
+import bcrypt
 
+# DB 연결 (앱이 꺼지면 사라짐)
+conn = sqlite3.connect('users.db', check_same_thread=False)
+cursor = conn.cursor()
 
+# 테이블 생성
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT
+    )
+''')
+conn.commit()
 
+# 비밀번호 해시 함수
+def hash_password(password):
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
+def check_password(password, hashed):
+    return bcrypt.checkpw(password.encode(), hashed.encode())
 
-###################################################
+# 사용자 등록 함수
+def register_user(username, password):
+    hashed = hash_password(password)
+    try:
+        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
 
+# 사용자 인증 함수
+def authenticate_user(username, password):
+    cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    if result and check_password(password, result[0]):
+        return True
+    return False
 
-# import requests
-# import xml.etree.ElementTree as ET
+# 세션 상태 초기화
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'username' not in st.session_state:
+    st.session_state.username = ""
 
+# 로그인 페이지
+def login_page():
+    st.title("🔐 로그인 또는 회원가입")
 
-# # 인증키와 API 기본 URL 설정
-# API_KEY = "616d73735a6c6b613338414d616d78"
-# BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo"
+    tab1, tab2 = st.tabs(["📥 로그인", "📝 회원가입"])
 
-# # Streamlit UI
-# st.title("서울시 문화공간 정보 전체 보기")
+    with tab1:
+        username = st.text_input("아이디", key="login_user")
+        password = st.text_input("비밀번호", type="password", key="login_pw")
+        if st.button("로그인"):
+            if authenticate_user(username, password):
+                st.success(f"환영합니다, {username}님!")
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.experimental_rerun()
+            else:
+                st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
 
-# start = st.number_input("시작 인덱스", min_value=1, value=1)
-# end = st.number_input("끝 인덱스", min_value=start, value=start + 9)
+    with tab2:
+        new_user = st.text_input("아이디", key="reg_user")
+        new_pw = st.text_input("비밀번호", type="password", key="reg_pw")
+        if st.button("회원가입"):
+            if register_user(new_user, new_pw):
+                st.success("✅ 회원가입 완료! 로그인 해주세요.")
+            else:
+                st.error("❌ 이미 존재하는 아이디입니다.")
 
-# if st.button("데이터 불러오기"):
-#     url = f"{BASE_URL}/{start}/{end}/"
-#     response = requests.get(url)
+# 지도 페이지 (로그인한 경우만 접근)
+def map_page():
+    st.title("🗺️ 서울시 공공 위치 데이터 지도")
 
-#     if response.status_code == 200:
-#         root = ET.fromstring(response.content)
+    st.markdown(f"**👤 로그인 사용자:** `{st.session_state.username}`")
+    st.success("여기에 지도 페이지 내용을 넣을 수 있습니다.")
 
-#         rows = []
-#         for item in root.findall(".//row"):
-#             row_data = {
-#                 "번호": item.findtext("NUM"),
-#                 "주제분류": item.findtext("SUBJCODE"),
-#                 "문화시설명": item.findtext("FAC_NAME"),
-#                 "주소": item.findtext("ADDR"),
-#                 "위도": item.findtext("X_COORD"),
-#                 "경도": item.findtext("Y_COORD"),
-#                 "전화번호": item.findtext("PHNE"),
-#                 "팩스번호": item.findtext("FAX"),
-#                 "홈페이지": item.findtext("HOMEPAGE"),
-#                 "관람시간": item.findtext("OPENHOUR"),
-#                 "관람료": item.findtext("ENTR_FEE"),
-#                 "휴관일": item.findtext("CLOSEDAY"),
-#                 "개관일자": item.findtext("OPEN_DAY"),
-#                 "객석수": item.findtext("SEAT_CNT"),
-#                 "대표이미지": item.findtext("MAIN_IMG"),
-#                 "기타사항": item.findtext("ETC_DESC"),
-#                 "시설소개": item.findtext("FAC_DESC"),
-#                 "무료구분": item.findtext("ENTRFREE"),
-#                 "지하철": item.findtext("SUBWAY"),
-#                 "버스정거장": item.findtext("BUSSTOP"),
-#                 "노란버스": item.findtext("YELLOW"),
-#                 "초록버스": item.findtext("GREEN"),
-#                 "파란버스": item.findtext("BLUE"),
-#                 "빨간버스": item.findtext("RED"),
-#                 "공항버스": item.findtext("AIRPORT")
-#             }
-#             rows.append(row_data)
+    # 로그아웃 버튼
+    if st.button("🔓 로그아웃"):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.experimental_rerun()
 
-#         if rows:
-#             df = pd.DataFrame(rows)
-#             st.dataframe(df)
-#         else:
-#             st.warning("데이터가 없습니다.")
-#     else:
-#         st.error(f"API 요청 실패. 상태 코드: {response.status_code}")
+# 실행
+if st.session_state.logged_in:
+    map_page()
+else:
+    login_page()
 
-######### 이 위는 api로 조회하는거
-
-
-
-######### 이 아래는 업데이트가 되서 새 데이터가 생기는지 보려고 하는거
-
-
-# import streamlit as st
-# import requests
-# import xml.etree.ElementTree as ET
-# import pandas as pd
-# import os
-# from datetime import date
-
-# # 설정
-# API_KEY = "616d73735a6c6b613338414d616d78"
-# BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo/1/1/"
-# CSV_FILE = "total_count_log.csv"
-
-# st.title("서울시 문화공간 정보 - 데이터 업데이트 체크 (CSV 저장)")
-
-# # 오늘 날짜
-# today = str(date.today())
-
-# # API 호출
-# response = requests.get(BASE_URL)
-
-# if response.status_code == 200:
-#     root = ET.fromstring(response.content)
-#     total_count = root.findtext(".//list_total_count")
-#     st.info(f"📦 오늘의 total_count: {total_count}")
-
-#     # 기존 CSV 파일이 있다면 불러오기
-#     if os.path.exists(CSV_FILE):
-#         df_log = pd.read_csv(CSV_FILE)
-#     else:
-#         df_log = pd.DataFrame(columns=["date", "total_count"])
-
-#     # 이전 값 확인
-#     if not df_log.empty:
-#         last_row = df_log.iloc[-1]
-#         st.write(f"🕓 마지막 저장된 날짜: {last_row['date']}, total_count: {last_row['total_count']}")
-
-#         if str(last_row["total_count"]) != total_count:
-#             st.success("✅ 데이터가 변경되었습니다!")
-#         else:
-#             st.warning("ℹ️ total_count에는 변화가 없습니다.")
-#     else:
-#         st.info("처음 실행 중입니다.")
-
-#     # 이미 오늘자 기록이 있으면 추가 저장은 하지 않음
-#     if today not in df_log["date"].values:
-#         df_log.loc[len(df_log)] = [today, total_count]
-#         df_log.to_csv(CSV_FILE, index=False)
-#         st.success("📄 오늘자 데이터가 CSV에 저장되었습니다.")
-#     else:
-#         st.info("오늘자 기록은 이미 저장되어 있습니다.")
-
-#     st.dataframe(df_log)
-# else:
-#     st.error("API 요청 실패")
-
-################
 
 
 ########### 지도 시각화
@@ -278,7 +240,53 @@ m = folium.Map(location=center, zoom_start=12)
 marker_cluster = MarkerCluster().add_to(m)
 
 # ----------------------------------------
+
 # 📍 마커 생성 함수
+def add_markers(file_name, lat_col, lng_col):
+    color, icon = icon_config.get(file_name, ("gray", "info-sign"))
+    try:
+        # 파일 읽기
+        if file_name.endswith(".csv"):
+            if "영어" in file_name or "중국" in file_name:
+                df = pd.read_csv(file_name, encoding="cp949")
+            elif "영문" in file_name:
+                df = pd.read_csv(file_name, encoding="utf-8-sig")
+            else:
+                df = pd.read_csv(file_name)
+        else:
+            df = pd.read_excel(file_name)
+
+        # 데이터 절반만 사용
+        df_half = df.head(len(df) // 2)
+
+        for _, row in df_half.iterrows():
+            lat, lng = row[lat_col], row[lng_col]
+            if pd.notna(lat) and pd.notna(lng):
+                directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
+                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
+                folium.Marker(
+                    location=[lat, lng],
+                    tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
+                    popup=folium.Popup(popup_html, max_width=300),
+                    icon=folium.Icon(color=color, icon=icon, prefix="fa")
+                ).add_to(marker_cluster)
+    except Exception as e:
+        st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
+# ----------------------------------------
+# 🎯 선택된 카테고리만 지도에 표시
+if selected_category == "전체":
+    for file, (lat_col, lng_col) in all_info.items():
+        add_markers(file, lat_col, lng_col)
+else:
+    lat_col, lng_col = all_info[selected_category]
+    add_markers(selected_category, lat_col, lng_col)
+
+# ----------------------------------------
+# 📍 지도 출력
+folium_static(m, width=1000, height=600)
+
+
 # ----------------------------------------
 # 📍 마커 생성 함수 (언어별 명칭 출력 포함)
 # def add_markers(file_name, lat_col, lng_col):
@@ -329,58 +337,143 @@ marker_cluster = MarkerCluster().add_to(m)
 
 #     except Exception as e:
 #         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
-# 📍 마커 생성 함수
-def add_markers(file_name, lat_col, lng_col):
-    color, icon = icon_config.get(file_name, ("gray", "info-sign"))
-    try:
-        # 파일 읽기
-        if file_name.endswith(".csv"):
-            if "영어" in file_name or "중국" in file_name:
-                df = pd.read_csv(file_name, encoding="cp949")
-            elif "영문" in file_name:
-                df = pd.read_csv(file_name, encoding="utf-8-sig")
-            else:
-                df = pd.read_csv(file_name)
-        else:
-            df = pd.read_excel(file_name)
-
-        # 데이터 절반만 사용
-        df_half = df.head(len(df) // 2)
-
-        for _, row in df_half.iterrows():
-            lat, lng = row[lat_col], row[lng_col]
-            if pd.notna(lat) and pd.notna(lng):
-                directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
-                folium.Marker(
-                    location=[lat, lng],
-                    tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
-                    popup=folium.Popup(popup_html, max_width=300),
-                    icon=folium.Icon(color=color, icon=icon, prefix="fa")
-                ).add_to(marker_cluster)
-    except Exception as e:
-        st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
-
-# ----------------------------------------
-# 🎯 선택된 카테고리만 지도에 표시
-if selected_category == "전체":
-    for file, (lat_col, lng_col) in all_info.items():
-        add_markers(file, lat_col, lng_col)
-else:
-    lat_col, lng_col = all_info[selected_category]
-    add_markers(selected_category, lat_col, lng_col)
-
-# ----------------------------------------
-# 📍 지도 출력
-folium_static(m, width=1000, height=600)
-
-
-
 
 
 
 
 ###########################################
+
+
+
+###################################################
+
+
+# import requests
+# import xml.etree.ElementTree as ET
+
+
+# # 인증키와 API 기본 URL 설정
+# API_KEY = "616d73735a6c6b613338414d616d78"
+# BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo"
+
+# # Streamlit UI
+# st.title("서울시 문화공간 정보 전체 보기")
+
+# start = st.number_input("시작 인덱스", min_value=1, value=1)
+# end = st.number_input("끝 인덱스", min_value=start, value=start + 9)
+
+# if st.button("데이터 불러오기"):
+#     url = f"{BASE_URL}/{start}/{end}/"
+#     response = requests.get(url)
+
+#     if response.status_code == 200:
+#         root = ET.fromstring(response.content)
+
+#         rows = []
+#         for item in root.findall(".//row"):
+#             row_data = {
+#                 "번호": item.findtext("NUM"),
+#                 "주제분류": item.findtext("SUBJCODE"),
+#                 "문화시설명": item.findtext("FAC_NAME"),
+#                 "주소": item.findtext("ADDR"),
+#                 "위도": item.findtext("X_COORD"),
+#                 "경도": item.findtext("Y_COORD"),
+#                 "전화번호": item.findtext("PHNE"),
+#                 "팩스번호": item.findtext("FAX"),
+#                 "홈페이지": item.findtext("HOMEPAGE"),
+#                 "관람시간": item.findtext("OPENHOUR"),
+#                 "관람료": item.findtext("ENTR_FEE"),
+#                 "휴관일": item.findtext("CLOSEDAY"),
+#                 "개관일자": item.findtext("OPEN_DAY"),
+#                 "객석수": item.findtext("SEAT_CNT"),
+#                 "대표이미지": item.findtext("MAIN_IMG"),
+#                 "기타사항": item.findtext("ETC_DESC"),
+#                 "시설소개": item.findtext("FAC_DESC"),
+#                 "무료구분": item.findtext("ENTRFREE"),
+#                 "지하철": item.findtext("SUBWAY"),
+#                 "버스정거장": item.findtext("BUSSTOP"),
+#                 "노란버스": item.findtext("YELLOW"),
+#                 "초록버스": item.findtext("GREEN"),
+#                 "파란버스": item.findtext("BLUE"),
+#                 "빨간버스": item.findtext("RED"),
+#                 "공항버스": item.findtext("AIRPORT")
+#             }
+#             rows.append(row_data)
+
+#         if rows:
+#             df = pd.DataFrame(rows)
+#             st.dataframe(df)
+#         else:
+#             st.warning("데이터가 없습니다.")
+#     else:
+#         st.error(f"API 요청 실패. 상태 코드: {response.status_code}")
+
+######### 이 위는 api로 조회하는거
+
+
+
+######### 이 아래는 업데이트가 되서 새 데이터가 생기는지 보려고 하는거
+
+
+# import streamlit as st
+# import requests
+# import xml.etree.ElementTree as ET
+# import pandas as pd
+# import os
+# from datetime import date
+
+# # 설정
+# API_KEY = "616d73735a6c6b613338414d616d78"
+# BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/xml/culturalSpaceInfo/1/1/"
+# CSV_FILE = "total_count_log.csv"
+
+# st.title("서울시 문화공간 정보 - 데이터 업데이트 체크 (CSV 저장)")
+
+# # 오늘 날짜
+# today = str(date.today())
+
+# # API 호출
+# response = requests.get(BASE_URL)
+
+# if response.status_code == 200:
+#     root = ET.fromstring(response.content)
+#     total_count = root.findtext(".//list_total_count")
+#     st.info(f"📦 오늘의 total_count: {total_count}")
+
+#     # 기존 CSV 파일이 있다면 불러오기
+#     if os.path.exists(CSV_FILE):
+#         df_log = pd.read_csv(CSV_FILE)
+#     else:
+#         df_log = pd.DataFrame(columns=["date", "total_count"])
+
+#     # 이전 값 확인
+#     if not df_log.empty:
+#         last_row = df_log.iloc[-1]
+#         st.write(f"🕓 마지막 저장된 날짜: {last_row['date']}, total_count: {last_row['total_count']}")
+
+#         if str(last_row["total_count"]) != total_count:
+#             st.success("✅ 데이터가 변경되었습니다!")
+#         else:
+#             st.warning("ℹ️ total_count에는 변화가 없습니다.")
+#     else:
+#         st.info("처음 실행 중입니다.")
+
+#     # 이미 오늘자 기록이 있으면 추가 저장은 하지 않음
+#     if today not in df_log["date"].values:
+#         df_log.loc[len(df_log)] = [today, total_count]
+#         df_log.to_csv(CSV_FILE, index=False)
+#         st.success("📄 오늘자 데이터가 CSV에 저장되었습니다.")
+#     else:
+#         st.info("오늘자 기록은 이미 저장되어 있습니다.")
+
+#     st.dataframe(df_log)
+# else:
+#     st.error("API 요청 실패")
+
+################
+
+
+
 
 
 
