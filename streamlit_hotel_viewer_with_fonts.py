@@ -7,14 +7,18 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
+
 import sqlite3
 import bcrypt
+from streamlit_js_eval import get_geolocation
 
-# DB 연결 (앱이 꺼지면 사라짐)
+# -------------------------------
+# 🛠️ 로그인 관련 기능
+# -------------------------------
+
+# DB 연결
 conn = sqlite3.connect('users.db', check_same_thread=False)
 cursor = conn.cursor()
-
-# 테이블 생성
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         username TEXT PRIMARY KEY,
@@ -23,14 +27,12 @@ cursor.execute('''
 ''')
 conn.commit()
 
-# 비밀번호 해시 함수
 def hash_password(password):
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 def check_password(password, hashed):
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
-# 사용자 등록 함수
 def register_user(username, password):
     hashed = hash_password(password)
     try:
@@ -40,7 +42,6 @@ def register_user(username, password):
     except sqlite3.IntegrityError:
         return False
 
-# 사용자 인증 함수
 def authenticate_user(username, password):
     cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
     result = cursor.fetchone()
@@ -48,16 +49,139 @@ def authenticate_user(username, password):
         return True
     return False
 
-# 세션 상태 초기화
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'username' not in st.session_state:
     st.session_state.username = ""
 
-# 로그인 페이지
+# -------------------------------
+# 🧭 지도 페이지 (로그인 후만 보임)
+# -------------------------------
+def map_page():
+    st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+    st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
+
+    # 언어 선택
+    col1, col2, col3 = st.columns([6, 1, 2])
+    with col3:
+        selected_language = st.selectbox("🌏 Language", ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"])
+    language_map = {
+        "🇰🇷 한국어": "한국어",
+        "🇺🇸 English": "영어",
+        "🇨🇳 中文": "중국어"
+    }
+    language = language_map[selected_language]
+
+    # 파일 정보
+    csv_info_ko = {
+        "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
+        "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
+        "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
+        "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
+        "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
+    }
+    excel_info_ko = {
+        "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("Latitude", "Longitude")
+    }
+    csv_info_en = {
+        "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("Location Information (Y Coordinate)", "Location Information (X Coordinate)"),
+        "서울시 문화행사 공공서비스예약 정보(영문).csv": ("Location Y Coordinate", "Location X Coordinate"),
+        "서울시립미술관 전시정보 (영문).csv": ("y Coordinate", "x Coordinate"),
+        "서울시 체육시설 공연행사 정보 (영문).csv": ("Y Coordinate", "X Coordinate"),
+        "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표")
+    }
+    csv_info_cn = {
+        "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("位置坐标(Y)","位置坐标(X)"),
+        "서울시 문화행사 공공서비스예약 정보(중문).csv": ("场所Y坐标", "场所X坐标"),
+        "서울시립미술관 전시정보 (중문).csv": ("y坐标","x坐标"),
+        "서울시 체육시설 공연행사 정보(중문).csv": ("y 坐标","x 坐标"),
+        "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표")
+    }
+
+    icon_config = {
+        # 동일한 아이콘 설정 생략 (네 기존 코드 그대로 복붙 가능)
+    }
+
+    if language == "한국어":
+        all_info = {**csv_info_ko, **excel_info_ko}
+    elif language == "영어":
+        all_info = csv_info_en
+    elif language == "중국어":
+        all_info = csv_info_cn
+
+    # 사용자 위치
+    user_location = get_geolocation()
+    if (
+        user_location and "coords" in user_location and
+        "latitude" in user_location["coords"] and "longitude" in user_location["coords"]
+    ):
+        lat = user_location["coords"]["latitude"]
+        lng = user_location["coords"]["longitude"]
+        center = [lat, lng]
+        st.success(f"📍 현재 위치: {center}")
+    else:
+        center = [37.5665, 126.9780]
+        st.warning("⚠️ 현재 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
+
+    # 카테고리 선택
+    category_options = ["전체"] + list(all_info.keys())
+    selected_category = st.selectbox(
+        "📂 확인할 카테고리를 선택하세요:",
+        category_options,
+        format_func=lambda x: "전체 보기" if x == "전체" else x.replace(".csv", "").replace(".xlsx", "")
+    )
+
+    # 지도 생성
+    m = folium.Map(location=center, zoom_start=12)
+    marker_cluster = MarkerCluster().add_to(m)
+
+    def add_markers(file_name, lat_col, lng_col):
+        color, icon = icon_config.get(file_name, ("gray", "info-sign"))
+        try:
+            if file_name.endswith(".csv"):
+                if "영어" in file_name or "중국" in file_name:
+                    df = pd.read_csv(file_name, encoding="cp949")
+                elif "영문" in file_name:
+                    df = pd.read_csv(file_name, encoding="utf-8-sig")
+                else:
+                    df = pd.read_csv(file_name)
+            else:
+                df = pd.read_excel(file_name)
+            df_half = df.head(len(df) // 2)
+            for _, row in df_half.iterrows():
+                lat, lng = row[lat_col], row[lng_col]
+                if pd.notna(lat) and pd.notna(lng):
+                    directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
+                    popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
+                    folium.Marker(
+                        location=[lat, lng],
+                        tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
+                        popup=folium.Popup(popup_html, max_width=300),
+                        icon=folium.Icon(color=color, icon=icon, prefix="fa")
+                    ).add_to(marker_cluster)
+        except Exception as e:
+            st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
+    if selected_category == "전체":
+        for file, (lat_col, lng_col) in all_info.items():
+            add_markers(file, lat_col, lng_col)
+    else:
+        lat_col, lng_col = all_info[selected_category]
+        add_markers(selected_category, lat_col, lng_col)
+
+    folium_static(m, width=1000, height=600)
+
+    # 로그아웃 버튼
+    if st.button("🔓 로그아웃"):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.experimental_rerun()
+
+# -------------------------------
+# 🧾 로그인/회원가입 페이지
+# -------------------------------
 def login_page():
     st.title("🔐 로그인 또는 회원가입")
-
     tab1, tab2 = st.tabs(["📥 로그인", "📝 회원가입"])
 
     with tab1:
@@ -81,20 +205,9 @@ def login_page():
             else:
                 st.error("❌ 이미 존재하는 아이디입니다.")
 
-# 지도 페이지 (로그인한 경우만 접근)
-def map_page():
-    st.title("🗺️ 서울시 공공 위치 데이터 지도")
-
-    st.markdown(f"**👤 로그인 사용자:** `{st.session_state.username}`")
-    st.success("여기에 지도 페이지 내용을 넣을 수 있습니다.")
-
-    # 로그아웃 버튼
-    if st.button("🔓 로그아웃"):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.experimental_rerun()
-
-# 실행
+# -------------------------------
+# 🎬 메인 실행
+# -------------------------------
 if st.session_state.logged_in:
     map_page()
 else:
@@ -104,196 +217,148 @@ else:
 
 ########### 지도 시각화
 
-from streamlit_js_eval import get_geolocation
+# from streamlit_js_eval import get_geolocation
 
-st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
+# st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
-# ----------------------------------------
-# 🌐 언어 선택 (오른쪽 상단 위치 느낌으로 배치)
-col1, col2, col3 = st.columns([6, 1, 2])  # 비율 조정: col3이 오른쪽
+# # ----------------------------------------
+# # 🌐 언어 선택 (오른쪽 상단 위치 느낌으로 배치)
+# col1, col2, col3 = st.columns([6, 1, 2])  # 비율 조정: col3이 오른쪽
 
-with col3:
-    selected_language = st.selectbox("🌏 Language", ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"])
-# 日本語
+# with col3:
+#     selected_language = st.selectbox("🌏 Language", ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"])
+# # 日本語
 
-# 선택된 언어에 따른 내부 코드 매핑
-language_map = {
-    "🇰🇷 한국어": "한국어",
-    "🇺🇸 English": "영어",
-    "🇨🇳 中文": "중국어"
-#    "🇯🇵 日本語": "일본어"
-}
-language = language_map[selected_language]
-
-
-# 📁 파일 및 좌표 컬럼 정보 설정 (언어별 분리)
-csv_info_ko = {
-    "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
-    "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
-    "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
-    "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
-    "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
-}
-excel_info_ko = {
-    "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("Latitude", "Longitude")
-}
-
-csv_info_en = {
-    "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("Location Information (Y Coordinate)", "Location Information (X Coordinate)"),
-    "서울시 문화행사 공공서비스예약 정보(영문).csv": ("Location Y Coordinate", "Location X Coordinate"),
-    "서울시립미술관 전시정보 (영문).csv": ("y Coordinate", "x Coordinate"),
-    "서울시 체육시설 공연행사 정보 (영문).csv": ("Y Coordinate", "X Coordinate"),
-    "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표")
-}
-
-csv_info_cn = {
-    "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("位置坐标(Y)","位置坐标(X)"),
-    "서울시 문화행사 공공서비스예약 정보(중문).csv": ("场所Y坐标", "场所X坐标"),
-    "서울시립미술관 전시정보 (중문).csv": ("y坐标","x坐标"),
-    "서울시 체육시설 공연행사 정보 (중문).csv": ("y 坐标","x 坐标"),
-    "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표")
-}
-
-############################ 나중에  사용할거임
-# 명칭(이름) 컬럼명 매핑
-# name_column_map = {
-#     "한국어": "명칭(한국어)",
-#     "영어": "명칭(영어)"
-#     # "중국어": "명칭(중국어)",  # 아직 없으니 기본 사용
-#     # "일본어": "명칭"   # 향후 확장 대비
+# # 선택된 언어에 따른 내부 코드 매핑
+# language_map = {
+#     "🇰🇷 한국어": "한국어",
+#     "🇺🇸 English": "영어",
+#     "🇨🇳 中文": "중국어"
+# #    "🇯🇵 日本語": "일본어"
 # }
-############################ 나중에  사용할거임
+# language = language_map[selected_language]
 
 
-# 🧱 아이콘 및 색상 지정 (공통)
-icon_config = {
-    # 관광기념품 판매점
-    "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("blue", "gift"),
-    "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("blue", "gift"),
-    "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("blue", "gift"),
+# # 📁 파일 및 좌표 컬럼 정보 설정 (언어별 분리)
+# csv_info_ko = {
+#     "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
+#     "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
+#     "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
+#     "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
+#     "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
+# }
+# excel_info_ko = {
+#     "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("Latitude", "Longitude")
+# }
 
-    # 문화행사
-    "서울시 문화행사 공공서비스예약 정보(국문).csv": ("purple", "star"),
-    "서울시 문화행사 공공서비스예약 정보(영문).csv": ("purple", "star"),
-    "서울시 문화행사 공공서비스예약 정보(중문).csv": ("purple", "star"),
+# csv_info_en = {
+#     "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("Location Information (Y Coordinate)", "Location Information (X Coordinate)"),
+#     "서울시 문화행사 공공서비스예약 정보(영문).csv": ("Location Y Coordinate", "Location X Coordinate"),
+#     "서울시립미술관 전시정보 (영문).csv": ("y Coordinate", "x Coordinate"),
+#     "서울시 체육시설 공연행사 정보 (영문).csv": ("Y Coordinate", "X Coordinate"),
+#     "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표")
+# }
 
-    # 미술관 전시
-    "서울시립미술관 전시 정보 (국문).csv": ("orange", "paint-brush"),
-    "서울시립미술관 전시 정보 (영문).csv": ("orange", "paint-brush"),
-    "서울시립미술관 전시 정보 (중문).csv": ("orange", "paint-brush"),
+# csv_info_cn = {
+#     "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("位置坐标(Y)","位置坐标(X)"),
+#     "서울시 문화행사 공공서비스예약 정보(중문).csv": ("场所Y坐标", "场所X坐标"),
+#     "서울시립미술관 전시정보 (중문).csv": ("y坐标","x坐标"),
+#     "서울시 체육시설 공연행사 정보 (중문).csv": ("y 坐标","x 坐标"),
+#     "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표")
+# }
 
-    # 체육시설 공연행사
-    "서울시 체육시설 공연행사 정보(국문).csv": ("cadetblue", "music"),
-    "서울시 체육시설 공연행사 정보(영문).csv": ("cadetblue", "music"),
-    "서울시 체육시설 공연행사 정보(중문).csv": ("cadetblue", "music"),
-
-    # 종로구 관광정보
-    "서울시 종로구 관광데이터 정보 (국문).csv": ("red", "camera"),
-    "서울시 종로구 관광데이터 정보 (영문).csv": ("red", "camera"),
-    "서울시 종로구 관광데이터 정보 (중문).csv": ("red", "camera"),
-
-    # 자랑스러운 한국음식점 (엑셀, 언어공통)
-    "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("green", "cutlery")
-}
-
-
-# 언어에 따라 전체 파일 리스트 구성
-if language == "한국어":
-    all_info = {**csv_info_ko, **excel_info_ko}
-elif language == "영어":
-    all_info = csv_info_en
-elif language == "중국어":
-    all_info = csv_info_cn
-
-# ----------------------------------------
-# 🧭 사용자 현재 위치
-user_location = get_geolocation()
-
-############ st.write("📦 사용자 위치 데이터:", user_location)
-
-if (
-    user_location
-    and "coords" in user_location
-    and "latitude" in user_location["coords"]
-    and "longitude" in user_location["coords"]
-):
-    lat = user_location["coords"]["latitude"]
-    lng = user_location["coords"]["longitude"]
-    center = [lat, lng]
-    st.success(f"📍 현재 위치: {center}")
-else:
-    center = [37.5665, 126.9780]  # 서울 중심
-    st.warning("⚠️ 현재 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
-
-# ----------------------------------------
-# 📌 카테고리 선택
-category_options = ["전체"] + list(all_info.keys())
-selected_category = st.selectbox(
-    "📂 확인할 카테고리를 선택하세요:",
-    category_options,
-    format_func=lambda x: "전체 보기" if x == "전체" else x.replace(".csv", "").replace(".xlsx", "")
-)
-
-# ----------------------------------------
-# 🗺️ 지도 생성
-m = folium.Map(location=center, zoom_start=12)
-marker_cluster = MarkerCluster().add_to(m)
-
-# ----------------------------------------
-
-# 📍 마커 생성 함수
-def add_markers(file_name, lat_col, lng_col):
-    color, icon = icon_config.get(file_name, ("gray", "info-sign"))
-    try:
-        # 파일 읽기
-        if file_name.endswith(".csv"):
-            if "영어" in file_name or "중국" in file_name:
-                df = pd.read_csv(file_name, encoding="cp949")
-            elif "영문" in file_name:
-                df = pd.read_csv(file_name, encoding="utf-8-sig")
-            else:
-                df = pd.read_csv(file_name)
-        else:
-            df = pd.read_excel(file_name)
-
-        # 데이터 절반만 사용
-        df_half = df.head(len(df) // 2)
-
-        for _, row in df_half.iterrows():
-            lat, lng = row[lat_col], row[lng_col]
-            if pd.notna(lat) and pd.notna(lng):
-                directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-                popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
-                folium.Marker(
-                    location=[lat, lng],
-                    tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
-                    popup=folium.Popup(popup_html, max_width=300),
-                    icon=folium.Icon(color=color, icon=icon, prefix="fa")
-                ).add_to(marker_cluster)
-    except Exception as e:
-        st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
-
-# ----------------------------------------
-# 🎯 선택된 카테고리만 지도에 표시
-if selected_category == "전체":
-    for file, (lat_col, lng_col) in all_info.items():
-        add_markers(file, lat_col, lng_col)
-else:
-    lat_col, lng_col = all_info[selected_category]
-    add_markers(selected_category, lat_col, lng_col)
-
-# ----------------------------------------
-# 📍 지도 출력
-folium_static(m, width=1000, height=600)
+# ############################ 나중에  사용할거임
+# # 명칭(이름) 컬럼명 매핑
+# # name_column_map = {
+# #     "한국어": "명칭(한국어)",
+# #     "영어": "명칭(영어)"
+# #     # "중국어": "명칭(중국어)",  # 아직 없으니 기본 사용
+# #     # "일본어": "명칭"   # 향후 확장 대비
+# # }
+# ############################ 나중에  사용할거임
 
 
-# ----------------------------------------
-# 📍 마커 생성 함수 (언어별 명칭 출력 포함)
+# # 🧱 아이콘 및 색상 지정 (공통)
+# icon_config = {
+#     # 관광기념품 판매점
+#     "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("blue", "gift"),
+#     "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("blue", "gift"),
+#     "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("blue", "gift"),
+
+#     # 문화행사
+#     "서울시 문화행사 공공서비스예약 정보(국문).csv": ("purple", "star"),
+#     "서울시 문화행사 공공서비스예약 정보(영문).csv": ("purple", "star"),
+#     "서울시 문화행사 공공서비스예약 정보(중문).csv": ("purple", "star"),
+
+#     # 미술관 전시
+#     "서울시립미술관 전시 정보 (국문).csv": ("orange", "paint-brush"),
+#     "서울시립미술관 전시 정보 (영문).csv": ("orange", "paint-brush"),
+#     "서울시립미술관 전시 정보 (중문).csv": ("orange", "paint-brush"),
+
+#     # 체육시설 공연행사
+#     "서울시 체육시설 공연행사 정보(국문).csv": ("cadetblue", "music"),
+#     "서울시 체육시설 공연행사 정보(영문).csv": ("cadetblue", "music"),
+#     "서울시 체육시설 공연행사 정보(중문).csv": ("cadetblue", "music"),
+
+#     # 종로구 관광정보
+#     "서울시 종로구 관광데이터 정보 (국문).csv": ("red", "camera"),
+#     "서울시 종로구 관광데이터 정보 (영문).csv": ("red", "camera"),
+#     "서울시 종로구 관광데이터 정보 (중문).csv": ("red", "camera"),
+
+#     # 자랑스러운 한국음식점 (엑셀, 언어공통)
+#     "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("green", "cutlery")
+# }
+
+
+# # 언어에 따라 전체 파일 리스트 구성
+# if language == "한국어":
+#     all_info = {**csv_info_ko, **excel_info_ko}
+# elif language == "영어":
+#     all_info = csv_info_en
+# elif language == "중국어":
+#     all_info = csv_info_cn
+
+# # ----------------------------------------
+# # 🧭 사용자 현재 위치
+# user_location = get_geolocation()
+
+# ############ st.write("📦 사용자 위치 데이터:", user_location)
+
+# if (
+#     user_location
+#     and "coords" in user_location
+#     and "latitude" in user_location["coords"]
+#     and "longitude" in user_location["coords"]
+# ):
+#     lat = user_location["coords"]["latitude"]
+#     lng = user_location["coords"]["longitude"]
+#     center = [lat, lng]
+#     st.success(f"📍 현재 위치: {center}")
+# else:
+#     center = [37.5665, 126.9780]  # 서울 중심
+#     st.warning("⚠️ 현재 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
+
+# # ----------------------------------------
+# # 📌 카테고리 선택
+# category_options = ["전체"] + list(all_info.keys())
+# selected_category = st.selectbox(
+#     "📂 확인할 카테고리를 선택하세요:",
+#     category_options,
+#     format_func=lambda x: "전체 보기" if x == "전체" else x.replace(".csv", "").replace(".xlsx", "")
+# )
+
+# # ----------------------------------------
+# # 🗺️ 지도 생성
+# m = folium.Map(location=center, zoom_start=12)
+# marker_cluster = MarkerCluster().add_to(m)
+
+# # ----------------------------------------
+
+# # 📍 마커 생성 함수
 # def add_markers(file_name, lat_col, lng_col):
 #     color, icon = icon_config.get(file_name, ("gray", "info-sign"))
-
 #     try:
-#         # 데이터 불러오기
+#         # 파일 읽기
 #         if file_name.endswith(".csv"):
 #             if "영어" in file_name or "중국" in file_name:
 #                 df = pd.read_csv(file_name, encoding="cp949")
@@ -304,39 +369,38 @@ folium_static(m, width=1000, height=600)
 #         else:
 #             df = pd.read_excel(file_name)
 
-#         # 🎯 명칭 컬럼 지정 (언어별)
-#         name_col = '명칭 못찾음'
-#         if "음식점" in file_name:
-#             if language == "영어" and "명칭(영어)" in df.columns:
-#                 name_col = "명칭(영어)"
-#             else:
-#                 name_col = "명칭"
-#         elif "전시" in file_name or "관광" in file_name or "기념품" in file_name or "문화행사" in file_name or "체육시설" in file_name:
-#             for col in df.columns:
-#                 if "명칭" in col or "행사명" in col or "전시명" in col or "장소명" in col:
-#                     name_col = col
-#                     break
+#         # 데이터 절반만 사용
+#         df_half = df.head(len(df) // 2)
 
-#         for _, row in df.iterrows():
+#         for _, row in df_half.iterrows():
 #             lat, lng = row[lat_col], row[lng_col]
 #             if pd.notna(lat) and pd.notna(lng):
-#                 # 구글 길찾기 링크
 #                 directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-
-#                 # 팝업 내용
-#                 title = row[name_col] if name_col and name_col in row and pd.notna(row[name_col]) else file_name.replace(".csv", "").replace(".xlsx", "")
-#                 popup_html = f"<b>{title}</b><br><a href='{directions_url}' target='_blank'>📍 길찾기 (구글 지도)</a>"
-
-#                 # 마커 생성
+#                 popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
 #                 folium.Marker(
 #                     location=[lat, lng],
-#                     tooltip=title,
+#                     tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
 #                     popup=folium.Popup(popup_html, max_width=300),
 #                     icon=folium.Icon(color=color, icon=icon, prefix="fa")
 #                 ).add_to(marker_cluster)
-
 #     except Exception as e:
 #         st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
+
+# # ----------------------------------------
+# # 🎯 선택된 카테고리만 지도에 표시
+# if selected_category == "전체":
+#     for file, (lat_col, lng_col) in all_info.items():
+#         add_markers(file, lat_col, lng_col)
+# else:
+#     lat_col, lng_col = all_info[selected_category]
+#     add_markers(selected_category, lat_col, lng_col)
+
+# # ----------------------------------------
+# # 📍 지도 출력
+# folium_static(m, width=1000, height=600)
+
+
+
 
 
 
