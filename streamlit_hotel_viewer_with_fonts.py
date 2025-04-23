@@ -189,10 +189,10 @@ def login_page():
         password = st.text_input("비밀번호", type="password", key="login_pw")
         if st.button("로그인"):
             if authenticate_user(username, password):
-                st.success(f"환영합니다, {username}님!")
                 st.session_state.logged_in = True
                 st.session_state.username = username
-                st.experimental_rerun()
+                st.success(f"환영합니다, {username}님!")
+                st.toast("잠시만 기다려주세요... 지도를 불러오는 중입니다 🗺️", icon="⌛")
             else:
                 st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
 
@@ -207,11 +207,11 @@ def login_page():
 
 # -------------------------------
 # 🎬 메인 실행
-# -------------------------------
-if st.session_state.logged_in:
+if st.session_state.get("logged_in"):
     map_page()
 else:
     login_page()
+
 
 
 
