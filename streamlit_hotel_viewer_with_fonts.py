@@ -4,7 +4,7 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 from streamlit_js_eval import get_geolocation
-
+st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 # -------------------------------
 # 초기 세션 상태 설정
 if "users" not in st.session_state:
@@ -63,7 +63,7 @@ def login_page():
 def map_page():
     st.write("✅ map_page 함수 진입 확인")
     st.write(f"현재 사용자: {st.session_state.get('username')}")
-    st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+    
     st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
     # 언어 선택
