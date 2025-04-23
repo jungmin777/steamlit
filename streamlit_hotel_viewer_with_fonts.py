@@ -58,6 +58,8 @@ if 'username' not in st.session_state:
 # 🧭 지도 페이지 (로그인 후만 보임)
 # -------------------------------
 def map_page():
+    st.write("✅ map_page 함수 진입 확인")
+    st.write(f"현재 사용자: {st.session_state.get('username')}")
     st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
     st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
@@ -192,7 +194,7 @@ def login_page():
                 st.session_state.logged_in = True
                 st.session_state.username = username
                 st.success(f"환영합니다, {username}님!")
-                st.toast("잠시만 기다려주세요... 지도를 불러오는 중입니다 🗺️", icon="⌛")
+                st.experimental_rerun()  # 상태가 업데이트된 후 rerun
             else:
                 st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
 
