@@ -1,214 +1,108 @@
 import streamlit as st
-st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
-
 import pandas as pd
-import altair as alt
 import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
-
-
-import sqlite3
-import bcrypt
 from streamlit_js_eval import get_geolocation
 
 # -------------------------------
-# 🛠️ 로그인 관련 기능
-# -------------------------------
+# 초기 세션 상태 설정
+if "users" not in st.session_state:
+    st.session_state.users = {}
 
-# DB 연결
-conn = sqlite3.connect('users.db', check_same_thread=False)
-cursor = conn.cursor()
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        username TEXT PRIMARY KEY,
-        password TEXT
-    )
-''')
-conn.commit()
-
-def hash_password(password):
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-def check_password(password, hashed):
-    return bcrypt.checkpw(password.encode(), hashed.encode())
-
-def register_user(username, password):
-    hashed = hash_password(password)
-    try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed))
-        conn.commit()
-        return True
-    except sqlite3.IntegrityError:
-        return False
-
-def authenticate_user(username, password):
-    cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
-    result = cursor.fetchone()
-    if result and check_password(password, result[0]):
-        return True
-    return False
-
-if 'logged_in' not in st.session_state:
+if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-if 'username' not in st.session_state:
+
+if "username" not in st.session_state:
     st.session_state.username = ""
 
 # -------------------------------
-# 🧭 지도 페이지 (로그인 후만 보임)
+# 사용자 인증 함수
+def authenticate_user(username, password):
+    return username in st.session_state.users and st.session_state.users[username] == password
+
+def register_user(username, password):
+    if username in st.session_state.users:
+        return False
+    st.session_state.users[username] = password
+    return True
+
 # -------------------------------
+# 로그인 / 회원가입 페이지
+def login_page():
+    st.title("🔐 로그인 또는 회원가입")
+
+    tab1, tab2 = st.tabs(["로그인", "회원가입"])
+
+    with tab1:
+        username = st.text_input("아이디")
+        password = st.text_input("비밀번호", type="password")
+        if st.button("로그인"):
+            if authenticate_user(username, password):
+                st.success("🎉 로그인 성공!")
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.experimental_rerun()
+            else:
+                st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+
+    with tab2:
+        new_user = st.text_input("새 아이디")
+        new_pw = st.text_input("새 비밀번호", type="password")
+        if st.button("회원가입"):
+            if register_user(new_user, new_pw):
+                st.success("✅ 회원가입 완료! 자동 로그인 중...")
+                st.session_state.logged_in = True
+                st.session_state.username = new_user
+                st.experimental_rerun()
+            else:
+                st.warning("⚠️ 이미 존재하는 아이디입니다.")
+
+# -------------------------------
+# 지도 페이지
 def map_page():
-    st.write("✅ map_page 함수 진입 확인")
-    st.write(f"현재 사용자: {st.session_state.get('username')}")
     st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
-    st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
+    st.title("🗺️ 서울시 위치 기반 통합 지도")
 
-    # 언어 선택
-    col1, col2, col3 = st.columns([6, 1, 2])
-    with col3:
-        selected_language = st.selectbox("🌏 Language", ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"])
-    language_map = {
-        "🇰🇷 한국어": "한국어",
-        "🇺🇸 English": "영어",
-        "🇨🇳 中文": "중국어"
-    }
-    language = language_map[selected_language]
+    st.write(f"👤 로그인된 사용자: `{st.session_state.username}`")
 
-    # 파일 정보
-    csv_info_ko = {
-        "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
-        "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
-        "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
-        "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
-        "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
-    }
-    excel_info_ko = {
-        "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("Latitude", "Longitude")
-    }
-    csv_info_en = {
-        "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("Location Information (Y Coordinate)", "Location Information (X Coordinate)"),
-        "서울시 문화행사 공공서비스예약 정보(영문).csv": ("Location Y Coordinate", "Location X Coordinate"),
-        "서울시립미술관 전시정보 (영문).csv": ("y Coordinate", "x Coordinate"),
-        "서울시 체육시설 공연행사 정보 (영문).csv": ("Y Coordinate", "X Coordinate"),
-        "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표")
-    }
-    csv_info_cn = {
-        "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("位置坐标(Y)","位置坐标(X)"),
-        "서울시 문화행사 공공서비스예약 정보(중문).csv": ("场所Y坐标", "场所X坐标"),
-        "서울시립미술관 전시정보 (중문).csv": ("y坐标","x坐标"),
-        "서울시 체육시설 공연행사 정보(중문).csv": ("y 坐标","x 坐标"),
-        "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표")
-    }
-
-    icon_config = {
-        # 동일한 아이콘 설정 생략 (네 기존 코드 그대로 복붙 가능)
-    }
-
-    if language == "한국어":
-        all_info = {**csv_info_ko, **excel_info_ko}
-    elif language == "영어":
-        all_info = csv_info_en
-    elif language == "중국어":
-        all_info = csv_info_cn
-
-    # 사용자 위치
     user_location = get_geolocation()
+
     if (
-        user_location and "coords" in user_location and
-        "latitude" in user_location["coords"] and "longitude" in user_location["coords"]
+        user_location
+        and "coords" in user_location
+        and "latitude" in user_location["coords"]
+        and "longitude" in user_location["coords"]
     ):
         lat = user_location["coords"]["latitude"]
         lng = user_location["coords"]["longitude"]
         center = [lat, lng]
         st.success(f"📍 현재 위치: {center}")
     else:
-        center = [37.5665, 126.9780]
-        st.warning("⚠️ 현재 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
-
-    # 카테고리 선택
-    category_options = ["전체"] + list(all_info.keys())
-    selected_category = st.selectbox(
-        "📂 확인할 카테고리를 선택하세요:",
-        category_options,
-        format_func=lambda x: "전체 보기" if x == "전체" else x.replace(".csv", "").replace(".xlsx", "")
-    )
+        center = [37.5665, 126.9780]  # 서울 중심
+        st.warning("⚠️ 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
 
     # 지도 생성
     m = folium.Map(location=center, zoom_start=12)
     marker_cluster = MarkerCluster().add_to(m)
 
-    def add_markers(file_name, lat_col, lng_col):
-        color, icon = icon_config.get(file_name, ("gray", "info-sign"))
-        try:
-            if file_name.endswith(".csv"):
-                if "영어" in file_name or "중국" in file_name:
-                    df = pd.read_csv(file_name, encoding="cp949")
-                elif "영문" in file_name:
-                    df = pd.read_csv(file_name, encoding="utf-8-sig")
-                else:
-                    df = pd.read_csv(file_name)
-            else:
-                df = pd.read_excel(file_name)
-            df_half = df.head(len(df) // 2)
-            for _, row in df_half.iterrows():
-                lat, lng = row[lat_col], row[lng_col]
-                if pd.notna(lat) and pd.notna(lng):
-                    directions_url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-                    popup_html = f'<a href="{directions_url}" target="_blank">📍 길찾기 (구글 지도)</a>'
-                    folium.Marker(
-                        location=[lat, lng],
-                        tooltip=file_name.replace(".csv", "").replace(".xlsx", ""),
-                        popup=folium.Popup(popup_html, max_width=300),
-                        icon=folium.Icon(color=color, icon=icon, prefix="fa")
-                    ).add_to(marker_cluster)
-        except Exception as e:
-            st.error(f"❌ {file_name} 처리 중 오류 발생: {e}")
-
-    if selected_category == "전체":
-        for file, (lat_col, lng_col) in all_info.items():
-            add_markers(file, lat_col, lng_col)
-    else:
-        lat_col, lng_col = all_info[selected_category]
-        add_markers(selected_category, lat_col, lng_col)
+    # 샘플 마커
+    folium.Marker(
+        location=center,
+        tooltip="현재 위치",
+        popup="여기가 당신의 위치입니다.",
+        icon=folium.Icon(color="blue", icon="info-sign")
+    ).add_to(marker_cluster)
 
     folium_static(m, width=1000, height=600)
 
-    # 로그아웃 버튼
     if st.button("🔓 로그아웃"):
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.experimental_rerun()
 
 # -------------------------------
-# 🧾 로그인/회원가입 페이지
-# -------------------------------
-def login_page():
-    st.title("🔐 로그인 또는 회원가입")
-    tab1, tab2 = st.tabs(["📥 로그인", "📝 회원가입"])
-
-    with tab1:
-        username = st.text_input("아이디", key="login_user")
-        password = st.text_input("비밀번호", type="password", key="login_pw")
-        if st.button("로그인"):
-            if authenticate_user(username, password):
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.success(f"환영합니다, {username}님!")
-                st.experimental_rerun()  # 상태가 업데이트된 후 rerun
-            else:
-                st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
-
-    with tab2:
-        new_user = st.text_input("아이디", key="reg_user")
-        new_pw = st.text_input("비밀번호", type="password", key="reg_pw")
-        if st.button("회원가입"):
-            if register_user(new_user, new_pw):
-                st.success("✅ 회원가입 완료! 로그인 해주세요.")
-            else:
-                st.error("❌ 이미 존재하는 아이디입니다.")
-
-# -------------------------------
-# 🎬 메인 실행
+# 앱 실행 흐름 제어
 if st.session_state.get("logged_in"):
     map_page()
 else:
