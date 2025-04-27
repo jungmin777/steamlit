@@ -7,6 +7,7 @@ from streamlit_js_eval import get_geolocation
 import random
 from geopy.distance import geodesic
 
+# -------------------------------
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 
 # -------------------------------
@@ -20,11 +21,11 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-if "selected_location" not in st.session_state:
-    st.session_state.selected_location = None
+if "clicked_location" not in st.session_state:
+    st.session_state.clicked_location = None
 
-if "recommendations" not in st.session_state:
-    st.session_state.recommendations = []
+if "clicked_category" not in st.session_state:
+    st.session_state.clicked_category = None
 
 # -------------------------------
 # 사용자 인증 함수
@@ -71,11 +72,10 @@ def login_page():
 # -------------------------------
 # 지도 페이지
 def map_page():
-    st.title("🗺️ 서울시 위치 데이터 통합 지도")
+    st.title("🗺️ 서울시 공공 위치 데이터 통합 지도")
 
-    # 언어 선택
-    col1, col2 = st.columns([7, 2])
-    with col2:
+    col1, col2, col3 = st.columns([6, 1, 2])
+    with col3:
         selected_language = st.selectbox("🌏 Language", ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"])
 
     language_map = {
@@ -85,7 +85,6 @@ def map_page():
     }
     language = language_map[selected_language]
 
-    # 파일 정보
     csv_info_ko = {
         "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
         "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
@@ -93,30 +92,13 @@ def map_page():
         "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
         "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
     }
-    excel_info_ko = {
-        "서울시 자랑스러운 한국음식점 정보 (한국어,영어).xlsx": ("Latitude", "Longitude")
-    }
-    csv_info_en = {
-        "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("Location Information (Y Coordinate)", "Location Information (X Coordinate)"),
-        "서울시 문화행사 공공서비스예약 정보(영문).csv": ("Location Y Coordinate", "Location X Coordinate"),
-        "서울시립미술관 전시정보 (영문).csv": ("y Coordinate", "x Coordinate"),
-        "서울시 체육시설 공연행사 정보 (영문).csv": ("Y Coordinate", "X Coordinate"),
-        "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표")
-    }
-    csv_info_cn = {
-        "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("位置坐标(Y)","位置坐标(X)"),
-        "서울시 문화행사 공공서비스예약 정보(중문).csv": ("场所Y坐标", "场所X坐标"),
-        "서울시립미술관 전시정보 (중문).csv": ("y坐标","x坐标"),
-        "서울시 체육시설 공연행사 정보(중문).csv": ("y 坐标","x 坐标"),
-        "서울시 종로구 관광데이터 정보(중문).csv": ("Y 좌표", "X 좌표")
-    }
+
+    # 필요한 경우 여기에 영어/중국어 파일 info 추가
 
     if language == "한국어":
-        all_info = {**csv_info_ko, **excel_info_ko}
-    elif language == "영어":
-        all_info = csv_info_en
-    elif language == "중국어":
-        all_info = csv_info_cn
+        all_info = csv_info_ko
+    else:
+        all_info = csv_info_ko  # 임시로 (데이터 준비되면 수정)
 
     # 사용자 위치
     user_location = get_geolocation()
@@ -124,97 +106,86 @@ def map_page():
         user_location and "coords" in user_location and
         "latitude" in user_location["coords"] and "longitude" in user_location["coords"]
     ):
-        lat = user_location["coords"]["latitude"]
-        lng = user_location["coords"]["longitude"]
-        center = [lat, lng]
-        st.success(f"📍 현재 위치: {center}")
+        center = [user_location["coords"]["latitude"], user_location["coords"]["longitude"]]
     else:
         center = [37.5665, 126.9780]
-        st.warning("⚠️ 현재 위치 정보를 가져올 수 없어 기본 위치로 설정합니다.")
 
-    # 카테고리 선택
     category_options = ["전체"] + list(all_info.keys())
-    selected_category = st.selectbox(
-        "📂 확인할 카테고리를 선택하세요:",
-        category_options,
-        format_func=lambda x: "전체 보기" if x == "전체" else x.replace(".csv", "").replace(".xlsx", "")
-    )
+    selected_category = st.selectbox("📂 카테고리 선택", category_options)
 
-    # 지도와 추천 결과 나누기
-    left, right = st.columns([7, 3])
+    m = folium.Map(location=center, zoom_start=12)
+    marker_cluster = MarkerCluster().add_to(m)
 
-    with left:
-        m = folium.Map(location=center, zoom_start=12)
-        marker_cluster = MarkerCluster().add_to(m)
+    data_dict = {}  # 파일별 데이터 보관
 
-        all_points = []
+    for file, (lat_col, lng_col) in all_info.items():
+        if selected_category != "전체" and file != selected_category:
+            continue
 
-        # 데이터 로드
-        def load_data(file_name, lat_col, lng_col):
-            if file_name.endswith(".csv"):
-                if "영어" in file_name or "중국" in file_name:
-                    df = pd.read_csv(file_name, encoding="cp949")
-                elif "영문" in file_name:
-                    df = pd.read_csv(file_name, encoding="utf-8-sig")
-                else:
-                    df = pd.read_csv(file_name)
-            else:
-                df = pd.read_excel(file_name)
+        try:
+            df = pd.read_csv(file, encoding="cp949")
             df = df.dropna(subset=[lat_col, lng_col])
-            return df
 
-        if selected_category == "전체":
-            for file, (lat_col, lng_col) in all_info.items():
-                df = load_data(file, lat_col, lng_col)
-                for _, row in df.iterrows():
-                    all_points.append((row[lat_col], row[lng_col]))
-        else:
-            lat_col, lng_col = all_info[selected_category]
-            df = load_data(selected_category, lat_col, lng_col)
+            data_dict[file] = df
+
             for _, row in df.iterrows():
-                all_points.append((row[lat_col], row[lng_col]))
+                lat, lng = row[lat_col], row[lng_col]
+                folium.Marker(
+                    location=[lat, lng],
+                    tooltip=file.replace(".csv", ""),
+                    icon=folium.Icon(color="blue", icon="info-sign"),
+                    popup=folium.Popup("클릭 시 추천 장소 표시", max_width=200)
+                ).add_to(marker_cluster)
 
-        # 마커 추가
-        for idx, (lat, lng) in enumerate(all_points):
-            folium.Marker(
-                location=[lat, lng],
-                icon=folium.Icon(color="blue", icon="info-sign"),
-                tooltip=f"장소 {idx+1}",
-                popup=f"장소 {idx+1}"
-            ).add_to(marker_cluster)
+        except Exception as e:
+            st.error(f"파일 {file} 로딩 오류: {e}")
 
-        # 지도 출력 (interaction_enabled=True)
-        map_data = st_folium(m, width=1000, height=600)
+    map_data = st_folium(m, width=1000, height=600)
 
-    # 마커 클릭 처리
-    if map_data and map_data.get("last_clicked"):
-        clicked_lat = map_data["last_clicked"]["lat"]
-        clicked_lng = map_data["last_clicked"]["lng"]
-        st.session_state.selected_location = (clicked_lat, clicked_lng)
+    # 마커 클릭했을 때 클릭 위치 저장
+    if map_data and map_data.get("last_object_clicked"):
+        lat = map_data["last_object_clicked"]["lat"]
+        lng = map_data["last_object_clicked"]["lng"]
+        st.session_state.clicked_location = (lat, lng)
+        st.session_state.clicked_category = selected_category
 
-        # 주변 장소 500m 이내 랜덤 추천
-        nearby = []
-        for lat, lng in all_points:
-            distance = geodesic((clicked_lat, clicked_lng), (lat, lng)).meters
-            if 0 < distance <= 500:
-                nearby.append((lat, lng))
+    # -----------------------
+    # 추천 장소 표시
+    with st.container():
+        st.markdown("---")
 
-        if nearby:
-            st.session_state.recommendations = random.sample(nearby, min(3, len(nearby)))
-        else:
-            st.session_state.recommendations = []
+        if st.session_state.clicked_location:
+            lat, lng = st.session_state.clicked_location
+            st.subheader("📍 선택한 장소 주변 추천")
 
-    # 추천 결과 표시
-    with right:
-        st.header("🎯 주변 추천 장소")
-        if st.session_state.recommendations:
-            for idx, (lat, lng) in enumerate(st.session_state.recommendations, start=1):
-                url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={lat},{lng}"
-                st.markdown(f"**{idx}.** [📍 이동하기]({url}) (위도 {lat:.5f}, 경도 {lng:.5f})")
-        else:
-            st.info("마커를 클릭하면 추천 장소가 나타납니다!")
+            def find_nearby(df, lat_col, lng_col, base_location, distances=[500, 1000, 1500]):
+                for d in distances:
+                    candidates = df[df.apply(
+                        lambda r: 0 < geodesic(base_location, (r[lat_col], r[lng_col])).meters <= d,
+                        axis=1
+                    )]
+                    if not candidates.empty:
+                        return candidates.sample(n=min(3, len(candidates)))
+                return None
 
-    # 로그아웃 버튼
+            recommended = None
+            for file, (lat_col, lng_col) in all_info.items():
+                if st.session_state.clicked_category != "전체" and file != st.session_state.clicked_category:
+                    continue
+                df = data_dict.get(file)
+                if df is not None:
+                    recommended = find_nearby(df, lat_col, lng_col, (lat, lng))
+                    if recommended is not None:
+                        break
+
+            if recommended is not None:
+                for _, rec in recommended.iterrows():
+                    rec_lat, rec_lng = rec[lat_col], rec[lng_col]
+                    url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={rec_lat},{rec_lng}"
+                    st.markdown(f"- [📍 {rec_lat:.5f}, {rec_lng:.5f}]({url})")
+            else:
+                st.info("📭 주변 추천 장소가 없습니다.")
+
     if st.button("🔓 로그아웃"):
         st.session_state.logged_in = False
         st.session_state.username = ""
@@ -226,6 +197,7 @@ if st.session_state.get("logged_in"):
     map_page()
 else:
     login_page()
+
 
 
 
