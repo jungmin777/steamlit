@@ -63,12 +63,11 @@ def login_page():
         new_pw = st.text_input("새 비밀번호", type="password")
         if st.button("회원가입"):
             if register_user(new_user, new_pw):
-                st.success("✅ 회원가입 완료! 자동 로그인 중...")
-                st.session_state.logged_in = True
-                st.session_state.username = new_user
-                st.experimental_rerun()
+                st.success("✅ 회원가입 완료!")
+                st.experimental_rerun()  # 회원가입 후 로그인 화면으로 돌아가게 함
             else:
                 st.warning("⚠️ 이미 존재하는 아이디입니다.")
+
 
 # -------------------------------
 # 지도 페이지
@@ -217,7 +216,7 @@ def map_page():
             lat, lng = st.session_state.clicked_location
             st.subheader("📍 선택한 장소 주변 추천")
 
-            def find_nearby(df, lat_col, lng_col, base_location, distances=[500, 1000, 1500]):
+            def find_nearby(df, lat_col, lng_col, base_location, distances=[500, 1000, 1500, 2000]):
                 for d in distances:
                     candidates = df[df.apply(
                         lambda r: 0 < geodesic(base_location, (r[lat_col], r[lng_col])).meters <= d,
