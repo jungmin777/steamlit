@@ -128,36 +128,62 @@ def map_page():
 
             data_dict[file] = df
 
+            # 마커 생성 부분 수정
             for _, row in df.iterrows():
                 lat, lng = row[lat_col], row[lng_col]
+                
+                # 팝업 내용에 더 많은 정보 추가 (가능한 경우)
+                popup_content = f"""
+                <b>카테고리:</b> {file.replace('.csv', '')}<br>
+                <b>위치:</b> {lat:.5f}, {lng:.5f}<br>
+                """
+                
+                # 컬럼명을 확인하여 제목이나 이름이 있으면 추가
+                # if '명칭' in row:
+                #     popup_content += f"<b>명칭:</b> {row['명칭']}<br>"
+                # elif '시설명' in row:
+                #     popup_content += f"<b>시설명:</b> {row['시설명']}<br>"
+                # elif '장소명' in row:
+                #     popup_content += f"<b>장소명:</b> {row['장소명']}<br>"
+                
+                # 마커 생성 - 파일별로 다른 색상 지정
+                color = ["blue", "red", "green", "purple", "orange"][list(all_info.keys()).index(file) % 5]
+                
                 folium.Marker(
                     location=[lat, lng],
                     tooltip=file.replace(".csv", ""),
-                    icon=folium.Icon(color="blue", icon="info-sign"),
-                    popup=folium.Popup("클릭 시 추천 장소 표시", max_width=200)
+                    icon=folium.Icon(color=color, icon="info-sign"),
+                    popup=folium.Popup(popup_content, max_width=300)
                 ).add_to(marker_cluster)
 
         except Exception as e:
             st.error(f"파일 {file} 로딩 오류: {e}")
 
-    map_data = st_folium(m, width=1000, height=600)
-
-    # 마커 클릭했을 때 클릭 위치 저장
-    if map_data and map_data.get("last_object_clicked"):
-        lat = map_data["last_object_clicked"]["lat"]
-        lng = map_data["last_object_clicked"]["lng"]
-        st.session_state.clicked_location = (lat, lng)
-        st.session_state.clicked_category = selected_category
-
-    # -----------------------
-    # 추천 장소 표시
-    with st.container():
-        st.markdown("---")
-
+    # 지도와 추천 장소를 위한 레이아웃
+    col1, col2 = st.columns([7, 3])
+    
+    with col1:
+        map_data = st_folium(m, width="100%", height=600)
+    
+        # 마커 클릭했을 때 클릭 위치 저장
+        if map_data and map_data.get("last_object_clicked"):
+            lat = map_data["last_object_clicked"]["lat"]
+            lng = map_data["last_object_clicked"]["lng"]
+            st.session_state.clicked_location = (lat, lng)
+            st.session_state.clicked_category = selected_category
+        # 지도 클릭 이벤트도 처리
+        elif map_data and map_data.get("last_clicked"):
+            lat = map_data["last_clicked"]["lat"]
+            lng = map_data["last_clicked"]["lng"]
+            st.session_state.clicked_location = (lat, lng)
+            st.session_state.clicked_category = selected_category
+    
+    # 오른쪽 열에 추천 장소 표시
+    with col2:
         if st.session_state.clicked_location:
             lat, lng = st.session_state.clicked_location
             st.subheader("📍 선택한 장소 주변 추천")
-
+    
             def find_nearby(df, lat_col, lng_col, base_location, distances=[500, 1000, 1500]):
                 for d in distances:
                     candidates = df[df.apply(
@@ -167,7 +193,7 @@ def map_page():
                     if not candidates.empty:
                         return candidates.sample(n=min(3, len(candidates)))
                 return None
-
+    
             recommended = None
             for file, (lat_col, lng_col) in all_info.items():
                 if st.session_state.clicked_category != "전체" and file != st.session_state.clicked_category:
@@ -177,12 +203,28 @@ def map_page():
                     recommended = find_nearby(df, lat_col, lng_col, (lat, lng))
                     if recommended is not None:
                         break
-
+    
             if recommended is not None:
                 for _, rec in recommended.iterrows():
                     rec_lat, rec_lng = rec[lat_col], rec[lng_col]
-                    url = f"https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={rec_lat},{rec_lng}"
-                    st.markdown(f"- [📍 {rec_lat:.5f}, {rec_lng:.5f}]({url})")
+                    
+                    # 장소명 찾기 (가능한 경우)
+                    place_name = "장소"
+                    for name_col in ['명칭', '시설명', '장소명', '이름']:
+                        if name_col in rec and not pd.isna(rec[name_col]):
+                            place_name = rec[name_col]
+                            break
+                    
+                    # 거리 계산
+                    distance = geodesic((lat, lng), (rec_lat, rec_lng)).meters
+                    
+                    # 카드 형태로 표시
+                    st.markdown(f"""
+                    **{place_name}**  
+                    📍 거리: {distance:.1f}m  
+                    [🗺️ 길찾기](https://www.google.com/maps/dir/?api=1&origin={lat},{lng}&destination={rec_lat},{rec_lng})
+                    """)
+                    st.markdown("---")
             else:
                 st.info("📭 주변 추천 장소가 없습니다.")
 
