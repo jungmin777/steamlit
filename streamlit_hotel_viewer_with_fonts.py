@@ -63,10 +63,13 @@ def login_page():
         new_pw = st.text_input("새 비밀번호", type="password")
         if st.button("회원가입"):
             if register_user(new_user, new_pw):
-                st.success("✅ 회원가입 완료!")
-                st.experimental_rerun()  # 회원가입 후 로그인 화면으로 돌아가게 함
+                st.success("✅ 회원가입 완료! 자동 로그인 중...")
+                st.session_state.logged_in = True       # 🔥 로그인 처리
+                st.session_state.username = new_user    # 🔥 아이디 기억
+                st.experimental_rerun()                 # 🔥 그리고 다시 실행 (자동 로그인 상태로)
             else:
                 st.warning("⚠️ 이미 존재하는 아이디입니다.")
+
 
 
 # -------------------------------
