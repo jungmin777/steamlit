@@ -181,7 +181,6 @@ def map_page():
                 for col_name in name_columns:
                     if col_name in row and not pd.isna(row[col_name]):
                         popup_content += f"<b>{col_name}:</b> {row[col_name]}<br>"
-                        break
                 
                 folium.Marker(
                     location=[lat, lng],
@@ -262,27 +261,8 @@ def map_page():
                                 st.markdown(f"""
                                 **{place_name}**  
                                 📍 거리: {distance:.1f}m  
-                                [🗺️ 길찾기](https://www.google.com/maps/dir/?api=1&origin={lat},{lng}&destination={rec_lat},{rec_lng})
+                                [🗺️ 길찾기](https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={rec_lat},{rec_lng})
                                 """)
-                                
-                                # # 추가 정보가 있으면 표시
-                                # info_columns = {
-                                #     '주소': '📫 주소',
-                                #     '전화번호': '📞 전화',
-                                #     '홈페이지': '🌐 홈페이지',
-                                #     'address': '📫 주소',
-                                #     'tel': '📞 전화',
-                                #     'phoneNumber': '📞 전화',
-                                #     'website': '🌐 홈페이지'
-                                # }
-                                
-                                # additional_info = ""
-                                # for col, prefix in info_columns.items():
-                                #     if col in rec and not pd.isna(rec[col]):
-                                #         additional_info += f"{prefix}: {rec[col]}  \n"
-                                
-                                # if additional_info:
-                                #     st.markdown(additional_info)
                                 
                                 st.markdown("---")
             
@@ -290,6 +270,7 @@ def map_page():
                 st.info("📭 주변 추천 장소가 없습니다.")
         else:
             st.info("👈 지도에서 위치를 클릭하면 주변 추천 장소가 여기에 표시됩니다.")
+
 
     if st.button("🔓 로그아웃"):
         st.session_state.logged_in = False
