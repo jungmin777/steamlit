@@ -6,6 +6,7 @@ from streamlit_folium import st_folium
 from streamlit_js_eval import get_geolocation
 import random
 from geopy.distance import geodesic
+import os
 
 # -------------------------------
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
@@ -85,20 +86,40 @@ def map_page():
     }
     language = language_map[selected_language]
 
+    # 언어별 파일 정보 (파일명과 좌표 컬럼명)
     csv_info_ko = {
         "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
         "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
         "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
         "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
-        "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표")
+        "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표"),
+        "서울시 자랑스러운 한국음식점 정보 (국문,영문).xlsx": ("Longitude", "Latitude")
     }
 
-    # 필요한 경우 여기에 영어/중국어 파일 info 추가
+    csv_info_en = {
+        "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("위치정보(Y)", "위치정보(X)"),
+        "서울시 문화행사 공공서비스예약 정보(영문).csv": ("장소Y좌표", "장소X좌표"),
+        "서울시립미술관 전시정보 (영문).csv": ("y좌표", "x좌표"),
+        "서울시 체육시설 공연행사 정보 (영문).csv": ("y좌표", "x좌표"),
+        "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표"),
+        "서울시 자랑스러운 한국음식점 정보 (국문,영문).xlsx": ("Longitude", "Latitude")
+    }
 
+    csv_info_cn = {
+        "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("위치정보(Y)", "위치정보(X)"),
+        "서울시 문화행사 공공서비스예약 정보(중문).csv": ("장소Y좌표", "장소X좌표"),
+        "서울시립미술관 전시정보 (중문).csv": ("y좌표", "x좌표"),
+        "서울시 체육시설 공연행사 정보 (중문).csv": ("y좌표", "x좌표"),
+        "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표")
+    }
+
+    # 선택한 언어에 따라 파일 정보 설정
     if language == "한국어":
         all_info = csv_info_ko
-    else:
-        all_info = csv_info_ko  # 임시로 (데이터 준비되면 수정)
+    elif language == "영어":
+        all_info = csv_info_en
+    else:  # 중국어
+        all_info = csv_info_cn
 
     # 사용자 위치
     user_location = get_geolocation()
@@ -108,7 +129,7 @@ def map_page():
     ):
         center = [user_location["coords"]["latitude"], user_location["coords"]["longitude"]]
     else:
-        center = [37.5665, 126.9780]
+        center = [37.5665, 126.9780]  # 서울시청 좌표 (기본값)
 
     category_options = ["전체"] + list(all_info.keys())
     selected_category = st.selectbox("📂 카테고리 선택", category_options)
@@ -118,40 +139,53 @@ def map_page():
 
     data_dict = {}  # 파일별 데이터 보관
 
+    # 지도에 마커 추가
     for file, (lat_col, lng_col) in all_info.items():
         if selected_category != "전체" and file != selected_category:
             continue
 
         try:
-            df = pd.read_csv(file, encoding="cp949")
+            # 파일 확장자에 따라 다른 방식으로 읽기
+            file_ext = os.path.splitext(file)[1].lower()
+            
+            if file_ext == '.csv':
+                # CSV 파일 읽기 - 언어별로 다른 인코딩 적용
+                if language == "한국어":
+                    df = pd.read_csv(file, encoding="utf-8")
+                else:
+                    df = pd.read_csv(file, encoding="cp949")
+            elif file_ext == '.xlsx':
+                # Excel 파일 읽기
+                df = pd.read_excel(file)
+            else:
+                st.error(f"지원하지 않는 파일 형식입니다: {file}")
+                continue
+                
             df = df.dropna(subset=[lat_col, lng_col])
-
             data_dict[file] = df
 
-            # 마커 생성 부분 수정
+            # 색상 할당
+            color = ["blue", "red", "green", "purple", "orange", "darkblue"][list(all_info.keys()).index(file) % 6]
+            
             for _, row in df.iterrows():
                 lat, lng = row[lat_col], row[lng_col]
                 
-                # 팝업 내용에 더 많은 정보 추가 (가능한 경우)
+                # 팝업 내용 준비
                 popup_content = f"""
-                <b>카테고리:</b> {file.replace('.csv', '')}<br>
+                <b>카테고리:</b> {file.replace('.csv', '').replace('.xlsx', '')}<br>
                 <b>위치:</b> {lat:.5f}, {lng:.5f}<br>
                 """
                 
                 # 컬럼명을 확인하여 제목이나 이름이 있으면 추가
-                # if '명칭' in row:
-                #     popup_content += f"<b>명칭:</b> {row['명칭']}<br>"
-                # elif '시설명' in row:
-                #     popup_content += f"<b>시설명:</b> {row['시설명']}<br>"
-                # elif '장소명' in row:
-                #     popup_content += f"<b>장소명:</b> {row['장소명']}<br>"
-                
-                # 마커 생성 - 파일별로 다른 색상 지정
-                color = ["blue", "red", "green", "purple", "orange"][list(all_info.keys()).index(file) % 5]
+                name_columns = ['명칭', '시설명', '장소명', '이름', '상호명', 'Name']
+                for col_name in name_columns:
+                    if col_name in row and not pd.isna(row[col_name]):
+                        popup_content += f"<b>{col_name}:</b> {row[col_name]}<br>"
+                        break
                 
                 folium.Marker(
                     location=[lat, lng],
-                    tooltip=file.replace(".csv", ""),
+                    tooltip=file.replace(".csv", "").replace(".xlsx", ""),
                     icon=folium.Icon(color=color, icon="info-sign"),
                     popup=folium.Popup(popup_content, max_width=300)
                 ).add_to(marker_cluster)
@@ -160,11 +194,11 @@ def map_page():
             st.error(f"파일 {file} 로딩 오류: {e}")
 
     # 지도와 추천 장소를 위한 레이아웃
-    col1, col2 = st.columns([7, 3])
-    
-    with col1:
+    map_col, rec_col = st.columns([7, 3])
+
+    with map_col:
         map_data = st_folium(m, width="100%", height=600)
-    
+
         # 마커 클릭했을 때 클릭 위치 저장
         if map_data and map_data.get("last_object_clicked"):
             lat = map_data["last_object_clicked"]["lat"]
@@ -177,13 +211,13 @@ def map_page():
             lng = map_data["last_clicked"]["lng"]
             st.session_state.clicked_location = (lat, lng)
             st.session_state.clicked_category = selected_category
-    
+
     # 오른쪽 열에 추천 장소 표시
-    with col2:
+    with rec_col:
         if st.session_state.clicked_location:
             lat, lng = st.session_state.clicked_location
             st.subheader("📍 선택한 장소 주변 추천")
-    
+
             def find_nearby(df, lat_col, lng_col, base_location, distances=[500, 1000, 1500]):
                 for d in distances:
                     candidates = df[df.apply(
@@ -193,40 +227,69 @@ def map_page():
                     if not candidates.empty:
                         return candidates.sample(n=min(3, len(candidates)))
                 return None
-    
-            recommended = None
+
+            found_recommendations = False
+            
             for file, (lat_col, lng_col) in all_info.items():
                 if st.session_state.clicked_category != "전체" and file != st.session_state.clicked_category:
                     continue
+                    
                 df = data_dict.get(file)
                 if df is not None:
                     recommended = find_nearby(df, lat_col, lng_col, (lat, lng))
-                    if recommended is not None:
-                        break
-    
-            if recommended is not None:
-                for _, rec in recommended.iterrows():
-                    rec_lat, rec_lng = rec[lat_col], rec[lng_col]
                     
-                    # 장소명 찾기 (가능한 경우)
-                    place_name = "장소"
-                    for name_col in ['명칭', '시설명', '장소명', '이름']:
-                        if name_col in rec and not pd.isna(rec[name_col]):
-                            place_name = rec[name_col]
-                            break
-                    
-                    # 거리 계산
-                    distance = geodesic((lat, lng), (rec_lat, rec_lng)).meters
-                    
-                    # 카드 형태로 표시
-                    st.markdown(f"""
-                    **{place_name}**  
-                    📍 거리: {distance:.1f}m  
-                    [🗺️ 길찾기](https://www.google.com/maps/dir/?api=1&origin={lat},{lng}&destination={rec_lat},{rec_lng})
-                    """)
-                    st.markdown("---")
-            else:
+                    if recommended is not None and not recommended.empty:
+                        found_recommendations = True
+                        file_name = file.replace('.csv', '').replace('.xlsx', '')
+                        st.write(f"**{file_name}** 카테고리")
+                        
+                        for _, rec in recommended.iterrows():
+                            rec_lat, rec_lng = rec[lat_col], rec[lng_col]
+                            
+                            # 장소명 찾기
+                            place_name = "장소"
+                            name_columns = ['명칭', '시설명', '장소명', '이름', '상호명', 'Name']
+                            for col_name in name_columns:
+                                if col_name in rec and not pd.isna(rec[col_name]):
+                                    place_name = rec[col_name]
+                                    break
+                            
+                            # 거리 계산
+                            distance = geodesic((lat, lng), (rec_lat, rec_lng)).meters
+                            
+                            # 카드 형태로 표시
+                            with st.container():
+                                st.markdown(f"""
+                                **{place_name}**  
+                                📍 거리: {distance:.1f}m  
+                                [🗺️ 길찾기](https://www.google.com/maps/dir/?api=1&origin={lat},{lng}&destination={rec_lat},{rec_lng})
+                                """)
+                                
+                                # # 추가 정보가 있으면 표시
+                                # info_columns = {
+                                #     '주소': '📫 주소',
+                                #     '전화번호': '📞 전화',
+                                #     '홈페이지': '🌐 홈페이지',
+                                #     'address': '📫 주소',
+                                #     'tel': '📞 전화',
+                                #     'phoneNumber': '📞 전화',
+                                #     'website': '🌐 홈페이지'
+                                # }
+                                
+                                # additional_info = ""
+                                # for col, prefix in info_columns.items():
+                                #     if col in rec and not pd.isna(rec[col]):
+                                #         additional_info += f"{prefix}: {rec[col]}  \n"
+                                
+                                # if additional_info:
+                                #     st.markdown(additional_info)
+                                
+                                st.markdown("---")
+            
+            if not found_recommendations:
                 st.info("📭 주변 추천 장소가 없습니다.")
+        else:
+            st.info("👈 지도에서 위치를 클릭하면 주변 추천 장소가 여기에 표시됩니다.")
 
     if st.button("🔓 로그아웃"):
         st.session_state.logged_in = False
