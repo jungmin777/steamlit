@@ -7,6 +7,7 @@ from streamlit_js_eval import get_geolocation
 import random
 from geopy.distance import geodesic
 import os
+import streamlit.components.v1 as components
 
 # -------------------------------
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
@@ -63,12 +64,31 @@ def login_page():
         new_pw = st.text_input("새 비밀번호", type="password")
         if st.button("회원가입"):
             if register_user(new_user, new_pw):
-                st.success("✅ 회원가입 완료! 자동 로그인 중...")
-                st.session_state.logged_in = True       # 🔥 로그인 처리
-                st.session_state.username = new_user    # 🔥 아이디 기억
-                st.experimental_rerun()                 # 🔥 그리고 다시 실행 (자동 로그인 상태로)
+                st.success("✅ 회원가입 완료!")
+                # 자동 로그인 처리
+                st.session_state.logged_in = True
+                st.session_state.username = new_user
+    
+                # JS로 input에 값을 채우고, 포커스아웃 시키기
+                components.html(
+                    f"""
+                    <script>
+                    setTimeout(function() {{
+                        const inputBox = window.parent.document.querySelector('input[placeholder="아이디"]');
+                        if (inputBox) {{
+                            inputBox.value = "{new_user}";
+                            inputBox.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                            inputBox.blur();  // 포커스 아웃
+                        }}
+                    }}, 500);
+                    </script>
+                    """,
+                    height=0,
+                    width=0
+                )
             else:
                 st.warning("⚠️ 이미 존재하는 아이디입니다.")
+
 
 
 
