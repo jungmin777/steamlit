@@ -23,11 +23,9 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-if "clicked_location" not in st.session_state:
-    st.session_state.clicked_location = None
+if "clicked_locations" not in st.session_state:
+    st.session_state.clicked_locations = []
 
-if "clicked_category" not in st.session_state:
-    st.session_state.clicked_category = None
 
 # -------------------------------
 # 사용자 인증 함수
@@ -221,83 +219,84 @@ def map_page():
         map_data = st_folium(m, width="100%", height=600)
 
         # 마커 클릭했을 때 클릭 위치 저장
-        if map_data and map_data.get("last_object_clicked"):
-            lat = map_data["last_object_clicked"]["lat"]
-            lng = map_data["last_object_clicked"]["lng"]
-            st.session_state.clicked_location = (lat, lng)
-            st.session_state.clicked_category = selected_category
-        # 지도 클릭 이벤트도 처리
-        elif map_data and map_data.get("last_clicked"):
-            lat = map_data["last_clicked"]["lat"]
-            lng = map_data["last_clicked"]["lng"]
-            st.session_state.clicked_location = (lat, lng)
-            st.session_state.clicked_category = selected_category
+        if map_data:
+            clicked = map_data.get("last_object_clicked") or map_data.get("last_clicked")
+            if clicked:
+                lat = clicked["lat"]
+                lng = clicked["lng"]
+                # 최대 3개까지만 저장
+                if len(st.session_state.clicked_locations) >= 3:
+                    st.session_state.clicked_locations.pop(0)  # 가장 오래된 것 제거
+                st.session_state.clicked_locations.append((lat, lng))
+
 
     # 오른쪽 열에 추천 장소 표시
     with rec_col:
-        if st.session_state.clicked_location:
-            lat, lng = st.session_state.clicked_location
+        if st.session_state.clicked_locations:
+            selected_locations = st.session_state.clicked_locations[:3]  # 최대 3개까지만 선택
+            st.session_state.clicked_locations = selected_locations
             st.subheader("📍 선택한 장소 주변 추천")
-
-            def find_nearby(df, lat_col, lng_col, base_location, distances=[500, 1000, 1500, 2000]):
-                for d in distances:
-                    candidates = df[df.apply(
-                        lambda r: 0 < geodesic(base_location, (r[lat_col], r[lng_col])).meters <= d,
-                        axis=1
-                    )]
-                    if not candidates.empty:
-                        return candidates.sample(n=min(3, len(candidates)))
-                return None
-
-            found_recommendations = False
             
-            for file, (lat_col, lng_col) in all_info.items():
-                if st.session_state.clicked_category != "전체" and file != st.session_state.clicked_category:
-                    continue
-                    
-                df = data_dict.get(file)
-                if df is not None:
-                    recommended = find_nearby(df, lat_col, lng_col, (lat, lng))
-                    
-                    if recommended is not None and not recommended.empty:
-                        found_recommendations = True
-                        file_name = file.replace('.csv', '').replace('.xlsx', '')
-                        st.write(f"**{file_name}** 카테고리")
-                        
-                        for _, rec in recommended.iterrows():
-                            rec_lat, rec_lng = rec[lat_col], rec[lng_col]
-                            
-                            # 장소명 찾기
-                            place_name = "장소"
-                            name_columns = ['명칭', '시설명', '장소명', '이름', '상호명', 'Name']
-                            for col_name in name_columns:
-                                if col_name in rec and not pd.isna(rec[col_name]):
-                                    place_name = rec[col_name]
-                                    break
-                            
-                            # 거리 계산
-                            distance = geodesic((lat, lng), (rec_lat, rec_lng)).meters
-                            
-                            # 카드 형태로 표시
-                            with st.container():
-                                st.markdown(f"""
-                                **{place_name}**  
-                                📍 거리: {distance:.1f}m  
-                                [🗺️ 길찾기](https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={rec_lat},{rec_lng})
-                                """)
-                                
-                                st.markdown("---")
-            
-            if not found_recommendations:
-                st.info("📭 주변 추천 장소가 없습니다.")
+            for idx, (lat, lng) in enumerate(st.session_state.clicked_locations, 1):
+    
+                def find_nearby(df, lat_col, lng_col, base_location, distances=[500, 1000, 1500, 2000]):
+                    for d in distances:
+                        candidates = df[df.apply(
+                            lambda r: 0 < geodesic(base_location, (r[lat_col], r[lng_col])).meters <= d,
+                            axis=1
+                        )]
+                        if not candidates.empty:
+                            return candidates.sample(n=min(3, len(candidates)))
+                    return None
+    
+                found_recommendations = False
+    
+                for file, (lat_col, lng_col) in all_info.items():
+                    if st.session_state.clicked_category != "전체" and file != st.session_state.clicked_category:
+                        continue
+    
+                    df = data_dict.get(file)
+                    if df is not None:
+                        recommended = find_nearby(df, lat_col, lng_col, (lat, lng))
+    
+                        if recommended is not None and not recommended.empty:
+                            found_recommendations = True
+                            file_name = file.replace('.csv', '').replace('.xlsx', '')
+                            st.write(f"**{file_name}** 카테고리")
+    
+                            for _, rec in recommended.iterrows():
+                                rec_lat, rec_lng = rec[lat_col], rec[lng_col]
+    
+                                # 장소명 찾기
+                                place_name = "장소"
+                                name_columns = ['명칭', '시설명', '장소명', '이름', '상호명', 'Name']
+                                for col_name in name_columns:
+                                    if col_name in rec and not pd.isna(rec[col_name]):
+                                        place_name = rec[col_name]
+                                        break
+    
+                                # 거리 계산
+                                distance = geodesic((lat, lng), (rec_lat, rec_lng)).meters
+    
+                                # 카드 형태로 표시
+                                with st.container():
+                                    st.markdown(f"""
+                                    **{place_name}**  
+                                    📍 거리: {distance:.1f}m  
+                                    [🗺️ 길찾기](https://www.google.com/maps/dir/?api=1&origin=My+Location&destination={rec_lat},{rec_lng})
+                                    """)
+                                    st.markdown("---")
+    
+                if not found_recommendations:
+                    st.info("📭 주변 추천 장소가 없습니다.")
         else:
             st.info("👈 지도에서 위치를 클릭하면 주변 추천 장소가 여기에 표시됩니다.")
-
-
+    
     if st.button("🔓 로그아웃"):
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.experimental_rerun()
+
 
 # -------------------------------
 # 앱 실행 흐름 제어
