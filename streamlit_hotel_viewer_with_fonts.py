@@ -9,7 +9,6 @@ from geopy.distance import geodesic
 import os
 import streamlit.components.v1 as components
 
-# -------------------------------
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 
 # -------------------------------
@@ -23,9 +22,12 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-if "clicked_locations" not in st.session_state:
+if 'clicked_locations' not in st.session_state:
     st.session_state.clicked_locations = []
-
+if 'selected_recommendations' not in st.session_state:
+    st.session_state.selected_recommendations = []
+if 'final_destination' not in st.session_state:
+    st.session_state.final_destination = None
 
 # -------------------------------
 # 사용자 인증 함수
@@ -63,11 +65,8 @@ def login_page():
         if st.button("회원가입"):
             if register_user(new_user, new_pw):
                 st.success("✅ 회원가입 완료!")
-                # 자동 로그인 처리
                 st.session_state.logged_in = True
                 st.session_state.username = new_user
-    
-                # JS로 input에 값을 채우고, 포커스아웃 시키기
                 components.html(
                     f"""
                     <script>
@@ -76,7 +75,7 @@ def login_page():
                         if (inputBox) {{
                             inputBox.value = "{new_user}";
                             inputBox.dispatchEvent(new Event('input', {{ bubbles: true }}));
-                            inputBox.blur();  // 포커스 아웃
+                            inputBox.blur();
                         }}
                     }}, 500);
                     </script>
@@ -87,24 +86,18 @@ def login_page():
             else:
                 st.warning("⚠️ 이미 존재하는 아이디입니다.")
 
+# -------------------------------
+# 사용자 위치 정보
 
-
+def get_user_location():
+    location = get_geolocation()
+    if location and "coords" in location:
+        return [location["coords"]["latitude"], location["coords"]["longitude"]]
+    return [37.5665, 126.9780]  # 서울 시청 기본 좌표
 
 # -------------------------------
-# 초기 상태 초기화
-if 'clicked_locations' not in st.session_state:
-    st.session_state.clicked_locations = []
-if 'selected_recommendations' not in st.session_state:
-    st.session_state.selected_recommendations = []
-if 'final_destination' not in st.session_state:
-    st.session_state.final_destination = None
-
-# 유저 위치
-def get_geolocation():
-    user_location = get_geolocation()
-    center = [user_location["coords"]["latitude"], user_location["coords"]["longitude"]] if user_location else [37.5665, 126.9780]
-
 # 지도 페이지
+
 def map_page():
     st.title("📍 서울시 공공 위치 데이터 통합 지도")
 
@@ -119,64 +112,60 @@ def map_page():
     }
     language = language_map[selected_language]
 
-    # if "clicked_locations" not in st.session_state:
-    #     st.session_state.clicked_locations = []
-    # if "final_selected_places" not in st.session_state:
-    #     st.session_state.final_selected_places = []
-
-        
-    # 언어별 파일 정보 (파일명과 좌표 컬럼명)
-    csv_info_ko = {
-        "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
-        "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
-        "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
-        "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
-        "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표"),
-        "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
+    csv_info = {
+        "한국어": {
+            "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
+            "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
+            "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
+            "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
+            "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표"),
+            "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
+        },
+        "영어": {
+            "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("위치정보(Y)", "위치정보(X)"),
+            "서울시 문화행사 공공서비스예약 정보(영문).csv": ("장소Y좌표", "장소X좌표"),
+            "서울시립미술관 전시정보 (영문).csv": ("y좌표", "x좌표"),
+            "서울시 체육시설 공연행사 정보 (영문).csv": ("y좌표", "x좌표"),
+            "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표"),
+            "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
+        },
+        "중국어": {
+            "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("위치정보(Y)", "위치정보(X)"),
+            "서울시 문화행사 공공서비스예약 정보(중문).csv": ("장소Y좌표", "장소X좌표"),
+            "서울시립미술관 전시정보 (중문).csv": ("y좌표", "x좌표"),
+            "서울시 체육시설 공연행사 정보 (중문).csv": ("y좌표", "x좌표"),
+            "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표"),
+            "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
+        }
     }
 
-    csv_info_en = {
-        "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("위치정보(Y)", "위치정보(X)"),
-        "서울시 문화행사 공공서비스예약 정보(영문).csv": ("장소Y좌표", "장소X좌표"),
-        "서울시립미술관 전시정보 (영문).csv": ("y좌표", "x좌표"),
-        "서울시 체육시설 공연행사 정보 (영문).csv": ("y좌표", "x좌표"),
-        "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표"),
-        "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
-    }
+    all_info = csv_info[language]
 
-    csv_info_cn = {
-        "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("위치정보(Y)", "위치정보(X)"),
-        "서울시 문화행사 공공서비스예약 정보(중문).csv": ("장소Y좌표", "장소X좌표"),
-        "서울시립미술관 전시정보 (중문).csv": ("y좌표", "x좌표"),
-        "서울시 체육시설 공연행사 정보 (중문).csv": ("y좌표", "x좌표"),
-        "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표"),
-        "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
-    }
-
-    # 선택한 언어에 따라 파일 정보 설정
-    if language == "한국어":
-        all_info = csv_info_ko
-    elif language == "영어":
-        all_info = csv_info_en
-    else:
-        all_info = csv_info_cn
-
-
-    user_location = get_geolocation()
-    center = [user_location["coords"]["latitude"], user_location["coords"]["longitude"]]
-
-    selected_category = list(all_info.keys())[0]
+    selected_category = st.selectbox("📁 데이터 파일 선택", list(all_info.keys()))
     lat_col, lng_col = all_info[selected_category]
-    df = pd.read_csv(selected_category, encoding='utf-8').dropna(subset=[lat_col, lng_col])
 
-    st.session_state.clicked_category = selected_category
+    try:
+        if selected_category.endswith(".xlsx"):
+            df = pd.read_excel(selected_category)
+        else:
+            try:
+                df = pd.read_csv(selected_category, encoding='utf-8')
+            except UnicodeDecodeError:
+                df = pd.read_csv(selected_category, encoding='cp949')
+    except Exception as e:
+        st.error(f"파일 로딩 중 오류 발생: {e}")
+        return
+
+    df = df.dropna(subset=[lat_col, lng_col])
+
+    user_location = get_user_location()
+    center = user_location
     st.session_state.user_location = center
 
     st.subheader("🗺️ 지도")
     m = folium.Map(location=center, zoom_start=13)
     marker_cluster = MarkerCluster().add_to(m)
 
-    # 내 위치 마커
     folium.Marker(center, tooltip="📍 내 위치", icon=folium.Icon(color="blue")).add_to(m)
 
     for _, row in df.iterrows():
@@ -237,7 +226,261 @@ def map_page():
 
         st_folium(result_map, width=700, height=500)
 
-map_page()
+# -------------------------------
+# 앱 실행 흐름 제어
+if st.session_state.get("logged_in"):
+    map_page()
+else:
+    login_page()
+
+
+
+
+
+
+# import streamlit as st
+# import pandas as pd
+# import folium
+# from folium.plugins import MarkerCluster
+# from streamlit_folium import st_folium
+# from streamlit_js_eval import get_geolocation
+# import random
+# from geopy.distance import geodesic
+# import os
+# import streamlit.components.v1 as components
+
+# # -------------------------------
+# st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+
+# # -------------------------------
+# # 초기 세션 상태 설정
+# if "users" not in st.session_state:
+#     st.session_state.users = {}
+
+# if "logged_in" not in st.session_state:
+#     st.session_state.logged_in = False
+
+# if "username" not in st.session_state:
+#     st.session_state.username = ""
+
+# if "clicked_locations" not in st.session_state:
+#     st.session_state.clicked_locations = []
+
+
+# # -------------------------------
+# # 사용자 인증 함수
+# def authenticate_user(username, password):
+#     return username in st.session_state.users and st.session_state.users[username] == password
+
+# def register_user(username, password):
+#     if username in st.session_state.users:
+#         return False
+#     st.session_state.users[username] = password
+#     return True
+
+# # -------------------------------
+# # 로그인 / 회원가입 페이지
+# def login_page():
+#     st.title("🔐 로그인 또는 회원가입")
+
+#     tab1, tab2 = st.tabs(["로그인", "회원가입"])
+
+#     with tab1:
+#         username = st.text_input("아이디")
+#         password = st.text_input("비밀번호", type="password")
+#         if st.button("로그인"):
+#             if authenticate_user(username, password):
+#                 st.success("🎉 로그인 성공!")
+#                 st.session_state.logged_in = True
+#                 st.session_state.username = username
+#                 st.experimental_rerun()
+#             else:
+#                 st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+
+#     with tab2:
+#         new_user = st.text_input("새 아이디")
+#         new_pw = st.text_input("새 비밀번호", type="password")
+#         if st.button("회원가입"):
+#             if register_user(new_user, new_pw):
+#                 st.success("✅ 회원가입 완료!")
+#                 # 자동 로그인 처리
+#                 st.session_state.logged_in = True
+#                 st.session_state.username = new_user
+    
+#                 # JS로 input에 값을 채우고, 포커스아웃 시키기
+#                 components.html(
+#                     f"""
+#                     <script>
+#                     setTimeout(function() {{
+#                         const inputBox = window.parent.document.querySelector('input[placeholder="아이디"]');
+#                         if (inputBox) {{
+#                             inputBox.value = "{new_user}";
+#                             inputBox.dispatchEvent(new Event('input', {{ bubbles: true }}));
+#                             inputBox.blur();  // 포커스 아웃
+#                         }}
+#                     }}, 500);
+#                     </script>
+#                     """,
+#                     height=0,
+#                     width=0
+#                 )
+#             else:
+#                 st.warning("⚠️ 이미 존재하는 아이디입니다.")
+
+
+
+
+# # -------------------------------
+# # 초기 상태 초기화
+# if 'clicked_locations' not in st.session_state:
+#     st.session_state.clicked_locations = []
+# if 'selected_recommendations' not in st.session_state:
+#     st.session_state.selected_recommendations = []
+# if 'final_destination' not in st.session_state:
+#     st.session_state.final_destination = None
+
+# # 유저 위치
+# def get_user_location():
+#     location = get_geolocation()
+#     if location and "coords" in location:
+#         return [location["coords"]["latitude"], location["coords"]["longitude"]]
+#     else:
+#         return [37.5665, 126.9780]  # 기본 서울 시청 좌표
+
+# # 지도 페이지
+# def map_page():
+#     st.title("📍 서울시 공공 위치 데이터 통합 지도")
+
+#     col1, col2, col3 = st.columns([6, 1, 2])
+#     with col3:
+#         selected_language = st.selectbox("🌏 Language", ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"])
+
+#     language_map = {
+#         "🇰🇷 한국어": "한국어",
+#         "🇺🇸 English": "영어",
+#         "🇨🇳 中文": "중국어"
+#     }
+#     language = language_map[selected_language]
+
+#     # if "clicked_locations" not in st.session_state:
+#     #     st.session_state.clicked_locations = []
+#     # if "final_selected_places" not in st.session_state:
+#     #     st.session_state.final_selected_places = []
+
+        
+#     # 언어별 파일 정보 (파일명과 좌표 컬럼명)
+#     csv_info_ko = {
+#         "서울시 외국인전용 관광기념품 판매점 정보(국문).csv": ("위치정보(Y)", "위치정보(X)"),
+#         "서울시 문화행사 공공서비스예약 정보(국문).csv": ("장소Y좌표", "장소X좌표"),
+#         "서울시립미술관 전시정보 (국문).csv": ("y좌표", "x좌표"),
+#         "서울시 체육시설 공연행사 정보 (국문).csv": ("y좌표", "x좌표"),
+#         "서울시 종로구 관광데이터 정보 (국문).csv": ("Y 좌표", "X 좌표"),
+#         "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
+#     }
+
+#     csv_info_en = {
+#         "서울시 외국인전용 관광기념품 판매점 정보(영문).csv": ("위치정보(Y)", "위치정보(X)"),
+#         "서울시 문화행사 공공서비스예약 정보(영문).csv": ("장소Y좌표", "장소X좌표"),
+#         "서울시립미술관 전시정보 (영문).csv": ("y좌표", "x좌표"),
+#         "서울시 체육시설 공연행사 정보 (영문).csv": ("y좌표", "x좌표"),
+#         "서울시 종로구 관광데이터 정보 (영문).csv": ("Y 좌표", "X 좌표"),
+#         "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
+#     }
+
+#     csv_info_cn = {
+#         "서울시 외국인전용 관광기념품 판매점 정보(중문).csv": ("위치정보(Y)", "위치정보(X)"),
+#         "서울시 문화행사 공공서비스예약 정보(중문).csv": ("장소Y좌표", "장소X좌표"),
+#         "서울시립미술관 전시정보 (중문).csv": ("y좌표", "x좌표"),
+#         "서울시 체육시설 공연행사 정보 (중문).csv": ("y좌표", "x좌표"),
+#         "서울시 종로구 관광데이터 정보 (중문).csv": ("Y 좌표", "X 좌표"),
+#         "서울시 자랑스러운 한국음식점 정보 (국문,영문,중문).xlsx": ("Longitude", "Latitude")
+#     }
+
+#     # 선택한 언어에 따라 파일 정보 설정
+#     if language == "한국어":
+#         all_info = csv_info_ko
+#     elif language == "영어":
+#         all_info = csv_info_en
+#     else:
+#         all_info = csv_info_cn
+
+
+#     user_location = get_geolocation()
+#     center = [user_location["coords"]["latitude"], user_location["coords"]["longitude"]]
+
+#     selected_category = list(all_info.keys())[0]
+#     lat_col, lng_col = all_info[selected_category]
+#     df = pd.read_csv(selected_category, encoding='utf-8').dropna(subset=[lat_col, lng_col])
+
+#     st.session_state.clicked_category = selected_category
+#     st.session_state.user_location = center
+
+#     st.subheader("🗺️ 지도")
+#     m = folium.Map(location=center, zoom_start=13)
+#     marker_cluster = MarkerCluster().add_to(m)
+
+#     # 내 위치 마커
+#     folium.Marker(center, tooltip="📍 내 위치", icon=folium.Icon(color="blue")).add_to(m)
+
+#     for _, row in df.iterrows():
+#         lat, lng = row[lat_col], row[lng_col]
+#         folium.Marker(
+#             location=[lat, lng],
+#             tooltip="추천 장소",
+#             icon=folium.Icon(color="green"),
+#             popup=folium.Popup(f"{lat:.5f}, {lng:.5f}", max_width=300)
+#         ).add_to(marker_cluster)
+
+#     map_data = st_folium(m, width=700, height=500)
+
+#     if map_data and map_data.get("last_clicked"):
+#         st.session_state.final_destination = (map_data["last_clicked"]["lat"], map_data["last_clicked"]["lng"])
+#         st.success(f"마커 선택됨: {st.session_state.final_destination}")
+
+#     st.divider()
+#     if st.session_state.final_destination:
+#         st.subheader("📍 주변 추천 장소")
+
+#         def find_nearby(df, base_location, max_count=10):
+#             results = []
+#             for _, row in df.iterrows():
+#                 lat, lng = row[lat_col], row[lng_col]
+#                 dist = geodesic(base_location, (lat, lng)).meters
+#                 if 0 < dist <= 2000:
+#                     results.append((dist, row))
+#             return sorted(results, key=lambda x: x[0])[:max_count]
+
+#         nearby = find_nearby(df, st.session_state.final_destination)
+
+#         for i, (dist, row) in enumerate(nearby):
+#             name = next((row[c] for c in ["명칭", "시설명", "장소명", "이름", "상호명", "Name"] if c in row and not pd.isna(row[c])), "장소")
+#             lat, lng = row[lat_col], row[lng_col]
+#             st.markdown(f"**{name}** - 거리 {dist:.1f}m")
+#             if st.button(f"➕ 선택 {i+1}", key=f"select_{i}"):
+#                 if len(st.session_state.selected_recommendations) < 3:
+#                     st.session_state.selected_recommendations.append((name, lat, lng))
+#                 else:
+#                     st.warning("최대 3개까지 선택할 수 있습니다.")
+
+#     if st.session_state.selected_recommendations:
+#         st.subheader("✅ 선택된 장소")
+#         for name, lat, lng in st.session_state.selected_recommendations:
+#             st.write(f"{name} - ({lat:.5f}, {lng:.5f})")
+
+#     if st.button("📌 최종 목적지로 확정"):
+#         st.subheader("🎯 선택 결과 시각화")
+#         result_map = folium.Map(location=center, zoom_start=13)
+#         folium.Marker(center, tooltip="내 위치", icon=folium.Icon(color="blue")).add_to(result_map)
+
+#         for name, lat, lng in st.session_state.selected_recommendations:
+#             folium.Marker([lat, lng], tooltip=name, icon=folium.Icon(color="green")).add_to(result_map)
+
+#         if st.session_state.final_destination:
+#             folium.Marker(st.session_state.final_destination, tooltip="🎯 목적지", icon=folium.Icon(color="red")).add_to(result_map)
+
+#         st_folium(result_map, width=700, height=500)
+
+
 
 
     
@@ -337,12 +580,12 @@ map_page()
 
 
 
-# -------------------------------
-# 앱 실행 흐름 제어
-if st.session_state.get("logged_in"):
-    map_page()
-else:
-    login_page()
+# # -------------------------------
+# # 앱 실행 흐름 제어
+# if st.session_state.get("logged_in"):
+#     map_page()
+# else:
+#     login_page()
 
 
 
