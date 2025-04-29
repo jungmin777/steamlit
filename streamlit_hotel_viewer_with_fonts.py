@@ -155,6 +155,8 @@ def map_page():
     category_options = ["전체"] + list(all_info.keys())
     selected_category = st.selectbox("📂 카테고리 선택", category_options)
 
+    st.session_state.clicked_category = selected_category
+
     m = folium.Map(location=center, zoom_start=12)
     marker_cluster = MarkerCluster().add_to(m)
 
