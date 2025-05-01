@@ -164,7 +164,7 @@ def load_session_data():
 # 앱 시작시 저장된 데이터 불러오기 시도
 if "data_loaded" not in st.session_state:
     load_session_data()
-    st.session_state.data_loaded = Trueimport streamlit as st
+    st.session_state.data_loaded = True
 
 
 # -------------------------------
