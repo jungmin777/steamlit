@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import folium
-from streamlit_folium import st_folium
 import json
 from geopy.geocoders import Nominatim
+from io import BytesIO
+import requests
 
 # 페이지 설정
 st.set_page_config(
@@ -16,7 +16,7 @@ st.set_page_config(
 # 제목
 st.title("🗺️ 서울시 문화행사 위치")
 
-# API 키 가져오기 (여기서는 사용하지 않지만, 필요할 경우를 대비해 남겨둡니다.)
+# API 키 가져오기 (필요한 경우)
 try:
     api_key = st.secrets["google_maps"]["api_key"]
 except:
@@ -34,10 +34,14 @@ file_info = {
     "음식점": {"filename": "서울시 자랑스러운 한국음식점 정보 (한국어,영어,중국어).xlsx", "color": "darkred"},  # 예시
 }
 
+
 @st.cache_data
-def load_and_process_data(filename):
+def load_and_process_data(file_url):
     try:
-        df = pd.read_excel(filename, engine='openpyxl')
+        # response = requests.get(file_url)
+        # response.raise_for_status()  # 오류 발생 시 예외 처리
+        # excel_file = BytesIO(response.content)
+        df = pd.read_excel(file_url, engine='openpyxl')
         required_columns = ['명칭(한국어)', 'X좌표', 'Y좌표']
         for col in required_columns:
             if col not in df.columns:
@@ -45,11 +49,11 @@ def load_and_process_data(filename):
                 return None
         data = df[required_columns].copy()
         return data
-    except FileNotFoundError:
-        st.error(f"'{filename}' 파일을 찾을 수 없습니다. 파일 경로를 확인해주세요.")
+    except requests.exceptions.RequestException as e:
+        st.error(f"'{file_url}' 파일을 불러오는 데 실패했습니다: {e}")
         return None
     except Exception as e:
-        st.error(f"'{filename}' 파일을 처리하는 데 오류가 발생했습니다: {str(e)}")
+        st.error(f"데이터 처리 중 오류가 발생했습니다: {str(e)}")
         return None
 
 def get_user_location():
@@ -85,45 +89,112 @@ def get_user_location():
         st.error(f"사용자 위치를 가져오는 중 오류가 발생했습니다: {e}")
         return [37.5665, 126.9780]  # 오류 발생 시 서울 중심 좌표 반환
 
+def create_google_map_html(data, api_key, color):
+    # 서울 중심 좌표
+    seoul_center_lat = 37.5665
+    seoul_center_lng = 126.9780
+
+    # 사용자 위치 가져오기
+    user_location = get_user_location()
+    user_lat, user_lng = user_location
+
+    # 마커 데이터 생성
+    markers_js = ""
+    for idx, row in data.iterrows():
+        name = row['명칭(한국어)'].replace("'", "\\'")  # 따옴표 이스케이프 처리
+        markers_js += f"""
+        var marker{idx} = new google.maps.Marker({{
+            position: {{ lat: {row['Y좌표']}, lng: {row['X좌표']} }},
+            map: map,
+            title: '{name}',
+            icon: {{
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: '{color}',
+                fillOpacity: 0.8,
+                strokeColor: '#000',
+                strokeWeight: 1,
+                scale: 5
+            }}
+        }});
+
+        // 마커에 마우스 오버 시 정보창 표시
+        var infowindow{idx} = new google.maps.InfoWindow({{
+            content: '<div style="padding: 5px;"><strong>{name}</strong></div>'
+        }});
+
+        marker{idx}.addListener('mouseover', function() {{
+            infowindow{idx}.open(map, marker{idx});
+        }});
+
+        marker{idx}.addListener('mouseout', function() {{
+            infowindow{idx}.close();
+        }});
+        """
+
+    # HTML 생성
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>서울시 문화행사 지도</title>
+        <style>
+            #map {{
+                height: 600px;
+                width: 100%;
+            }}
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script>
+            function initMap() {{
+                // 사용자 위치 중심으로 지도 생성
+                var map = new google.maps.Map(document.getElementById('map'), {{
+                    zoom: 12,
+                    center: {{ lat: {user_lat}, lng: {user_lng} }},
+                    mapTypeControl: true,
+                    streetViewControl: false,
+                    fullscreenControl: true,
+                    mapTypeId: 'roadmap'
+                }});
+
+                // 지도 영역을 서울로 제한
+                var seoulBounds = new google.maps.LatLngBounds(
+                    new google.maps.LatLng(37.4, 126.8),   // 서울 남서쪽 경계
+                    new google.maps.LatLng(37.7, 127.2)    // 서울 북동쪽 경계
+                );
+                map.fitBounds(seoulBounds);
+
+                // 마커 추가
+                {markers_js}
+            }}
+        </script>
+        <script async defer
+                src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap">
+        </script>
+    </body>
+    </html>
+    """
+    return html
+
 def main():
     # 사이드바에서 카테고리 선택
     st.sidebar.header("카테고리 선택")
     category_names = list(file_info.keys())
     selected_category = st.sidebar.selectbox("📁 카테고리", category_names)
 
-    # 사용자 위치 가져오기
-    user_location = get_user_location()
-
-    # 기본 지도 생성 (사용자 위치를 중심으로)
-    m = folium.Map(location=user_location, zoom_start=12)
-
-    # 현재 위치 마커 추가 (필요하다면)
-    # folium.Marker(
-    #     user_location,
-    #     tooltip="📍 내 위치",
-    #     icon=folium.Icon(color="blue", icon="star")
-    # ).add_to(m)
-
     selected_info = file_info[selected_category]
-    filename = selected_info['filename']
-    data = load_and_process_data(filename)
+    file_url = f"{github_repo_url}{selected_info['filename']}"
+    data = load_and_process_data(file_url)
 
     if data is not None and not data.empty:
         st.subheader(f"🗺️ {selected_category} 위치")
-        for index, row in data.iterrows():
-            try:
-                lat = row['Y좌표']
-                lon = row['X좌표']
-                name = row['명칭(한국어)']
-                folium.Marker(
-                    [lat, lon],
-                    tooltip=name,
-                    icon=folium.Icon(color=selected_info['color'])
-                ).add_to(m)
-            except (KeyError, ValueError) as e:
-                st.warning(f"데이터 오류: {index}번째 행의 좌표가 유효하지 않습니다. {e}")
 
-        st_folium(m, width=700, height=500)
+        # Google Maps 생성
+        google_maps_html = create_google_map_html(data, api_key, selected_info['color'])
+
+        # 지도 표시
+        st.components.v1.html(google_maps_html, height=600)
     elif data is not None and data.empty:
         st.info(f"{selected_category} 데이터가 없습니다.")
 
