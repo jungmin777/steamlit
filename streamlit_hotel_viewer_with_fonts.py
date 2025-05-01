@@ -1,4 +1,3 @@
-
 import pandas as pd
 import folium
 from folium.plugins import MarkerCluster
@@ -541,7 +540,7 @@ def history_page():
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
         change_page("menu")
-        st.experimental_rerun()
+        st.rerun()
     
     username = st.session_state.username
     
@@ -637,7 +636,7 @@ def history_page():
                         visit['rating'] = new_rating
                         st.success(f"{visit['place_name']}에 대한 평점이 저장되었습니다!")
                         time.sleep(1)
-                        st.experimental_rerun()
+                        st.rerun()
                 else:
                     st.markdown(f"⭐ 평점: {'⭐' * int(visit['rating'])} ({visit['rating']})")
             
@@ -647,7 +646,7 @@ def history_page():
                     st.session_state.user_visits[username].remove(visit)
                     st.success("방문 기록이 삭제되었습니다.")
                     time.sleep(1)
-                    st.experimental_rerun()
+                    st.rerun()
             
             st.divider()
             
@@ -705,7 +704,7 @@ def settings_page():
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
         change_page("menu")
-        st.experimental_rerun()
+        st.rerun()
     
     # 언어 설정
     st.subheader("언어 설정")
@@ -788,7 +787,7 @@ def settings_page():
                     st.success("계정이 삭제되었습니다.")
                     change_page("login")
                     time.sleep(2)
-                    st.experimental_rerun()
+                    st.rerun()
 
 # -------------------------------
 # 방문 기록 추가 함수
