@@ -33,7 +33,7 @@ github_file_names = [
     "서울시 체육시설 공연행사 정보 (한국어+영어+중국어).xlsx",
     "서울시립미술관 전시정보 (한국어+영어+중국어).xlsx"
 ]
-github_repo_url = "https://github.com/jungmin777/steamlit.git" # 실제 레포지토리 URL로 변경해주세요
+github_repo_url = "https://github.com/jungmin777/steamlit.git/" # 실제 레포지토리 URL로 변경해주세요
 
 # 데이터 처리 함수 (기존과 동일)
 def process_data(df):
