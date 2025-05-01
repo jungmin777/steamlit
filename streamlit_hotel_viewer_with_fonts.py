@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import requests
+from io import BytesIO
 
 # 페이지 설정
 st.set_page_config(
@@ -22,40 +24,41 @@ except:
         st.info("Google Cloud Console에서 Maps JavaScript API를 활성화하고 API 키를 생성하세요.")
         st.stop()
 
-# 데이터 파일 업로드
-uploaded_file = st.file_uploader("서울시 문화행사 엑셀 파일 업로드", type=["xlsx"])
-# uploaded_file = pd.read_excel("서울시 외국인전용 관광기념품 판매점 정보(한국어+영어+중국어).xlsx")
+# GitHub 파일 목록 (실제 파일 목록으로 변경해주세요)
+github_file_names = [
+    "서울시 문화행사 공공서비스예약 정보(한국어+영어+중국어).xlsx",
+    "서울시 외국인전용 관광기념품 판매점 정보(한국어+영어+중국어).xlsx",
+    "서울시 자랑스러운 한국음식점 정보 (한국어,영어,중국어).xlsx",
+    "서울시 종로구 관광데이터 정보 (한국어+영어).xlsx",
+    "서울시 체육시설 공연행사 정보 (한국어+영어+중국어).xlsx",
+    "서울시립미술관 전시정보 (한국어+영어+중국어).xlsx"
+]
+github_repo_url = "https://github.com/jungmin777/steamlit.git" # 실제 레포지토리 URL로 변경해주세요
 
-# 데이터 처리 함수
-def process_data(file):
+# 데이터 처리 함수 (기존과 동일)
+def process_data(df):
     try:
-        # 엑셀 파일 읽기
-        df = pd.read_excel(file, engine='openpyxl')
-        
         # 필요한 열 확인 및 추출
         required_columns = ['명칭(한국어)', 'X좌표', 'Y좌표']
         for col in required_columns:
             if col not in df.columns:
-                st.error(f"'{col}' 열이 엑셀 파일에 없습니다.")
+                st.error(f"'{col}' 열이 데이터프레임에 없습니다.")
                 return None
-        
+
         # 필요한 열만 추출
         data = df[required_columns].copy()
-        
-       
-        
         return data
-    
+
     except Exception as e:
         st.error(f"데이터 처리 중 오류가 발생했습니다: {str(e)}")
         return None
 
-# HTML 생성 함수 - Google Maps API 사용
+# HTML 생성 함수 (기존과 동일)
 def create_google_map_html(data, api_key):
     # 서울 중심 좌표
     seoul_center_lat = 37.5665
     seoul_center_lng = 126.9780
-    
+
     # 마커 데이터 생성
     markers_js = ""
     for idx, row in data.iterrows():
@@ -66,21 +69,21 @@ def create_google_map_html(data, api_key):
             map: map,
             title: '{name}'
         }});
-        
+
         // 마커에 마우스 오버 시 정보창 표시
         var infowindow{idx} = new google.maps.InfoWindow({{
             content: '<div style="padding: 5px;"><strong>{name}</strong></div>'
         }});
-        
+
         marker{idx}.addListener('mouseover', function() {{
             infowindow{idx}.open(map, marker{idx});
         }});
-        
+
         marker{idx}.addListener('mouseout', function() {{
             infowindow{idx}.close();
         }});
         """
-    
+
     # HTML 생성
     html = f"""
     <!DOCTYPE html>
@@ -107,70 +110,63 @@ def create_google_map_html(data, api_key):
                     fullscreenControl: true,
                     mapTypeId: 'roadmap'
                 }});
-                
+
                 // 지도 영역을 서울로 제한
                 var seoulBounds = new google.maps.LatLngBounds(
-                    new google.maps.LatLng(37.4, 126.8),  // 서울 남서쪽 경계
-                    new google.maps.LatLng(37.7, 127.2)   // 서울 북동쪽 경계
+                    new google.maps.LatLng(37.4, 126.8),   // 서울 남서쪽 경계
+                    new google.maps.LatLng(37.7, 127.2)    // 서울 북동쪽 경계
                 );
                 map.fitBounds(seoulBounds);
-                
+
                 // 마커 추가
                 {markers_js}
             }}
         </script>
         <script async defer
-            src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap">
+                src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap">
         </script>
     </body>
     </html>
     """
     return html
 
-# 데이터 로드 및 지도 표시
-if uploaded_file is not None:
-    data = process_data(uploaded_file)
-    
-    if data is not None and not data.empty:
-        # 데이터 정보 표시
-        st.write(f"총 {len(data)}개의 위치 데이터를 표시합니다.")
-        
-        # 데이터 미리보기
-        with st.expander("데이터 미리보기"):
-            st.dataframe(data)
-        
-        # Google Maps 생성
-        google_maps_html = create_google_map_html(data, api_key)
-        
-        # 지도 표시
-        st.subheader("서울시 문화행사 위치 지도 (Google Maps)")
-        st.components.v1.html(google_maps_html, height=600)
-    
-    else:
-        st.warning("처리할 데이터가 없습니다. 파일을 확인해주세요.")
+# GitHub에서 파일 읽어오기 및 데이터 병합
+all_data = []
+for file_name in github_file_names:
+    file_url = f"{github_repo_url}{file_name}"
+    try:
+        response = requests.get(file_url)
+        response.raise_for_status()  # 오류 발생 시 예외 처리
+        excel_file = BytesIO(response.content)
+        df = pd.read_excel(excel_file, engine='openpyxl')
+        processed_df = process_data(df)
+        if processed_df is not None:
+            all_data.append(processed_df)
+    except requests.exceptions.RequestException as e:
+        st.error(f"'{file_name}' 파일을 불러오는 데 실패했습니다: {e}")
+    except Exception as e:
+        st.error(f"'{file_name}' 파일을 처리하는 데 오류가 발생했습니다: {e}")
+
+# 데이터 병합 및 지도 표시
+if all_data:
+    merged_data = pd.concat(all_data, ignore_index=True)
+    st.write(f"총 {len(merged_data)}개의 위치 데이터를 표시합니다.")
+
+    # 데이터 미리보기
+    with st.expander("병합된 데이터 미리보기"):
+        st.dataframe(merged_data)
+
+    # Google Maps 생성
+    google_maps_html = create_google_map_html(merged_data, api_key)
+
+    # 지도 표시
+    st.subheader("서울시 문화행사 위치 지도 (Google Maps)")
+    st.components.v1.html(google_maps_html, height=600)
 
 else:
-    # 예시 데이터로 지도 표시
-    st.info("엑셀 파일을 업로드하면 서울시 문화행사 위치가 지도에 표시됩니다.")
-    
-    # 예시 데이터
-    example_data = {
-        '명칭(한국어)': ['서울시청', '경복궁', '남산서울타워', '홍대입구역', '여의도 한강공원'],
-        'Y좌표': [37.5666, 37.5796, 37.5511, 37.5570, 37.5277],
-        'X좌표': [126.9784, 126.9770, 126.9882, 126.9250, 126.9346]
-    }
-    example_df = pd.DataFrame(example_data)
-    
-    # 예시 데이터 미리보기
-    with st.expander("예시 데이터"):
-        st.dataframe(example_df)
-    
-    # 예시 Google Maps 생성
-    example_map_html = create_google_map_html(example_df, api_key)
-    
-    # 예시 지도 표시
-    st.subheader("예시 지도 (Google Maps)")
-    st.components.v1.html(example_map_html, height=600)
+    st.info("표시할 데이터가 없습니다. GitHub 파일 경로 및 파일명을 확인해주세요.")
+
+
 
 # 사용 안내
 st.markdown("---")
