@@ -40,7 +40,7 @@ if 'map_type' not in st.session_state:
 
 # 추가: Google Maps API 키 저장
 if 'google_maps_api_key' not in st.session_state:
-    st.session_state.google_maps_api_key = ""
+    st.session_state.google_maps_api_key = st.secrets["google_maps"]["api_key"]
     
 # 사용자별 방문 기록 저장
 if "user_visits" not in st.session_state:
