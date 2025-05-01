@@ -254,20 +254,16 @@ def map_page():
 
     st.subheader("🗺️ 지도")
     
+    # Streamlit secrets에서 API 키 가져오기
     
     
-    # API 키 직접 설정 (주의: 이 방식은 보안상 권장되지 않음)
-    api_key = "AIzaSyA-R_cc_82SMAvhn6vhEX9UxPDSOsa0pUM"
-    
-    # 환경 변수나 secrets에서 API 키를 가져오거나, 없으면 직접 설정한 키 사용
+    # secrets에서 API 키 가져오기
     try:
-        google_api_key = st.secrets.get("google_maps", {}).get("api_key")
-    except:
-        google_api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
-    
-    # 키가 없으면 직접 설정한 키 사용
-    if not google_api_key:
-        google_api_key = api_key
+        google_api_key = st.secrets["google_maps"]["api_key"]
+    except Exception as e:
+        st.error(f"Google Maps API 키를 찾을 수 없습니다. .streamlit/secrets.toml 파일에 설정해주세요.")
+        st.error("설정 방법: [google_maps] 섹션 아래 api_key = '키값' 형식으로 추가")
+        return
     
     # 기본 지도 설정
     map_center = {"lat": center[0], "lng": center[1]}
@@ -339,60 +335,6 @@ def map_page():
                width=700,
                height=500,
                key="google_map")
-    
-    # 클릭 이벤트 처리
-    if map_click is not None:
-        clicked_lat = map_click["lat"]
-        clicked_lng = map_click["lng"]
-        st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
-        
-        st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
-        
-        # 주변 장소 찾기 (가장 가까운 샘플 장소들 찾기)
-        nearby_places = []
-        for loc in sample_locations:
-            place_lat, place_lng = loc["lat"], loc["lng"]
-            distance = geodesic((clicked_lat, clicked_lng), (place_lat, place_lng)).meters
-            if distance <= 2000:  # 2km 이내
-                nearby_places.append((distance, loc["name"], place_lat, place_lng))
-        
-        nearby_places.sort(key=lambda x: x[0])
-        st.session_state.nearby_places = nearby_places
-        
-        st.subheader("🔍 주변 장소 (2km 이내)")
-        if nearby_places:
-            for i, (dist, name, lat, lng) in enumerate(st.session_state.nearby_places):
-                cols = st.columns([0.1, 0.7, 0.2, 0.2])
-                cols[1].markdown(f"**{name}** - {dist:.1f}m")
-                
-                # 장소 선택 버튼
-                if cols[2].button(f"선택 {i+1}", key=f"nearby_select_{i}"):
-                    if len(st.session_state.selected_recommendations) < 3:
-                        st.session_state.selected_recommendations.append((name, lat, lng))
-                    else:
-                        st.warning("최대 3개까지 선택할 수 있습니다.")
-                    st.rerun()
-                
-                # 방문 기록 추가 버튼
-                if cols[3].button(f"방문 🏁", key=f"visit_{i}"):
-                    if add_visit(st.session_state.username, name, lat, lng):
-                        st.success(f"'{name}' 방문 기록이 추가되었습니다!")
-                        # 1초 후 페이지 새로고침
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.info("이미 오늘 방문한 장소입니다.")
-        else:
-            st.info("주변 2km 이내에 장소가 없습니다.")
-    
-    if hasattr(st.session_state, 'selected_recommendations') and st.session_state.selected_recommendations:
-        st.subheader("✅ 선택된 추천 장소")
-        for i, (name, lat, lng) in enumerate(st.session_state.selected_recommendations):
-            cols = st.columns([0.05, 0.85, 0.1])
-            cols[1].write(f"{name} - ({lat:.5f}, {lng:.5f})")
-            if cols[2].button("❌", key=f"remove_{i}"):
-                st.session_state.selected_recommendations.pop(i)
-                st.rerun()
 
 
 # -------------------------------
