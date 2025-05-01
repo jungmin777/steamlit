@@ -5,6 +5,7 @@ import json
 from geopy.geocoders import Nominatim
 from io import BytesIO
 import requests
+from streamlit_js_eval import get_geolocation
 
 # 페이지 설정
 st.set_page_config(
@@ -36,12 +37,9 @@ file_info = {
 
 
 @st.cache_data
-def load_and_process_data(file_url):
+def load_and_process_data(filename):
     try:
-        # response = requests.get(file_url)
-        # response.raise_for_status()  # 오류 발생 시 예외 처리
-        # excel_file = BytesIO(response.content)
-        df = pd.read_excel(file_url, engine='openpyxl')
+        df = pd.read_excel(filename, engine='openpyxl')
         required_columns = ['명칭(한국어)', 'X좌표', 'Y좌표']
         for col in required_columns:
             if col not in df.columns:
@@ -49,8 +47,8 @@ def load_and_process_data(file_url):
                 return None
         data = df[required_columns].copy()
         return data
-    except requests.exceptions.RequestException as e:
-        st.error(f"'{file_url}' 파일을 불러오는 데 실패했습니다: {e}")
+    except FileNotFoundError:
+        st.error(f"'{filename}' 파일을 찾을 수 없습니다. 파일 경로를 확인해주세요.")
         return None
     except Exception as e:
         st.error(f"데이터 처리 중 오류가 발생했습니다: {str(e)}")
@@ -58,79 +56,14 @@ def load_and_process_data(file_url):
 
 def get_user_location():
     try:
-        # maps_local API 호출을 통해 사용자 위치 정보 가져오기
-        location_data = st.session_state.user_location_data
-        if location_data and location_data.places:
-            first_place = location_data.places[0]
-            address_parts = first_place.address.split(' ')
-            # '서울특별시'가 있는지 확인하고, 있다면 그 다음 두 단어를 사용
-            if '서울특별시' in address_parts:
-                seoul_index = address_parts.index('서울특별시')
-                if len(address_parts) > seoul_index + 2:
-                    city = address_parts[seoul_index + 1]
-                    district = address_parts[seoul_index + 2]
-                    location_query = f"{city} {district}, 서울특별시"
-                else:
-                    location_query = "서울특별시"  # 기본값
-            else:
-                location_query = "서울특별시"  # 기본값
-        else:
-            location_query = "서울특별시"  # maps_local 응답에 문제가 있을 경우 기본값
-
-        # geopy를 사용하여 좌표 얻기
-        geolocator = Nominatim(user_agent="streamlit_app")
-        location = geolocator.geocode(location_query)
-        if location:
-            return [location.latitude, location.longitude]
-        else:
-            return [37.5665, 126.9780]  # 서울 중심 좌표
-
+        location = get_geolocation()
+        if location and "coords" in location:
+            return [location["coords"]["latitude"], location["coords"]["longitude"]]
     except Exception as e:
-        st.error(f"사용자 위치를 가져오는 중 오류가 발생했습니다: {e}")
-        return [37.5665, 126.9780]  # 오류 발생 시 서울 중심 좌표 반환
+        st.error(f"현재 위치를 가져오는 데 실패했습니다: {e}")
+    return [37.5665, 126.9780]  # 기본 서울 시청 좌표
 
-def create_google_map_html(data, api_key, color):
-    # 서울 중심 좌표
-    seoul_center_lat = 37.5665
-    seoul_center_lng = 126.9780
-
-    # 사용자 위치 가져오기
-    user_location = get_user_location()
-    user_lat, user_lng = user_location
-
-    # 마커 데이터 생성
-    markers_js = ""
-    for idx, row in data.iterrows():
-        name = row['명칭(한국어)'].replace("'", "\\'")  # 따옴표 이스케이프 처리
-        markers_js += f"""
-        var marker{idx} = new google.maps.Marker({{
-            position: {{ lat: {row['Y좌표']}, lng: {row['X좌표']} }},
-            map: map,
-            title: '{name}',
-            icon: {{
-                path: google.maps.SymbolPath.CIRCLE,
-                fillColor: '{color}',
-                fillOpacity: 0.8,
-                strokeColor: '#000',
-                strokeWeight: 1,
-                scale: 5
-            }}
-        }});
-
-        // 마커에 마우스 오버 시 정보창 표시
-        var infowindow{idx} = new google.maps.InfoWindow({{
-            content: '<div style="padding: 5px;"><strong>{name}</strong></div>'
-        }});
-
-        marker{idx}.addListener('mouseover', function() {{
-            infowindow{idx}.open(map, marker{idx});
-        }});
-
-        marker{idx}.addListener('mouseout', function() {{
-            infowindow{idx}.close();
-        }});
-        """
-
+def create_google_map_html(data, api_key, color, initial_lat, initial_lng):
     # HTML 생성
     html = f"""
     <!DOCTYPE html>
@@ -147,30 +80,57 @@ def create_google_map_html(data, api_key, color):
     <body>
         <div id="map"></div>
         <script>
-            function initMap() {{
-                // 사용자 위치 중심으로 지도 생성
-                var map = new google.maps.Map(document.getElementById('map'), {{
+            let map;
+
+            async function initMap() {
+                //@ts-ignore
+                const { Map, Marker, InfoWindow, SymbolPath } = await google.maps.importLibrary("maps");
+
+                map = new Map(document.getElementById('map'), {{
                     zoom: 12,
-                    center: {{ lat: {user_lat}, lng: {user_lng} }},
+                    center: {{ lat: {initial_lat}, lng: {initial_lng} }},
                     mapTypeControl: true,
                     streetViewControl: false,
                     fullscreenControl: true,
                     mapTypeId: 'roadmap'
                 }});
 
-                // 지도 영역을 서울로 제한
-                var seoulBounds = new google.maps.LatLngBounds(
-                    new google.maps.LatLng(37.4, 126.8),   // 서울 남서쪽 경계
-                    new google.maps.LatLng(37.7, 127.2)    // 서울 북동쪽 경계
-                );
-                map.fitBounds(seoulBounds);
+                const infoWindow = new InfoWindow();
 
-                // 마커 추가
-                {markers_js}
+                {generate_markers_js(data, color)}
+            }
+
+            function generate_markers_js(data, color) {{
+                let markers_code = '';
+                data.forEach((row, index) => {{
+                    const name = row['명칭(한국어)'].replace("'", "\\'");
+                    const position = {{ lat: parseFloat(row['Y좌표']), lng: parseFloat(row['X좌표']) }};
+                    const marker = new Marker({{
+                        position: position,
+                        map: map,
+                        title: name,
+                        icon: {{
+                            path: SymbolPath.CIRCLE,
+                            fillColor: color,
+                            fillOpacity: 0.8,
+                            strokeColor: '#000',
+                            strokeWeight: 1,
+                            scale: 5
+                        }}
+                    }});
+
+                    marker.addListener('mouseover', () => {{
+                        infoWindow.setContent(`<div style="padding: 5px;"><strong>${{name}}</strong></div>`);
+                        infoWindow.open(map, marker);
+                    }});
+                }});
+                return markers_code;
             }}
+
+            initMap();
         </script>
         <script async defer
-                src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap">
+                src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=maps">
         </script>
     </body>
     </html>
@@ -178,35 +138,28 @@ def create_google_map_html(data, api_key, color):
     return html
 
 def main():
-    # 사이드바에서 카테고리 선택
     st.sidebar.header("카테고리 선택")
     category_names = list(file_info.keys())
     selected_category = st.sidebar.selectbox("📁 카테고리", category_names)
 
+    user_location = get_user_location()
+    initial_lat = user_location[0]
+    initial_lng = user_location[1]
+
+    st.info(f"현재 위치: 위도 {initial_lat:.6f}, 경도 {initial_lng:.6f}")
+
     selected_info = file_info[selected_category]
-    file_url = f"{selected_info['filename']}"
-    data = load_and_process_data(file_url)
+    filename = selected_info['filename']
+    data = load_and_process_data(filename)
 
     if data is not None and not data.empty:
         st.subheader(f"🗺️ {selected_category} 위치")
-
-        # Google Maps 생성
-        google_maps_html = create_google_map_html(data, api_key, selected_info['color'])
-
-        # 지도 표시
+        google_maps_html = create_google_map_html(data.to_dict('records'), api_key, selected_info['color'], initial_lat, initial_lng)
         st.components.v1.html(google_maps_html, height=600)
     elif data is not None and data.empty:
         st.info(f"{selected_category} 데이터가 없습니다.")
 
 if __name__ == "__main__":
-    if "user_location_data" not in st.session_state:
-        st.session_state.user_location_data = None
-
-    if st.button("📍 현재 위치 가져오기"):
-        location_data = maps_local.query_places(query='MY_LOCATION')
-        st.session_state.user_location_data = location_data
-        st.rerun()
-
     main()
 
 
