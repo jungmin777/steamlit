@@ -71,7 +71,7 @@ def login_page():
                 st.session_state.logged_in = True
                 st.session_state.username = username
                 change_page("menu")  # 로그인 성공 시 메뉴 페이지로 이동
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
 
@@ -84,7 +84,7 @@ def login_page():
                 st.session_state.logged_in = True
                 st.session_state.username = new_user
                 change_page("menu")  # 회원가입 성공 시 메뉴 페이지로 이동
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.warning("⚠️ 이미 존재하는 아이디입니다.")
 
@@ -98,7 +98,7 @@ def menu_page():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("📍 지도 보기", use_container_width=True):
+        if st.button("📍 관광 명소 찾기", use_container_width=True):
             change_page("map")
             st.experimental_rerun()
     
