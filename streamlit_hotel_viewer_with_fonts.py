@@ -23,8 +23,8 @@ except:
         st.stop()
 
 # 데이터 파일 업로드
-# uploaded_file = st.file_uploader("서울시 문화행사 엑셀 파일 업로드", type=["xlsx"])
-uploaded_file = pd.read_excel("서울시 외국인전용 관광기념품 판매점 정보(한국어+영어+중국어).xlsx")
+uploaded_file = st.file_uploader("서울시 문화행사 엑셀 파일 업로드", type=["xlsx"])
+# uploaded_file = pd.read_excel("서울시 외국인전용 관광기념품 판매점 정보(한국어+영어+중국어).xlsx")
 
 # 데이터 처리 함수
 def process_data(file):
