@@ -21,6 +21,9 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "login"  # 기본 시작 페이지를 로그인으로 설정
+
 if 'clicked_location' not in st.session_state:
     st.session_state.clicked_location = None
 if 'nearby_places' not in st.session_state:
@@ -33,7 +36,17 @@ if 'language' not in st.session_state:
     st.session_state.language = "한국어"
 
 # -------------------------------
-# 사용자 인증 (기존 코드 유지)
+# 페이지 전환 함수
+def change_page(page):
+    st.session_state.current_page = page
+    # 페이지 전환 시 일부 상태 초기화
+    if page != "map":
+        st.session_state.clicked_location = None
+        st.session_state.nearby_places = []
+        st.session_state.selected_recommendations = []
+
+# -------------------------------
+# 사용자 인증 함수
 def authenticate_user(username, password):
     return username in st.session_state.users and st.session_state.users[username] == password
 
@@ -44,47 +57,85 @@ def register_user(username, password):
     return True
 
 # -------------------------------
-# 로그인/회원가입 (기존 코드 유지)
+# 로그인/회원가입 페이지
 def login_page():
     st.title("🔐 로그인 또는 회원가입")
     tab1, tab2 = st.tabs(["로그인", "회원가입"])
 
     with tab1:
-        username = st.text_input("아이디")
-        password = st.text_input("비밀번호", type="password")
+        username = st.text_input("아이디", key="login_username")
+        password = st.text_input("비밀번호", type="password", key="login_password")
         if st.button("로그인"):
             if authenticate_user(username, password):
                 st.success("🎉 로그인 성공!")
                 st.session_state.logged_in = True
                 st.session_state.username = username
+                change_page("menu")  # 로그인 성공 시 메뉴 페이지로 이동
                 st.experimental_rerun()
             else:
                 st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
 
     with tab2:
-        new_user = st.text_input("새 아이디")
-        new_pw = st.text_input("새 비밀번호", type="password")
+        new_user = st.text_input("새 아이디", key="register_username")
+        new_pw = st.text_input("새 비밀번호", type="password", key="register_password")
         if st.button("회원가입"):
             if register_user(new_user, new_pw):
                 st.success("✅ 회원가입 완료!")
                 st.session_state.logged_in = True
                 st.session_state.username = new_user
+                change_page("menu")  # 회원가입 성공 시 메뉴 페이지로 이동
                 st.experimental_rerun()
             else:
                 st.warning("⚠️ 이미 존재하는 아이디입니다.")
 
 # -------------------------------
-# 사용자 위치
+# 메뉴 페이지
+def menu_page():
+    st.title(f"👋 {st.session_state.username}님, 환영합니다!")
+    
+    st.subheader("메뉴를 선택해주세요")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📍 지도 보기", use_container_width=True):
+            change_page("map")
+            st.experimental_rerun()
+    
+    with col2:
+        if st.button("📝 내 방문 기록", use_container_width=True):
+            change_page("history")
+            st.experimental_rerun()
+    
+    with col3:
+        if st.button("⚙️ 설정", use_container_width=True):
+            change_page("settings")
+            st.experimental_rerun()
+    
+    # 로그아웃 버튼
+    if st.button("🔓 로그아웃", key="logout_button"):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        change_page("login")
+        st.experimental_rerun()
+
+# -------------------------------
+# 사용자 위치 가져오기
 def get_user_location():
     location = get_geolocation()
     if location and "coords" in location:
         return [location["coords"]["latitude"], location["coords"]["longitude"]]
-    return [37.5665, 126.9780]
+    return [37.5665, 126.9780]  # 기본 서울 시청 좌표
 
 # -------------------------------
 # 지도 페이지
 def map_page():
     st.title("📍 서울시 공공 위치 데이터 통합 지도")
+    
+    # 뒤로가기 버튼
+    if st.button("← 메뉴로 돌아가기"):
+        change_page("menu")
+        st.experimental_rerun()
 
     col1, col2, col3 = st.columns([6, 1, 2])
     with col3:
@@ -98,16 +149,30 @@ def map_page():
 
     name_col = f"명칭({st.session_state.language})"
 
-    # 파일 목록 (기존 코드 유지)
-    file_list = [
-        "서울시 외국인전용 관광기념품 판매점 정보(한국어+영어+중국어).xlsx",
-        "서울시 문화행사 공공서비스예약 정보(한국어+영어+중국어).xlsx",
-        "서울시 종로구 관광데이터 정보 (한국어+영어).xlsx",
-        "서울시 체육시설 공연행사 정보 (한국어+영어+중국어).xlsx",
-        "서울시립미술관 전시정보 (한국어+영어+중국어).xlsx"
-    ]
-
-    selected_file = st.selectbox("📁 데이터 파일 선택", file_list)
+    # 카테고리 선택을 사이드바로 이동
+    with st.sidebar:
+        st.header("카테고리 선택")
+        
+        # 파일 목록 (카테고리로 표시)
+        file_list = [
+            "서울시 외국인전용 관광기념품 판매점 정보(한국어+영어+중국어).xlsx",
+            "서울시 문화행사 공공서비스예약 정보(한국어+영어+중국어).xlsx",
+            "서울시 종로구 관광데이터 정보 (한국어+영어).xlsx",
+            "서울시 체육시설 공연행사 정보 (한국어+영어+중국어).xlsx",
+            "서울시립미술관 전시정보 (한국어+영어+중국어).xlsx"
+        ]
+        
+        # 카테고리명으로 변환하여 표시
+        category_names = [
+            "외국인전용 관광기념품 판매점",
+            "문화행사 공공서비스예약",
+            "종로구 관광데이터",
+            "체육시설 공연행사",
+            "시립미술관 전시정보"
+        ]
+        
+        selected_category = st.selectbox("📁 카테고리", category_names)
+        selected_file = file_list[category_names.index(selected_category)]
 
     try:
         df = pd.read_excel(selected_file)
@@ -121,7 +186,7 @@ def map_page():
                 st.error(f"파일을 불러오는 중 오류 발생: {e}")
                 return
 
-    # 필수 열 존재 확인 (기존 코드 유지)
+    # 필수 열 존재 확인
     if name_col not in df.columns or "X좌표" not in df.columns or "Y좌표" not in df.columns:
         st.error("필수 열이 누락되었습니다.")
         return
@@ -172,7 +237,7 @@ def map_page():
         nearby_places.sort(key=lambda x: x[0])
         st.session_state.nearby_places = nearby_places
 
-        st.subheader(" 주변 장소 (1km 이내)")
+        st.subheader("🔍 주변 장소 (1km 이내)")
         for i, (dist, name, lat, lng) in enumerate(st.session_state.nearby_places):
             cols = st.columns([0.1, 1, 0.3])
             cols[1].markdown(f"**{name}** - {dist:.1f}m")
@@ -185,10 +250,14 @@ def map_page():
 
     if st.session_state.selected_recommendations:
         st.subheader("✅ 선택된 추천 장소")
-        for name, lat, lng in st.session_state.selected_recommendations:
-            st.write(f"{name} - ({lat:.5f}, {lng:.5f})")
+        for i, (name, lat, lng) in enumerate(st.session_state.selected_recommendations):
+            cols = st.columns([0.05, 0.85, 0.1])
+            cols[1].write(f"{name} - ({lat:.5f}, {lng:.5f})")
+            if cols[2].button("❌", key=f"remove_{i}"):
+                st.session_state.selected_recommendations.pop(i)
+                st.experimental_rerun()
 
-    if st.button("경로 추천"):
+    if st.button("🗺️ 경로 추천", disabled=not st.session_state.clicked_location or not st.session_state.selected_recommendations):
         if st.session_state.clicked_location and st.session_state.selected_recommendations:
             final_lat, final_lng = st.session_state.clicked_location['lat'], st.session_state.clicked_location['lng']
             start_point = st.session_state.user_location
@@ -220,20 +289,138 @@ def map_page():
 
             if best_route_indices:
                 route_names = [names[i] for i in best_route_indices]
-                route_description = "추천드리는 경로는 "
+                
+                # 경로 시각화를 위한 새 지도 생성
+                route_map = folium.Map(location=start_point, zoom_start=13)
+                
+                # 경로 지점 표시
+                for i, idx in enumerate(best_route_indices):
+                    location = locations[idx]
+                    name = route_names[i]
+                    
+                    # 아이콘 색상 설정
+                    if i == 0:  # 시작점
+                        icon_color = "blue"
+                    elif i == len(best_route_indices) - 1:  # 종료점
+                        icon_color = "red"
+                    else:  # 중간 경유지
+                        icon_color = "green"
+                    
+                    folium.Marker(
+                        location=location,
+                        tooltip=f"{i+1}. {name}",
+                        icon=folium.Icon(color=icon_color),
+                        popup=folium.Popup(f"{i+1}. {name}", max_width=300)
+                    ).add_to(route_map)
+                
+                # 경로 연결선 표시
+                points = [locations[i] for i in best_route_indices]
+                folium.PolyLine(
+                    points,
+                    color="blue",
+                    weight=5,
+                    opacity=0.7,
+                    tooltip="추천 경로"
+                ).add_to(route_map)
+                
+                # 결과 설명
+                route_description = "🧭 추천드리는 경로는 "
                 for i in range(1, len(route_names) - 1):
-                    route_description += f"{route_names[i]}을(를) 들리고 "
-                route_description += f"최종 목적지({route_names[-1]})로 가는 것을 추천드립니다. (총 예상 거리: {min_distance:.2f}m)"
+                    route_description += f"{route_names[i]}, "
+                route_description = route_description.rstrip(", ")
+                route_description += f"을(를) 들리고 최종 목적지로 가는 것입니다."
                 st.success(route_description)
-        else:
-            st.warning("최종 목적지를 지도에서 클릭하고, 추천 장소를 1개 이상 선택해야 경로 추천이 가능합니다.")
+                
+                # 총 거리 표시
+                st.info(f"📏 총 예상 거리: {min_distance:.2f}m")
+                
+                # 지도 표시
+                st.subheader("🗺️ 추천 경로 지도")
+                st_folium(route_map, width=700, height=500, key="route_map")
 
 # -------------------------------
-# 앱 실행 (기존 코드 유지)
-if st.session_state.get("logged_in"):
-    map_page()
+# 방문 기록 페이지
+def history_page():
+    st.title("📝 나의 방문 기록")
+    
+    # 뒤로가기 버튼
+    if st.button("← 메뉴로 돌아가기"):
+        change_page("menu")
+        st.experimental_rerun()
+    
+    st.info("아직 방문 기록이 없습니다. 지도에서 장소를 방문하면 여기에 기록됩니다.")
+    
+    # 예시 데이터
+    st.subheader("예시 방문 기록")
+    
+    example_data = [
+        {"date": "2023-10-15", "place": "경복궁", "rating": 5},
+        {"date": "2023-10-10", "place": "남산타워", "rating": 4},
+        {"date": "2023-10-05", "place": "동대문 디자인 플라자", "rating": 4.5}
+    ]
+    
+    for item in example_data:
+        st.markdown(f"""
+        **{item['place']}** - {item['date']}  
+        ⭐ 평점: {item['rating']}/5
+        """)
+        st.divider()
+
+# -------------------------------
+# 설정 페이지
+def settings_page():
+    st.title("⚙️ 설정")
+    
+    # 뒤로가기 버튼
+    if st.button("← 메뉴로 돌아가기"):
+        change_page("menu")
+        st.experimental_rerun()
+    
+    # 언어 설정
+    st.subheader("언어 설정")
+    language = st.radio(
+        "선호하는 언어를 선택하세요",
+        ["한국어", "영어", "중국어"],
+        index=["한국어", "영어", "중국어"].index(st.session_state.language)
+    )
+    st.session_state.language = language
+    
+    # 알림 설정
+    st.subheader("알림 설정")
+    st.checkbox("이메일 알림 받기", value=True)
+    st.checkbox("푸시 알림 받기", value=False)
+    
+    # 계정 설정
+    st.subheader("계정 설정")
+    if st.button("비밀번호 변경"):
+        st.info("비밀번호 변경 기능은 아직 준비 중입니다.")
+    
+    if st.button("계정 삭제", type="primary"):
+        st.warning("정말 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")
+        if st.button("확인", key="confirm_delete"):
+            if st.session_state.username in st.session_state.users:
+                del st.session_state.users[st.session_state.username]
+                st.session_state.logged_in = False
+                st.session_state.username = ""
+                change_page("login")
+                st.success("계정이 삭제되었습니다.")
+                st.experimental_rerun()
+
+# -------------------------------
+# 앱 실행 흐름 제어
+if st.session_state.logged_in:
+    if st.session_state.current_page == "menu":
+        menu_page()
+    elif st.session_state.current_page == "map":
+        map_page()
+    elif st.session_state.current_page == "history":
+        history_page()
+    elif st.session_state.current_page == "settings":
+        settings_page()
+    else:
+        menu_page()  # 기본적으로 메뉴 페이지 표시
 else:
-    login_page()
+    login_page()  # 로그인하지 않은 경우 로그인 페이지 표시
 
 
 
