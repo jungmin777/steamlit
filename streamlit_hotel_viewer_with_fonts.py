@@ -252,16 +252,39 @@ def map_page():
 
     st.subheader("🗺️ 지도")
     
-    # 기본 지도 생성
-    m = folium.Map(location=center, zoom_start=13)
+    # 구글맵 API 키 설정
+    import os
+    
+    # API 키 직접 설정 (주의: 이 방식은 보안상 권장되지 않음)
+    api_key = "AIzaSyA-R_cc_82SMAvhn6vhEX9UxPDSOsa0pUM"
+    
+    # 환경 변수나 secrets에서 API 키를 가져오거나, 없으면 직접 설정한 키 사용
+    try:
+        google_api_key = st.secrets.get("google_maps", {}).get("api_key")
+    except:
+        google_api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
+    
+    # 키가 없으면 직접 설정한 키 사용
+    if not google_api_key:
+        google_api_key = api_key
+    
+    # 기본 지도 설정
+    map_center = {"lat": center[0], "lng": center[1]}
+    
+    # 마커 추가를 위한 데이터 구성
+    markers = []
     
     # 현재 위치 마커 추가
-    folium.Marker(
-        center, 
-        tooltip="📍 내 위치", 
-        icon=folium.Icon(color="blue", icon="star")
-    ).add_to(m)
-
+    markers.append({
+        "position": {"lat": center[0], "lng": center[1]},
+        "label": "📍",
+        "title": "내 위치",
+        "info": "현재 위치",
+        "icon": {
+            "url": "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+        }
+    })
+    
     # 샘플 장소 마커 추가
     sample_locations = [
         {"name": "경복궁", "lat": 37.5796, "lng": 126.9770},
@@ -281,58 +304,48 @@ def map_page():
     else:
         locations = sample_locations  # 전체
     
-    # 마커 추가
+    # 장소 마커 추가
     for loc in locations:
-        folium.Marker(
-            location=[loc["lat"], loc["lng"]],
-            tooltip=loc["name"],
-            icon=folium.Icon(color="green"),
-            popup=folium.Popup(f"{loc['name']}<br>({loc['lat']:.5f}, {loc['lng']:.5f})", max_width=300)
-        ).add_to(m)
+        markers.append({
+            "position": {"lat": loc["lat"], "lng": loc["lng"]},
+            "title": loc["name"],
+            "info": f"{loc['name']}<br>({loc['lat']:.5f}, {loc['lng']:.5f})",
+            "icon": {
+                "url": "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+            }
+        })
     
     # 방문했던 장소 마커 추가 (보라색 마커로 표시)
     username = st.session_state.username
     if username in st.session_state.user_visits and st.session_state.user_visits[username]:
         for visit in st.session_state.user_visits[username]:
-            folium.Marker(
-                location=[visit["latitude"], visit["longitude"]],
-                tooltip=f"✅ 방문: {visit['place_name']}",
-                icon=folium.Icon(color="purple", icon="check"),
-                popup=folium.Popup(f"방문: {visit['place_name']}<br>날짜: {visit['date']}", max_width=300)
-            ).add_to(m)
+            markers.append({
+                "position": {"lat": visit["latitude"], "lng": visit["longitude"]},
+                "title": f"✅ 방문: {visit['place_name']}",
+                "info": f"방문: {visit['place_name']}<br>날짜: {visit['date']}",
+                "icon": {
+                    "url": "https://maps.google.com/mapfiles/ms/icons/purple-dot.png",
+                }
+            })
     
-    # 지도 표시
-    map_data = st_folium(m, width=700, height=500, key="main_map")
+    # 구글 지도 표시
+    from streamlit_gmap import gmap
     
+    map_click = gmap(api_key=google_api_key, 
+               center=map_center,
+               zoom=13,
+               markers=markers,
+               width=700,
+               height=500,
+               key="google_map")
     
-    # 클릭 이벤트 처리 - 에러 방지를 위한 조건 검사 강화
-    if map_data:
-        # 이전 버전과의 호환성을 위해 다양한 형태의 클릭 이벤트 체크
-        clicked_location = None
+    # 클릭 이벤트 처리
+    if map_click is not None:
+        clicked_lat = map_click["lat"]
+        clicked_lng = map_click["lng"]
+        st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
         
-        # last_clicked 형식 확인
-        if 'last_clicked' in map_data and map_data['last_clicked'] is not None:
-            clicked_location = map_data['last_clicked']
-        # last_object_clicked 형식 확인 (일부 버전에서 사용)
-        elif 'last_object_clicked' in map_data and map_data['last_object_clicked'] is not None:
-            clicked_location = map_data['last_object_clicked']
-        # 기타 가능한 형식 확인
-        elif 'center' in map_data:
-            clicked_location = {'lat': map_data['center']['lat'], 'lng': map_data['center']['lng']}
-        
-        # 클릭 위치가 존재할 경우 처리
-        if clicked_location and 'lat' in clicked_location and 'lng' in clicked_location:
-            clicked_lat = clicked_location['lat']
-            clicked_lng = clicked_location['lng']
-            st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
-            
-            st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
-    
-    # if map_data and 'last_clicked' in map_data:
-    #     clicked_lat, clicked_lng = map_data['last_clicked']['lat'], map_data['last_clicked']['lng']
-    #     st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
-        
-    #     st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
+        st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
         
         # 주변 장소 찾기 (가장 가까운 샘플 장소들 찾기)
         nearby_places = []
@@ -371,7 +384,7 @@ def map_page():
         else:
             st.info("주변 2km 이내에 장소가 없습니다.")
     
-    if st.session_state.selected_recommendations:
+    if hasattr(st.session_state, 'selected_recommendations') and st.session_state.selected_recommendations:
         st.subheader("✅ 선택된 추천 장소")
         for i, (name, lat, lng) in enumerate(st.session_state.selected_recommendations):
             cols = st.columns([0.05, 0.85, 0.1])
@@ -379,6 +392,7 @@ def map_page():
             if cols[2].button("❌", key=f"remove_{i}"):
                 st.session_state.selected_recommendations.pop(i)
                 st.rerun()
+
 
 # -------------------------------
 # 방문 기록 페이지
