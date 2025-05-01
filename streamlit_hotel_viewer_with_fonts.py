@@ -1,22 +1,19 @@
 import streamlit as st
 import pandas as pd
 import folium
-from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 from streamlit_js_eval import get_geolocation
 from geopy.distance import geodesic
-import streamlit.components.v1 as components
-from itertools import permutations
-import json
 import time
 from datetime import datetime
+import json
 
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 
 # -------------------------------
 # 초기 세션 상태 설정
 if "users" not in st.session_state:
-    st.session_state.users = {}
+    st.session_state.users = {"admin": "admin"}  # 기본 관리자 계정
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -33,18 +30,12 @@ if 'nearby_places' not in st.session_state:
     st.session_state.nearby_places = []
 if 'selected_recommendations' not in st.session_state:
     st.session_state.selected_recommendations = []
-if 'final_destination' not in st.session_state:
-    st.session_state.final_destination = None
 if 'language' not in st.session_state:
     st.session_state.language = "한국어"
     
 # 사용자별 방문 기록 저장
 if "user_visits" not in st.session_state:
     st.session_state.user_visits = {}
-    
-# 임시 저장소 - 현재 세션의 방문 장소
-if "current_visit" not in st.session_state:
-    st.session_state.current_visit = None
 
 # 앱 시작시 저장된 데이터 불러오기 시도
 if "data_loaded" not in st.session_state:
@@ -52,7 +43,7 @@ if "data_loaded" not in st.session_state:
         with open("session_data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             # 데이터 복원
-            st.session_state.users = data.get("users", {})
+            st.session_state.users = data.get("users", {"admin": "admin"})
             st.session_state.user_visits = data.get("user_visits", {})
     except:
         pass  # 파일이 없거나 오류 발생 시 무시
@@ -144,9 +135,12 @@ def load_session_data():
 # -------------------------------
 # 사용자 위치 가져오기
 def get_user_location():
-    location = get_geolocation()
-    if location and "coords" in location:
-        return [location["coords"]["latitude"], location["coords"]["longitude"]]
+    try:
+        location = get_geolocation()
+        if location and "coords" in location:
+            return [location["coords"]["latitude"], location["coords"]["longitude"]]
+    except:
+        pass
     return [37.5665, 126.9780]  # 기본 서울 시청 좌표
 
 # -------------------------------
@@ -236,20 +230,9 @@ def map_page():
         }
         st.session_state.language = language_map_display[selected_language]
 
-    name_col = f"명칭({st.session_state.language})"
-
     # 카테고리 선택을 사이드바로 이동
     with st.sidebar:
         st.header("카테고리 선택")
-        
-        # 파일 목록 (카테고리로 표시)
-        file_list = [
-            "서울시 외국인전용 관광기념품 판매점 정보(한국어+영어+중국어).xlsx",
-            "서울시 문화행사 공공서비스예약 정보(한국어+영어+중국어).xlsx",
-            "서울시 종로구 관광데이터 정보 (한국어+영어).xlsx",
-            "서울시 체육시설 공연행사 정보 (한국어+영어+중국어).xlsx",
-            "서울시립미술관 전시정보 (한국어+영어+중국어).xlsx"
-        ]
         
         # 카테고리명으로 변환하여 표시
         category_names = [
@@ -261,37 +244,52 @@ def map_page():
         ]
         
         selected_category = st.selectbox("📁 카테고리", category_names)
-        selected_file = file_list[category_names.index(selected_category)]
-
-    try:
-        df = pd.read_excel(selected_file)
-    except Exception as e:
-        try:
-            df = pd.read_excel(selected_file, encoding='utf-8')
-        except Exception:
-            try:
-                df = pd.read_excel(selected_file, encoding='cp949')
-            except Exception as e:
-                st.error(f"파일을 불러오는 중 오류 발생: {e}")
-                return
-
-    # 필수 열 존재 확인
-    if name_col not in df.columns or "X좌표" not in df.columns or "Y좌표" not in df.columns:
-        st.error("필수 열이 누락되었습니다.")
-        return
-
-    df = df.dropna(subset=["X좌표", "Y좌표"])
+    
+    # 사용자 위치 가져오기
     user_location = get_user_location()
     center = user_location
     st.session_state.user_location = center
 
     st.subheader("🗺️ 지도")
+    
+    # 기본 지도 생성
     m = folium.Map(location=center, zoom_start=13)
-    marker_cluster = MarkerCluster().add_to(m)
+    
+    # 현재 위치 마커 추가
+    folium.Marker(
+        center, 
+        tooltip="📍 내 위치", 
+        icon=folium.Icon(color="blue", icon="star")
+    ).add_to(m)
 
-    # 현재 위치 별표 표시
-    folium.Marker(center, tooltip="📍 내 위치", icon=folium.Icon(color="blue", icon="star")).add_to(m)
-
+    # 샘플 장소 마커 추가
+    sample_locations = [
+        {"name": "경복궁", "lat": 37.5796, "lng": 126.9770},
+        {"name": "남산타워", "lat": 37.5511, "lng": 126.9882},
+        {"name": "동대문 디자인 플라자", "lat": 37.5669, "lng": 127.0093},
+        {"name": "명동성당", "lat": 37.5635, "lng": 126.9877},
+        {"name": "서울숲", "lat": 37.5445, "lng": 127.0374},
+    ]
+    
+    # 카테고리에 따라 다른 위치 표시 (시뮬레이션)
+    if selected_category == "외국인전용 관광기념품 판매점":
+        locations = sample_locations[:2]  # 앞의 두개만
+    elif selected_category == "문화행사 공공서비스예약":
+        locations = sample_locations[1:3]  # 중간 두개
+    elif selected_category == "종로구 관광데이터":
+        locations = sample_locations[2:4]  # 중간~끝
+    else:
+        locations = sample_locations  # 전체
+    
+    # 마커 추가
+    for loc in locations:
+        folium.Marker(
+            location=[loc["lat"], loc["lng"]],
+            tooltip=loc["name"],
+            icon=folium.Icon(color="green"),
+            popup=folium.Popup(f"{loc['name']}<br>({loc['lat']:.5f}, {loc['lng']:.5f})", max_width=300)
+        ).add_to(m)
+    
     # 방문했던 장소 마커 추가 (보라색 마커로 표시)
     username = st.session_state.username
     if username in st.session_state.user_visits and st.session_state.user_visits[username]:
@@ -301,47 +299,30 @@ def map_page():
                 tooltip=f"✅ 방문: {visit['place_name']}",
                 icon=folium.Icon(color="purple", icon="check"),
                 popup=folium.Popup(f"방문: {visit['place_name']}<br>날짜: {visit['date']}", max_width=300)
-            ).add_to(m)  # 클러스터에 추가하지 않고 지도에 직접 추가하여 항상 표시
-
-    # 데이터셋의 장소 마커 추가
-    for index, row in df.iterrows():
-        lat, lng = row["Y좌표"], row["X좌표"]
-        name = row[name_col]
-        folium.Marker(
-            location=[lat, lng],
-            tooltip=name,
-            icon=folium.Icon(color="green"),
-            popup=folium.Popup(f"{name}<br>({lat:.5f}, {lng:.5f})", max_width=300)
-        ).add_to(marker_cluster)
-
-    # 지도 클릭 이벤트 처리 - callback 매개변수 제거
-    map_data = st_folium(
-        m,
-        width=700,
-        height=500,
-        key="main_map",
-        feature_group_to_add=marker_cluster
-    )
-
-    # 클릭 이벤트 수동 처리
+            ).add_to(m)
+    
+    # 지도 표시
+    map_data = st_folium(m, width=700, height=500, key="main_map")
+    
+    # 클릭 이벤트 처리
     if map_data and 'last_clicked' in map_data:
-        st.session_state.clicked_location = map_data['last_clicked']
-
-    if st.session_state.clicked_location:
-        clicked_lat, clicked_lng = st.session_state.clicked_location['lat'], st.session_state.clicked_location['lng']
+        clicked_lat, clicked_lng = map_data['last_clicked']['lat'], map_data['last_clicked']['lng']
+        st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
+        
         st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
-
+        
+        # 주변 장소 찾기 (가장 가까운 샘플 장소들 찾기)
         nearby_places = []
-        for index, row in df.iterrows():
-            place_lat, place_lng = row["Y좌표"], row["X좌표"]
+        for loc in sample_locations:
+            place_lat, place_lng = loc["lat"], loc["lng"]
             distance = geodesic((clicked_lat, clicked_lng), (place_lat, place_lng)).meters
-            if distance <= 1000:
-                nearby_places.append((distance, row[name_col], place_lat, place_lng))
-
+            if distance <= 2000:  # 2km 이내
+                nearby_places.append((distance, loc["name"], place_lat, place_lng))
+        
         nearby_places.sort(key=lambda x: x[0])
         st.session_state.nearby_places = nearby_places
-
-        st.subheader("🔍 주변 장소 (1km 이내)")
+        
+        st.subheader("🔍 주변 장소 (2km 이내)")
         if nearby_places:
             for i, (dist, name, lat, lng) in enumerate(st.session_state.nearby_places):
                 cols = st.columns([0.1, 0.7, 0.2, 0.2])
@@ -360,14 +341,13 @@ def map_page():
                     if add_visit(st.session_state.username, name, lat, lng):
                         st.success(f"'{name}' 방문 기록이 추가되었습니다!")
                         # 1초 후 페이지 새로고침
-                        st.empty()
                         time.sleep(1)
                         st.rerun()
                     else:
                         st.info("이미 오늘 방문한 장소입니다.")
         else:
-            st.info("주변 1km 이내에 장소가 없습니다.")
-
+            st.info("주변 2km 이내에 장소가 없습니다.")
+    
     if st.session_state.selected_recommendations:
         st.subheader("✅ 선택된 추천 장소")
         for i, (name, lat, lng) in enumerate(st.session_state.selected_recommendations):
@@ -376,87 +356,6 @@ def map_page():
             if cols[2].button("❌", key=f"remove_{i}"):
                 st.session_state.selected_recommendations.pop(i)
                 st.rerun()
-
-    if st.button("🗺️ 경로 추천", disabled=not st.session_state.clicked_location or not st.session_state.selected_recommendations):
-        if st.session_state.clicked_location and st.session_state.selected_recommendations:
-            final_lat, final_lng = st.session_state.clicked_location['lat'], st.session_state.clicked_location['lng']
-            start_point = st.session_state.user_location
-            dest_point = (final_lat, final_lng)
-            selected_places = [(name, lat, lng) for name, lat, lng in st.session_state.selected_recommendations]
-
-            locations = [start_point] + [(lat, lng) for _, lat, lng in selected_places] + [dest_point]
-            names = ["현재 위치"] + [name for name, _, _ in selected_places] + ["최종 목적지"]
-
-            min_distance = float('inf')
-            best_route_indices = None
-
-            if selected_places:
-                place_indices = list(range(1, len(selected_places) + 1))
-                for perm in permutations(place_indices):
-                    current_route_indices = [0] + list(perm) + [len(locations) - 1]
-                    total_distance = 0
-                    for i in range(len(current_route_indices) - 1):
-                        point1 = locations[current_route_indices[i]]
-                        point2 = locations[current_route_indices[i+1]]
-                        total_distance += geodesic(point1, point2).meters
-
-                    if total_distance < min_distance:
-                        min_distance = total_distance
-                        best_route_indices = current_route_indices
-            else:
-                min_distance = geodesic(start_point, dest_point).meters
-                best_route_indices = [0, len(locations) - 1]
-
-            if best_route_indices:
-                route_names = [names[i] for i in best_route_indices]
-                
-                # 경로 시각화를 위한 새 지도 생성
-                route_map = folium.Map(location=start_point, zoom_start=13)
-                
-                # 경로 지점 표시
-                for i, idx in enumerate(best_route_indices):
-                    location = locations[idx]
-                    name = route_names[i]
-                    
-                    # 아이콘 색상 설정
-                    if i == 0:  # 시작점
-                        icon_color = "blue"
-                    elif i == len(best_route_indices) - 1:  # 종료점
-                        icon_color = "red"
-                    else:  # 중간 경유지
-                        icon_color = "green"
-                    
-                    folium.Marker(
-                        location=location,
-                        tooltip=f"{i+1}. {name}",
-                        icon=folium.Icon(color=icon_color),
-                        popup=folium.Popup(f"{i+1}. {name}", max_width=300)
-                    ).add_to(route_map)
-                
-                # 경로 연결선 표시
-                points = [locations[i] for i in best_route_indices]
-                folium.PolyLine(
-                    points,
-                    color="blue",
-                    weight=5,
-                    opacity=0.7,
-                    tooltip="추천 경로"
-                ).add_to(route_map)
-                
-                # 결과 설명
-                route_description = "🧭 추천드리는 경로는 "
-                for i in range(1, len(route_names) - 1):
-                    route_description += f"{route_names[i]}, "
-                route_description = route_description.rstrip(", ")
-                route_description += f"을(를) 들리고 최종 목적지로 가는 것입니다."
-                st.success(route_description)
-                
-                # 총 거리 표시
-                st.info(f"📏 총 예상 거리: {min_distance:.2f}m")
-                
-                # 지도 표시
-                st.subheader("🗺️ 추천 경로 지도")
-                st_folium(route_map, width=700, height=500, key="route_map")
 
 # -------------------------------
 # 방문 기록 페이지
@@ -486,21 +385,6 @@ def history_page():
             icon=folium.Icon(color="blue", icon="star")
         ).add_to(visit_map)
         
-        # 타임라인 표시를 위한 선 생성
-        visit_points = []
-        for visit in sorted(st.session_state.user_visits[username], key=lambda x: x['timestamp']):
-            visit_points.append([visit["latitude"], visit["longitude"]])
-        
-        if len(visit_points) > 1:
-            folium.PolyLine(
-                visit_points,
-                color="#ae00ff",  # 보라색
-                weight=3,
-                opacity=0.7,
-                dash_array="5, 8",  # 점선 스타일
-                tooltip="방문 타임라인"
-            ).add_to(visit_map)
-        
         # 방문 장소 마커 추가
         for idx, visit in enumerate(st.session_state.user_visits[username]):
             popup_content = f"""
@@ -520,10 +404,10 @@ def history_page():
                 location=[visit["latitude"], visit["longitude"]],
                 tooltip=f"{idx+1}. {visit['place_name']}",
                 popup=folium.Popup(popup_content, max_width=300),
-                icon=folium.Icon(color=colors[color_idx], icon="check", prefix="fa")
+                icon=folium.Icon(color=colors[color_idx])
             ).add_to(visit_map)
         
-        # 지도 표시 - callback 매개변수 제거
+        # 지도 표시
         st_folium(visit_map, width=700, height=400, key="history_map")
         
         # 목록으로 방문 기록 표시
@@ -575,7 +459,7 @@ def history_page():
                     st.rerun()
             
             st.divider()
-            
+        
         # 방문 통계
         st.subheader("📊 방문 통계")
         total_visits = len(st.session_state.user_visits[username])
@@ -715,26 +599,13 @@ def settings_page():
                     time.sleep(2)
                     st.rerun()
 
-
-
-
-def map_page_test():
-    st.title("간단한 지도 테스트")
-    center = [37.5665, 126.9780]
-    m = folium.Map(location=center, zoom_start=13)
-    marker_cluster = MarkerCluster().add_to(m)
-    folium.Marker([37.5, 127.0], tooltip="테스트 마커 1").add_to(marker_cluster)
-    folium.Marker([37.6, 126.9], tooltip="테스트 마커 2").add_to(marker_cluster)
-    st_folium(m, width=700, height=500)
-
-
 # -------------------------------
 # 앱 실행 흐름 제어
 if st.session_state.logged_in:
     if st.session_state.current_page == "menu":
         menu_page()
     elif st.session_state.current_page == "map":
-        map_page_test()
+        map_page()
     elif st.session_state.current_page == "history":
         history_page()
     elif st.session_state.current_page == "settings":
