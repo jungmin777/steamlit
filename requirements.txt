@@ -4,7 +4,7 @@ folium
 streamlit_folium
 streamlit_js_eval
 geopy
-json
+
 itertools
 time
 datetime
