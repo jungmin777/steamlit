@@ -734,7 +734,7 @@ if st.session_state.logged_in:
     if st.session_state.current_page == "menu":
         menu_page()
     elif st.session_state.current_page == "map":
-        map_page_test()
+        map_page()
     elif st.session_state.current_page == "history":
         history_page()
     elif st.session_state.current_page == "settings":
