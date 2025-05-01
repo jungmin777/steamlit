@@ -314,16 +314,18 @@ def map_page():
             popup=folium.Popup(f"{name}<br>({lat:.5f}, {lng:.5f})", max_width=300)
         ).add_to(marker_cluster)
 
-    # 지도 클릭 이벤트 처리
+    # 지도 클릭 이벤트 처리 - callback 매개변수 제거
     map_data = st_folium(
         m,
         width=700,
         height=500,
         key="main_map",
         feature_group_to_add=marker_cluster
-        # ,
-        # callback=lambda x: st.session_state.update({'clicked_location': x['last_clicked'] if x and 'last_clicked' in x else None})
     )
+
+    # 클릭 이벤트 수동 처리
+    if map_data and 'last_clicked' in map_data:
+        st.session_state.clicked_location = map_data['last_clicked']
 
     if st.session_state.clicked_location:
         clicked_lat, clicked_lng = st.session_state.clicked_location['lat'], st.session_state.clicked_location['lng']
@@ -521,7 +523,7 @@ def history_page():
                 icon=folium.Icon(color=colors[color_idx], icon="check", prefix="fa")
             ).add_to(visit_map)
         
-        # 지도 표시
+        # 지도 표시 - callback 매개변수 제거
         st_folium(visit_map, width=700, height=400, key="history_map")
         
         # 목록으로 방문 기록 표시
