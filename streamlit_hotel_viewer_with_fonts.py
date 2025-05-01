@@ -7,8 +7,6 @@ from geopy.distance import geodesic
 import time
 from datetime import datetime
 import json
-import os
-from streamlit_gmap import gmap
 
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 
@@ -254,34 +252,16 @@ def map_page():
 
     st.subheader("🗺️ 지도")
     
-    # Streamlit secrets에서 API 키 가져오기
-    
-    
-    # secrets에서 API 키 가져오기
-    try:
-        google_api_key = st.secrets["google_maps"]["api_key"]
-    except Exception as e:
-        st.error(f"Google Maps API 키를 찾을 수 없습니다. .streamlit/secrets.toml 파일에 설정해주세요.")
-        st.error("설정 방법: [google_maps] 섹션 아래 api_key = '키값' 형식으로 추가")
-        return
-    
-    # 기본 지도 설정
-    map_center = {"lat": center[0], "lng": center[1]}
-    
-    # 마커 추가를 위한 데이터 구성
-    markers = []
+    # 기본 지도 생성
+    m = folium.Map(location=center, zoom_start=13)
     
     # 현재 위치 마커 추가
-    markers.append({
-        "position": {"lat": center[0], "lng": center[1]},
-        "label": "📍",
-        "title": "내 위치",
-        "info": "현재 위치",
-        "icon": {
-            "url": "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-        }
-    })
-    
+    folium.Marker(
+        center, 
+        tooltip="📍 내 위치", 
+        icon=folium.Icon(color="blue", icon="star")
+    ).add_to(m)
+
     # 샘플 장소 마커 추가
     sample_locations = [
         {"name": "경복궁", "lat": 37.5796, "lng": 126.9770},
@@ -301,41 +281,81 @@ def map_page():
     else:
         locations = sample_locations  # 전체
     
-    # 장소 마커 추가
+    # 마커 추가
     for loc in locations:
-        markers.append({
-            "position": {"lat": loc["lat"], "lng": loc["lng"]},
-            "title": loc["name"],
-            "info": f"{loc['name']}<br>({loc['lat']:.5f}, {loc['lng']:.5f})",
-            "icon": {
-                "url": "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-            }
-        })
+        folium.Marker(
+            location=[loc["lat"], loc["lng"]],
+            tooltip=loc["name"],
+            icon=folium.Icon(color="green"),
+            popup=folium.Popup(f"{loc['name']}<br>({loc['lat']:.5f}, {loc['lng']:.5f})", max_width=300)
+        ).add_to(m)
     
     # 방문했던 장소 마커 추가 (보라색 마커로 표시)
     username = st.session_state.username
     if username in st.session_state.user_visits and st.session_state.user_visits[username]:
         for visit in st.session_state.user_visits[username]:
-            markers.append({
-                "position": {"lat": visit["latitude"], "lng": visit["longitude"]},
-                "title": f"✅ 방문: {visit['place_name']}",
-                "info": f"방문: {visit['place_name']}<br>날짜: {visit['date']}",
-                "icon": {
-                    "url": "https://maps.google.com/mapfiles/ms/icons/purple-dot.png",
-                }
-            })
+            folium.Marker(
+                location=[visit["latitude"], visit["longitude"]],
+                tooltip=f"✅ 방문: {visit['place_name']}",
+                icon=folium.Icon(color="purple", icon="check"),
+                popup=folium.Popup(f"방문: {visit['place_name']}<br>날짜: {visit['date']}", max_width=300)
+            ).add_to(m)
     
-    # 구글 지도 표시
+    # 지도 표시
+    map_data = st_folium(m, width=700, height=500, key="main_map")
     
+    # 클릭 이벤트 처리
+    if map_data and 'last_clicked' in map_data:
+        clicked_lat, clicked_lng = map_data['last_clicked']['lat'], map_data['last_clicked']['lng']
+        st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
+        
+        st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
+        
+        # 주변 장소 찾기 (가장 가까운 샘플 장소들 찾기)
+        nearby_places = []
+        for loc in sample_locations:
+            place_lat, place_lng = loc["lat"], loc["lng"]
+            distance = geodesic((clicked_lat, clicked_lng), (place_lat, place_lng)).meters
+            if distance <= 2000:  # 2km 이내
+                nearby_places.append((distance, loc["name"], place_lat, place_lng))
+        
+        nearby_places.sort(key=lambda x: x[0])
+        st.session_state.nearby_places = nearby_places
+        
+        st.subheader("🔍 주변 장소 (2km 이내)")
+        if nearby_places:
+            for i, (dist, name, lat, lng) in enumerate(st.session_state.nearby_places):
+                cols = st.columns([0.1, 0.7, 0.2, 0.2])
+                cols[1].markdown(f"**{name}** - {dist:.1f}m")
+                
+                # 장소 선택 버튼
+                if cols[2].button(f"선택 {i+1}", key=f"nearby_select_{i}"):
+                    if len(st.session_state.selected_recommendations) < 3:
+                        st.session_state.selected_recommendations.append((name, lat, lng))
+                    else:
+                        st.warning("최대 3개까지 선택할 수 있습니다.")
+                    st.rerun()
+                
+                # 방문 기록 추가 버튼
+                if cols[3].button(f"방문 🏁", key=f"visit_{i}"):
+                    if add_visit(st.session_state.username, name, lat, lng):
+                        st.success(f"'{name}' 방문 기록이 추가되었습니다!")
+                        # 1초 후 페이지 새로고침
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.info("이미 오늘 방문한 장소입니다.")
+        else:
+            st.info("주변 2km 이내에 장소가 없습니다.")
     
-    map_click = gmap(api_key=google_api_key, 
-               center=map_center,
-               zoom=13,
-               markers=markers,
-               width=700,
-               height=500,
-               key="google_map")
-
+    if st.session_state.selected_recommendations:
+        st.subheader("✅ 선택된 추천 장소")
+        for i, (name, lat, lng) in enumerate(st.session_state.selected_recommendations):
+            cols = st.columns([0.05, 0.85, 0.1])
+            cols[1].write(f"{name} - ({lat:.5f}, {lng:.5f})")
+            if cols[2].button("❌", key=f"remove_{i}"):
+                st.session_state.selected_recommendations.pop(i)
+                st.rerun()
 
 # -------------------------------
 # 방문 기록 페이지
