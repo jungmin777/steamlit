@@ -83,7 +83,7 @@ def create_google_map_html(data, api_key, color, initial_lat, initial_lng):
             let map;
 
             async function initMap() {
-                //@ts-ignore
+                #//@ts-ignore
                 const { Map, Marker, InfoWindow, SymbolPath } = await google.maps.importLibrary("maps");
 
                 map = new Map(document.getElementById('map'), {{
