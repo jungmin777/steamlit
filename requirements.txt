@@ -1,10 +1,11 @@
 streamlit
 pandas
+altair
 folium
 streamlit_folium
+requests
+openpyxl
 streamlit_js_eval
+bcrypt
 geopy
-
-
-time
-datetime
+streamlit-elements
