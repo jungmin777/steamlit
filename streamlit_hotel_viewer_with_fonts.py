@@ -184,7 +184,7 @@ def main():
     selected_category = st.sidebar.selectbox("📁 카테고리", category_names)
 
     selected_info = file_info[selected_category]
-    file_url = f"{github_repo_url}{selected_info['filename']}"
+    file_url = f"{selected_info['filename']}"
     data = load_and_process_data(file_url)
 
     if data is not None and not data.empty:
