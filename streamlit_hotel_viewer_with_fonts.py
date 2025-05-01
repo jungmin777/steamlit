@@ -1,3 +1,18 @@
+
+import pandas as pd
+import folium
+from folium.plugins import MarkerCluster
+from streamlit_folium import st_folium
+from streamlit_js_eval import get_geolocation
+from geopy.distance import geodesic
+import streamlit.components.v1 as components
+from itertools import permutations
+import json
+import time
+from datetime import datetime
+
+st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+
 # -------------------------------
 # 방문 기록 페이지
 def history_page():
@@ -151,19 +166,7 @@ def load_session_data():
 if "data_loaded" not in st.session_state:
     load_session_data()
     st.session_state.data_loaded = Trueimport streamlit as st
-import pandas as pd
-import folium
-from folium.plugins import MarkerCluster
-from streamlit_folium import st_folium
-from streamlit_js_eval import get_geolocation
-from geopy.distance import geodesic
-import streamlit.components.v1 as components
-from itertools import permutations
-import json
-import time
-from datetime import datetime
 
-st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 
 # -------------------------------
 # 초기 세션 상태 설정
