@@ -9,4 +9,5 @@ streamlit_js_eval
 bcrypt
 geopy
 streamlit-elements
-
+numpy
+streamlit_option_menu
