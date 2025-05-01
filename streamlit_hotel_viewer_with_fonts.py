@@ -46,6 +46,18 @@ if "user_visits" not in st.session_state:
 if "current_visit" not in st.session_state:
     st.session_state.current_visit = None
 
+# 앱 시작시 저장된 데이터 불러오기 시도
+if "data_loaded" not in st.session_state:
+    try:
+        with open("session_data.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            # 데이터 복원
+            st.session_state.users = data.get("users", {})
+            st.session_state.user_visits = data.get("user_visits", {})
+    except:
+        pass  # 파일이 없거나 오류 발생 시 무시
+    st.session_state.data_loaded = True
+
 # -------------------------------
 # 페이지 전환 함수
 def change_page(page):
@@ -128,11 +140,6 @@ def load_session_data():
     except Exception as e:
         st.error(f"데이터 불러오기 오류: {e}")
         return False
-
-# 앱 시작시 저장된 데이터 불러오기 시도
-if "data_loaded" not in st.session_state:
-    load_session_data()
-    st.session_state.data_loaded = True
 
 # -------------------------------
 # 사용자 위치 가져오기
