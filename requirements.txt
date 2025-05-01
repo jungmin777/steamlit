@@ -12,3 +12,4 @@ streamlit-elements
 numpy
 streamlit_option_menu
 pydeck
+openpyxl
