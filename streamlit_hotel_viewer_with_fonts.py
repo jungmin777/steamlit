@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import requests
-from io import BytesIO
 
 # 페이지 설정
 st.set_page_config(
@@ -33,7 +31,7 @@ github_file_names = [
     "서울시 체육시설 공연행사 정보 (한국어+영어+중국어).xlsx",
     "서울시립미술관 전시정보 (한국어+영어+중국어).xlsx"
 ]
-github_repo_url = "https://github.com/jungmin777/steamlit.git/" # 실제 레포지토리 URL로 변경해주세요
+# 파일이 특정 폴더에 있다면 경로를 포함해야 합니다. 예: "data/파일1.xlsx"
 
 # 데이터 처리 함수 (기존과 동일)
 def process_data(df):
@@ -130,22 +128,18 @@ def create_google_map_html(data, api_key):
     """
     return html
 
-# GitHub에서 파일 읽어오기 및 데이터 병합
+# GitHub 저장소의 엑셀 파일 읽어오기 및 데이터 병합
 all_data = []
 for file_name in github_file_names:
-    file_url = f"{github_repo_url}{file_name}"
     try:
-        response = requests.get(file_url)
-        response.raise_for_status()  # 오류 발생 시 예외 처리
-        excel_file = BytesIO(response.content)
-        df = pd.read_excel(excel_file, engine='openpyxl')
+        df = pd.read_excel(file_name, engine='openpyxl')
         processed_df = process_data(df)
         if processed_df is not None:
             all_data.append(processed_df)
-    except requests.exceptions.RequestException as e:
-        st.error(f"'{file_name}' 파일을 불러오는 데 실패했습니다: {e}")
+    except FileNotFoundError:
+        st.error(f"'{file_name}' 파일을 찾을 수 없습니다. 파일 경로를 확인해주세요.")
     except Exception as e:
-        st.error(f"'{file_name}' 파일을 처리하는 데 오류가 발생했습니다: {e}")
+        st.error(f"'{file_name}' 파일을 처리하는 데 오류가 발생했습니다: {str(e)}")
 
 # 데이터 병합 및 지도 표시
 if all_data:
@@ -164,8 +158,7 @@ if all_data:
     st.components.v1.html(google_maps_html, height=600)
 
 else:
-    st.info("표시할 데이터가 없습니다. GitHub 파일 경로 및 파일명을 확인해주세요.")
-
+    st.info("표시할 데이터가 없습니다. 파일명을 확인해주세요.")
 
 
 # 사용 안내
