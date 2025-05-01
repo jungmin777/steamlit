@@ -7,6 +7,8 @@ from geopy.distance import geodesic
 import time
 from datetime import datetime
 import json
+import os
+from streamlit_gmap import gmap
 
 st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
 
@@ -252,8 +254,7 @@ def map_page():
 
     st.subheader("🗺️ 지도")
     
-    # 구글맵 API 키 설정
-    import os
+    
     
     # API 키 직접 설정 (주의: 이 방식은 보안상 권장되지 않음)
     api_key = "AIzaSyA-R_cc_82SMAvhn6vhEX9UxPDSOsa0pUM"
@@ -329,7 +330,7 @@ def map_page():
             })
     
     # 구글 지도 표시
-    from streamlit_gmap import gmap
+    
     
     map_click = gmap(api_key=google_api_key, 
                center=map_center,
