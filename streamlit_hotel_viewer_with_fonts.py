@@ -304,12 +304,35 @@ def map_page():
     # 지도 표시
     map_data = st_folium(m, width=700, height=500, key="main_map")
     
-    # 클릭 이벤트 처리
-    if map_data and 'last_clicked' in map_data:
-        clicked_lat, clicked_lng = map_data['last_clicked']['lat'], map_data['last_clicked']['lng']
-        st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
+    
+    # 클릭 이벤트 처리 - 에러 방지를 위한 조건 검사 강화
+    if map_data:
+        # 이전 버전과의 호환성을 위해 다양한 형태의 클릭 이벤트 체크
+        clicked_location = None
         
-        st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
+        # last_clicked 형식 확인
+        if 'last_clicked' in map_data and map_data['last_clicked'] is not None:
+            clicked_location = map_data['last_clicked']
+        # last_object_clicked 형식 확인 (일부 버전에서 사용)
+        elif 'last_object_clicked' in map_data and map_data['last_object_clicked'] is not None:
+            clicked_location = map_data['last_object_clicked']
+        # 기타 가능한 형식 확인
+        elif 'center' in map_data:
+            clicked_location = {'lat': map_data['center']['lat'], 'lng': map_data['center']['lng']}
+        
+        # 클릭 위치가 존재할 경우 처리
+        if clicked_location and 'lat' in clicked_location and 'lng' in clicked_location:
+            clicked_lat = clicked_location['lat']
+            clicked_lng = clicked_location['lng']
+            st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
+            
+            st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
+    
+    # if map_data and 'last_clicked' in map_data:
+    #     clicked_lat, clicked_lng = map_data['last_clicked']['lat'], map_data['last_clicked']['lng']
+    #     st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
+        
+    #     st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
         
         # 주변 장소 찾기 (가장 가까운 샘플 장소들 찾기)
         nearby_places = []
