@@ -1,31 +1,25 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pydeck as pydeck
-from streamlit_option_menu import option_menu
-
-# Google Maps API 키 가져오기
-google_maps_api_key = st.secrets["google_maps"]["api_key"]
 
 # 페이지 설정
 st.set_page_config(
-    page_title="Google Maps API 마커 앱",
+    page_title="Google Maps 마커 앱",
     page_icon="🗺️",
     layout="wide"
 )
 
 # 제목
-st.title("🗺️ Google Maps API 마커 표시 앱")
+st.title("🗺️ Google Maps 마커 표시 앱")
 
-# 사이드바 메뉴
-with st.sidebar:
-    selected = option_menu(
-        "메뉴",
-        ["홈", "지도 보기", "데이터 추가", "정보"],
-        icons=["house", "map", "plus-circle", "info-circle"],
-        menu_icon="cast",
-        default_index=0,
-    )
+# Google Maps API 키 가져오기
+try:
+    api_key = st.secrets["google_maps"]["api_key"]
+except:
+    api_key = st.text_input("Google Maps API Key 입력", type="password")
+    if not api_key:
+        st.warning("Google Maps API 키를 입력해주세요.")
+        st.stop()
 
 # 예시 데이터 생성
 @st.cache_data
@@ -53,132 +47,133 @@ def load_data():
 # 데이터 불러오기
 df = load_data()
 
-# 홈 페이지
-if selected == "홈":
-    st.write("## 안녕하세요! Google Maps API를 활용한 마커 표시 앱입니다.")
-    st.write("이 앱은 위도와 경도 데이터를 기반으로 Google Maps에 마커를 표시합니다.")
-    st.write("사이드바에서 원하는 기능을 선택해주세요.")
-    
-    st.image("https://maps.googleapis.com/maps/api/staticmap?center=37.5665,126.9780&zoom=13&size=600x400&maptype=roadmap&key=" + google_maps_api_key, 
-             caption="Google Maps 예시 이미지 (서울)")
+# 데이터 표시
+st.subheader("📊 위치 데이터")
+st.dataframe(df)
 
-# 지도 보기 페이지
-elif selected == "지도 보기":
-    st.subheader("📊 위치 데이터")
-    st.dataframe(df)
-    
-    st.subheader("🔍 데이터 필터링")
-    min_population = st.slider("최소 인구 (만 명)", 0, 1000, 0)
-    filtered_df = df[df['인구(만)'] >= min_population]
-    
-    st.subheader("🗺️ Google Maps 지도")
-    
-    # 필터링된 데이터로 지도에 표시할 데이터 준비
-    map_data = filtered_df.copy()
-    map_data = map_data.rename(columns={'위도': 'lat', '경도': 'lon'})
-    
-    # PyDeck을 사용한 지도 표시
-    view_state = pydeck.ViewState(
-        latitude=36.5,
-        longitude=127.5,
-        zoom=6,
-        pitch=0
-    )
-    
-    # 마커 레이어
-    layer = pydeck.Layer(
-        'ScatterplotLayer',
-        data=map_data,
-        get_position='[lon, lat]',
-        get_color='[200, 30, 0, 160]',
-        get_radius=10000,
-        pickable=True
-    )
-    
-    # 도구팁
-    tooltip = {
-        "html": "<b>{도시}</b><br>인구: {인구(만)}만 명<br>{설명}",
-        "style": {"backgroundColor": "steelblue", "color": "white"}
-    }
-    
-    # 지도 생성
-    r = pydeck.Deck(
-        layers=[layer],
-        initial_view_state=view_state,
-        map_style='mapbox://styles/mapbox/light-v9',
-        tooltip=tooltip
-    )
-    
-    # 지도 표시
-    st.pydeck_chart(r)
-    
-    # Google Maps API를 직접 사용한 지도 (iframe으로 삽입)
-    st.subheader("Google Maps API 지도")
-    for idx, row in filtered_df.iterrows():
-        city_map_url = f"https://www.google.com/maps/embed/v1/place?key={google_maps_api_key}&q={row['위도']},{row['경도']}&zoom=12"
-        st.write(f"**{row['도시']}**")
-        st.components.v1.iframe(city_map_url, width=700, height=400)
+# 사용자 입력 옵션
+st.subheader("🔍 데이터 필터링")
+min_population = st.slider("최소 인구 (만 명)", 0, 1000, 0)
+filtered_df = df[df['인구(만)'] >= min_population]
 
-# 데이터 추가 페이지
-elif selected == "데이터 추가":
-    st.subheader("📍 새 위치 데이터 추가")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        new_name = st.text_input("장소 이름")
-        new_desc = st.text_area("설명")
-    
-    with col2:
-        new_lat = st.number_input("위도", value=37.5665, format="%.4f")
-        new_lng = st.number_input("경도", value=126.9780, format="%.4f")
-        new_pop = st.number_input("인구(만)", value=0, min_value=0, format="%d")
-    
-    # 입력된 위치 미리보기 지도
-    if new_lat and new_lng:
-        preview_map_url = f"https://www.google.com/maps/embed/v1/place?key={google_maps_api_key}&q={new_lat},{new_lng}&zoom=13"
-        st.subheader("위치 미리보기")
-        st.components.v1.iframe(preview_map_url, width=700, height=400)
-    
-    if st.button("데이터 추가"):
-        if new_name and new_lat and new_lng:
-            new_data = pd.DataFrame({
-                '도시': [new_name],
-                '위도': [new_lat],
-                '경도': [new_lng],
-                '인구(만)': [new_pop],
-                '설명': [new_desc]
-            })
-            df = pd.concat([df, new_data], ignore_index=True)
-            st.success(f"'{new_name}' 추가 완료! '지도 보기' 탭에서 확인하세요.")
-            st.session_state.df = df
-        else:
-            st.error("장소 이름, 위도, 경도는 필수 입력 항목입니다.")
+# 지도에 표시할 데이터 준비
+map_data = filtered_df.copy()
 
-# 정보 페이지
-elif selected == "정보":
-    st.subheader("앱 정보")
-    st.write("""
-    이 앱은 Google Maps API를 활용하여 위도와 경도 데이터를 기반으로 지도에 마커를 표시하는 웹 애플리케이션입니다.
-    Streamlit과 GitHub를 연동하여 쉽게 배포하고 실행할 수 있습니다.
+# HTML 생성 함수
+def create_google_maps_html(locations, api_key):
+    markers = ""
+    for _, row in locations.iterrows():
+        markers += f"""
+        new google.maps.Marker({{
+            position: {{ lat: {row['위도']}, lng: {row['경도']} }},
+            map: map,
+            title: '{row['도시']}'
+        }});
+        """
     
-    ### 주요 기능
-    - 한국 주요 도시의 위치 데이터 표시
-    - 인구 기준으로 데이터 필터링
-    - 새로운 위치 마커 추가 기능
-    - Google Maps API를 활용한 지도 표시
-    
-    ### 필요한 라이브러리
-    - streamlit
-    - pandas
-    - numpy
-    - pydeck
-    - streamlit-option-menu
-    
-    ### Google Maps API 사용법
-    Google Maps API를 사용하려면 Google Cloud Console에서 API 키를 발급받아 `.streamlit/secrets.toml` 파일에 설정해야 합니다.
-    """)
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Google Maps</title>
+        <style>
+            #map {{
+                height: 600px;
+                width: 100%;
+            }}
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <script>
+            function initMap() {{
+                const centerLat = {locations['위도'].mean()};
+                const centerLng = {locations['경도'].mean()};
+                
+                const map = new google.maps.Map(document.getElementById("map"), {{
+                    zoom: 7,
+                    center: {{ lat: centerLat, lng: centerLng }}
+                }});
+                
+                // 마커 추가
+                {markers}
+                
+                // 정보창 설정
+                const infoWindow = new google.maps.InfoWindow();
+                
+                // 모든 마커에 클릭 이벤트 추가
+                document.querySelectorAll('[title]').forEach(marker => {{
+                    marker.addListener('click', () => {{
+                        const city = marker.getTitle();
+                        const cityData = {locations.to_json(orient='records')}.find(item => item.도시 === city);
+                        
+                        if (cityData) {{
+                            infoWindow.setContent(`
+                                <div>
+                                    <h3>${{cityData.도시}}</h3>
+                                    <p>인구: ${{cityData['인구(만)']}}</p>
+                                    <p>${{cityData.설명}}</p>
+                                </div>
+                            `);
+                            infoWindow.open(map, marker);
+                        }}
+                    }});
+                }});
+            }}
+        </script>
+        <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap">
+        </script>
+    </body>
+    </html>
+    """
+    return html
 
+# Google Maps HTML 생성
+google_maps_html = create_google_maps_html(map_data, api_key)
+
+# 지도 표시
+st.subheader("🗺️ Google Maps 지도")
+st.components.v1.html(google_maps_html, height=600)
+
+# 사용자 지정 마커 추가 기능
+st.subheader("📍 새 마커 추가")
+col1, col2 = st.columns(2)
+
+with col1:
+    new_name = st.text_input("장소 이름")
+    new_desc = st.text_area("설명")
+
+with col2:
+    new_lat = st.number_input("위도", value=37.5665, format="%.4f")
+    new_lng = st.number_input("경도", value=126.9780, format="%.4f")
+    new_pop = st.number_input("인구(만)", value=0, min_value=0, format="%d")
+
+if st.button("마커 추가"):
+    new_data = pd.DataFrame({
+        '도시': [new_name],
+        '위도': [new_lat],
+        '경도': [new_lng],
+        '인구(만)': [new_pop],
+        '설명': [new_desc]
+    })
+    df = pd.concat([df, new_data], ignore_index=True)
+    st.success(f"'{new_name}' 추가 완료! 위 데이터 표를 확인하세요.")
+    st.experimental_rerun()
+
+# 푸터
+st.markdown("---")
+st.markdown("### Google Maps API 사용 가이드")
+st.markdown("""
+이 앱이 작동하려면 다음 Google Maps API가 필요합니다:
+1. **Maps JavaScript API** - 지도 표시
+2. **Geocoding API** - 위치 검색
+
+Google Cloud Console에서 이 API들을 활성화하고 API 키를 생성하세요.
+API 키를 생성할 때 제한을 설정하는 것이 좋습니다:
+- HTTP 리퍼러 제한 (Streamlit 배포 URL)
+- API 사용량 쿼터 제한
+""")
 
 # import streamlit as st
 # import pandas as pd
