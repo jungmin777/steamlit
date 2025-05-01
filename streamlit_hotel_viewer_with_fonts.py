@@ -100,24 +100,24 @@ def menu_page():
     with col1:
         if st.button("📍 관광 명소 찾기", use_container_width=True):
             change_page("map")
-            st.experimental_rerun()
+            st.rerun()
     
     with col2:
         if st.button("📝 내 방문 기록", use_container_width=True):
             change_page("history")
-            st.experimental_rerun()
+            st.rerun()
     
     with col3:
         if st.button("⚙️ 설정", use_container_width=True):
             change_page("settings")
-            st.experimental_rerun()
+            st.rerun()
     
     # 로그아웃 버튼
     if st.button("🔓 로그아웃", key="logout_button"):
         st.session_state.logged_in = False
         st.session_state.username = ""
         change_page("login")
-        st.experimental_rerun()
+        st.rerun()
 
 # -------------------------------
 # 사용자 위치 가져오기
@@ -135,7 +135,7 @@ def map_page():
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
         change_page("menu")
-        st.experimental_rerun()
+        st.rerun()
 
     col1, col2, col3 = st.columns([6, 1, 2])
     with col3:
@@ -246,7 +246,7 @@ def map_page():
                     st.session_state.selected_recommendations.append((name, lat, lng))
                 else:
                     st.warning("최대 3개까지 선택할 수 있습니다.")
-                st.experimental_rerun() # 선택 후 UI 업데이트
+                st.rerun() # 선택 후 UI 업데이트
 
     if st.session_state.selected_recommendations:
         st.subheader("✅ 선택된 추천 장소")
@@ -255,7 +255,7 @@ def map_page():
             cols[1].write(f"{name} - ({lat:.5f}, {lng:.5f})")
             if cols[2].button("❌", key=f"remove_{i}"):
                 st.session_state.selected_recommendations.pop(i)
-                st.experimental_rerun()
+                st.rerun()
 
     if st.button("🗺️ 경로 추천", disabled=not st.session_state.clicked_location or not st.session_state.selected_recommendations):
         if st.session_state.clicked_location and st.session_state.selected_recommendations:
@@ -346,7 +346,7 @@ def history_page():
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
         change_page("menu")
-        st.experimental_rerun()
+        st.rerun()
     
     st.info("아직 방문 기록이 없습니다. 지도에서 장소를 방문하면 여기에 기록됩니다.")
     
@@ -374,7 +374,7 @@ def settings_page():
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
         change_page("menu")
-        st.experimental_rerun()
+        st.rerun()
     
     # 언어 설정
     st.subheader("언어 설정")
@@ -404,7 +404,7 @@ def settings_page():
                 st.session_state.username = ""
                 change_page("login")
                 st.success("계정이 삭제되었습니다.")
-                st.experimental_rerun()
+                st.rerun()
 
 # -------------------------------
 # 앱 실행 흐름 제어
