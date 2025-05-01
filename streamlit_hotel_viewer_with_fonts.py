@@ -715,13 +715,26 @@ def settings_page():
                     time.sleep(2)
                     st.rerun()
 
+
+
+
+def map_page_test():
+    st.title("간단한 지도 테스트")
+    center = [37.5665, 126.9780]
+    m = folium.Map(location=center, zoom_start=13)
+    marker_cluster = MarkerCluster().add_to(m)
+    folium.Marker([37.5, 127.0], tooltip="테스트 마커 1").add_to(marker_cluster)
+    folium.Marker([37.6, 126.9], tooltip="테스트 마커 2").add_to(marker_cluster)
+    st_folium(m, width=700, height=500)
+
+
 # -------------------------------
 # 앱 실행 흐름 제어
 if st.session_state.logged_in:
     if st.session_state.current_page == "menu":
         menu_page()
     elif st.session_state.current_page == "map":
-        map_page()
+        map_page_test()
     elif st.session_state.current_page == "history":
         history_page()
     elif st.session_state.current_page == "settings":
