@@ -320,8 +320,9 @@ def map_page():
         width=700,
         height=500,
         key="main_map",
-        feature_group_to_add=marker_cluster,
-        callback=lambda x: st.session_state.update({'clicked_location': x['last_clicked'] if x and 'last_clicked' in x else None})
+        feature_group_to_add=marker_cluster
+        # ,
+        # callback=lambda x: st.session_state.update({'clicked_location': x['last_clicked'] if x and 'last_clicked' in x else None})
     )
 
     if st.session_state.clicked_location:
