@@ -16,6 +16,19 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+
+current_directory = os.getcwd()
+print("현재 작업 디렉토리:", current_directory)
+
+data_folder = Path("data")
+
+st.write(f"Data folder path: {data_folder.resolve()}")  # 실제 경로 확인
+
+if not data_folder.exists():
+    st.warning("데이터 폴더가 존재하지 않습니다.")
+else:
+    st.success("데이터 폴더가 존재합니다.")
+
 #################################################
 # 상수 및 설정 값
 #################################################
@@ -336,7 +349,7 @@ def get_location_position():
 
 def load_excel_files(language="한국어"):
     """데이터 폴더에서 모든 Excel 파일 로드"""
-    data_folder = Path("data")
+    data_folder = Path("asset")
     all_markers = []
     
     if not data_folder.exists():
