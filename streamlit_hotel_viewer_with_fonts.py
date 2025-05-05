@@ -1,290 +1,300 @@
 import streamlit as st
 import pandas as pd
-import folium
-from streamlit_folium import st_folium
-from streamlit_js_eval import get_geolocation
-from geopy.distance import geodesic
-import time
-from datetime import datetime
 import json
-import numpy as np
+import os
+import time
+import random
+from datetime import datetime
+from pathlib import Path
+from geopy.distance import geodesic
 
-st.set_page_config(page_title="서울 위치 데이터 통합 지도", layout="wide")
+# 페이지 설정
+st.set_page_config(
+    page_title="서울 관광앱",
+    page_icon="🗼",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# -------------------------------
-# 초기 세션 상태 설정
-if "users" not in st.session_state:
-    st.session_state.users = {"admin": "admin"}  # 기본 관리자 계정
+#################################################
+# 상수 및 설정 값
+#################################################
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+# Google Maps 기본 중심 위치 (서울시청)
+DEFAULT_LOCATION = [37.5665, 126.9780]
 
-if "username" not in st.session_state:
-    st.session_state.username = ""
+# 카테고리별 마커 색상
+CATEGORY_COLORS = {
+    "체육시설": "blue",
+    "공연행사": "purple",
+    "관광기념품": "green",
+    "한국음식점": "orange",
+    "미술관/전시": "pink",
+    "종로구 관광지": "red",
+    "기타": "gray"
+}
 
-if "current_page" not in st.session_state:
-    st.session_state.current_page = "login"  # 기본 시작 페이지를 로그인으로 설정
+# 파일명과 카테고리 매핑
+FILE_CATEGORIES = {
+    "체육시설": ["체육시설", "공연행사"],
+    "관광기념품": ["관광기념품", "외국인전용"],
+    "한국음식점": ["음식점", "한국음식"],
+    "미술관/전시": ["미술관", "전시"],
+    "종로구 관광지": ["종로구", "관광데이터"]
+}
 
-if 'clicked_location' not in st.session_state:
-    st.session_state.clicked_location = None
-if 'nearby_places' not in st.session_state:
-    st.session_state.nearby_places = []
-if 'selected_recommendations' not in st.session_state:
-    st.session_state.selected_recommendations = []
-if 'language' not in st.session_state:
-    st.session_state.language = "한국어"
+# 세션 데이터 저장 파일
+SESSION_DATA_FILE = "data/session_data.json"
+
+# 경험치 설정
+XP_PER_LEVEL = 200
+PLACE_XP = {
+    "경복궁": 80,
+    "남산서울타워": 65,
+    "동대문 DDP": 35,
+    "명동": 25,
+    "인사동": 40,
+    "창덕궁": 70,
+    "북촌한옥마을": 50,
+    "광장시장": 30,
+    "서울숲": 20,
+    "63빌딩": 45
+}
+
+# 언어 코드 매핑
+LANGUAGE_CODES = {
+    "한국어": "ko",
+    "영어": "en", 
+    "중국어": "zh-CN"
+}
+
+# 추천 코스 데이터
+RECOMMENDATION_COURSES = {
+    "문화 코스": ["경복궁", "인사동", "창덕궁", "북촌한옥마을"],
+    "쇼핑 코스": ["동대문 DDP", "명동", "광장시장", "남산서울타워"],
+    "자연 코스": ["서울숲", "남산서울타워", "한강공원", "북한산"],
+    "대중적 코스": ["경복궁", "명동", "남산서울타워", "63빌딩"]
+}
+
+#################################################
+# 유틸리티 함수
+#################################################
+
+def apply_custom_css():
+    """앱 전체에 적용되는 커스텀 CSS"""
+    st.markdown("""
+    <style>
+        .main-header {color:#1E88E5; font-size:30px; font-weight:bold; text-align:center;}
+        .sub-header {color:#1976D2; font-size:24px; font-weight:bold; margin-top:20px;}
+        .card {
+            border-radius:10px; 
+            padding:20px; 
+            margin:10px 0px; 
+            background-color:#f0f8ff; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .blue-btn {
+            background-color:#1976D2; 
+            color:white; 
+            padding:10px 20px; 
+            border-radius:5px; 
+            border:none;
+            text-align:center;
+            cursor:pointer;
+            font-weight:bold;
+        }
+        .xp-text {
+            color:#4CAF50; 
+            font-weight:bold;
+        }
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 24px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            white-space: pre-wrap;
+            border-radius: 4px 4px 0 0;
+            gap: 1px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        div[data-testid="stHorizontalBlock"] > div:first-child {
+            border: none !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+def page_header(title):
+    """페이지 헤더 표시"""
+    st.markdown(f'<div class="main-header">{title}</div>', unsafe_allow_html=True)
+
+def display_user_level_info():
+    """사용자 레벨 및 경험치 정보 표시"""
+    username = st.session_state.username
+    user_xp = st.session_state.user_xp.get(username, 0)
+    user_level = calculate_level(user_xp)
+    xp_percentage = calculate_xp_percentage(user_xp)
     
-# 추가: 지도 유형 설정 (folium 또는 google)
-if 'map_type' not in st.session_state:
-    st.session_state.map_type = "folium"
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        st.image("https://i.imgur.com/W3UVTgZ.png", width=100)  # 사용자 아이콘
+    with col2:
+        st.markdown(f"**레벨 {user_level}** ({user_xp} XP)")
+        st.progress(xp_percentage / 100)
+        st.caption(f"다음 레벨까지 {XP_PER_LEVEL - (user_xp % XP_PER_LEVEL)} XP 남음")
 
-# 추가: Google Maps API 키 저장
-if 'google_maps_api_key' not in st.session_state:
-    st.session_state.google_maps_api_key = st.secrets["google_maps"]["api_key"]
-    
-# 사용자별 방문 기록 저장
-if "user_visits" not in st.session_state:
-    st.session_state.user_visits = {}
-
-# 앱 시작시 저장된 데이터 불러오기 시도
-if "data_loaded" not in st.session_state:
-    try:
-        with open("session_data.json", "r", encoding="utf-8") as f:
-            data = json.load(f)
-            # 데이터 복원
-            st.session_state.users = data.get("users", {"admin": "admin"})
-            st.session_state.user_visits = data.get("user_visits", {})
-            # API 키도 복원 (있는 경우)
-            if "google_maps_api_key" in data:
-                st.session_state.google_maps_api_key = data["google_maps_api_key"]
-            # 지도 유형 복원 (있는 경우)
-            if "map_type" in data:
-                st.session_state.map_type = data["map_type"]
-    except:
-        pass  # 파일이 없거나 오류 발생 시 무시
-    st.session_state.data_loaded = True
-
-# -------------------------------
-# Google Maps HTML 생성 함수
-def create_google_map_html(center_lat, center_lng, locations, api_key, language="ko"):
-    # 언어 코드 설정
-    lang_code = "ko" if language == "한국어" else "en" if language == "영어" else "zh-CN"
-    
-    # 마커 데이터 생성
-    markers_js = ""
-    for idx, loc in enumerate(locations):
-        name = loc["name"].replace("'", "\\'")  # 따옴표 이스케이프 처리
-        lat, lng = loc["lat"], loc["lng"]
-        
-        # 방문 장소인지 확인하여 아이콘 설정
-        icon_color = "purple" if loc.get("visited", False) else "green"
-        icon_url = f"http://maps.google.com/mapfiles/ms/icons/{icon_color}-dot.png"
-        
-        markers_js += f"""
-        var marker{idx} = new google.maps.Marker({{
-            position: {{ lat: {lat}, lng: {lng} }},
-            map: map,
-            title: '{name}',
-            icon: '{icon_url}'
-        }});
-
-        var infowindow{idx} = new google.maps.InfoWindow({{
-            content: '<div style="padding: 10px;"><strong>{name}</strong><br>({lat:.5f}, {lng:.5f})</div>'
-        }});
-
-        marker{idx}.addListener('click', function() {{
-            closeAllInfoWindows();
-            infowindow{idx}.open(map, marker{idx});
-            openInfoWindow = infowindow{idx};
-            
-            // 클릭 이벤트 데이터를 부모 창으로 전달
-            parent.postMessage({{
-                'type': 'marker_click',
-                'name': '{name}',
-                'lat': {lat},
-                'lng': {lng},
-                'idx': {idx}
-            }}, "*");
-        }});
-        
-        // 마커에 마우스 오버 시 애니메이션
-        marker{idx}.addListener('mouseover', function() {{
-            this.setAnimation(google.maps.Animation.BOUNCE);
-            setTimeout(() => {{ this.setAnimation(null); }}, 750);
-        }});
-        """
-
-    # 현재 위치 마커 추가
-    current_location_js = f"""
-    // 현재 위치 마커
-    var currentLocationMarker = new google.maps.Marker({{
-        position: {{ lat: {center_lat}, lng: {center_lng} }},
-        map: map,
-        title: '내 위치',
-        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-    }});
-    
-    var currentLocationInfo = new google.maps.InfoWindow({{
-        content: '<div style="padding: 10px;"><strong>내 현재 위치</strong><br>({center_lat:.5f}, {center_lng:.5f})</div>'
-    }});
-    
-    currentLocationMarker.addListener('click', function() {{
-        closeAllInfoWindows();
-        currentLocationInfo.open(map, currentLocationMarker);
-        openInfoWindow = currentLocationInfo;
-    }});
-    """
-
-    # HTML 생성
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>서울 위치 데이터 통합 지도</title>
-        <meta charset="utf-8">
-        <style>
-            #map {{
-                height: 500px;
-                width: 100%;
-            }}
-            .custom-map-control-button {{
-                background-color: #fff;
-                border: 0;
-                border-radius: 2px;
-                box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
-                margin: 10px;
-                padding: 0 0.5em;
-                font: 400 18px Roboto, Arial, sans-serif;
-                overflow: hidden;
-                height: 40px;
-                cursor: pointer;
-            }}
-            .custom-map-control-button:hover {{
-                background: rgb(235, 235, 235);
-            }}
-        </style>
-    </head>
-    <body>
-        <div id="map"></div>
-        <script>
-            // 전역 변수로 현재 열린 정보창 저장
-            var openInfoWindow = null;
-            
-            // 모든 정보창 닫기 함수
-            function closeAllInfoWindows() {{
-                if (openInfoWindow) {{
-                    openInfoWindow.close();
-                }}
-            }}
-            
-            function initMap() {{
-                // 서울 중심으로 지도 생성
-                var map = new google.maps.Map(document.getElementById('map'), {{
-                    zoom: 12,
-                    center: {{ lat: {center_lat}, lng: {center_lng} }},
-                    mapTypeControl: true,
-                    zoomControl: true,
-                    scaleControl: true,
-                    streetViewControl: true,
-                    fullscreenControl: true,
-                }});
-                
-                // 현재 위치 가져오기 함수
-                function getCurrentLocation() {{
-                    if (navigator.geolocation) {{
-                        navigator.geolocation.getCurrentPosition(function(position) {{
-                            var currentLocation = {{
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude
-                            }};
-                            
-                            // 부모 창에 현재 위치 전달
-                            parent.postMessage({{
-                                'type': 'current_location',
-                                'lat': currentLocation.lat,
-                                'lng': currentLocation.lng
-                            }}, "*");
-                            
-                            map.setCenter(currentLocation);
-                            map.setZoom(15);
-                            
-                            // 현재 위치 마커 위치 업데이트
-                            currentLocationMarker.setPosition(currentLocation);
-                            
-                        }}, function() {{
-                            alert('위치 정보를 가져올 수 없습니다.');
-                        }});
-                    }} else {{
-                        alert('이 브라우저에서는 위치 정보 기능을 지원하지 않습니다.');
-                    }}
-                }}
-                
-                // 현재 위치 버튼 생성
-                var locationButton = document.createElement('button');
-                locationButton.textContent = '📍 내 위치 찾기';
-                locationButton.classList.add('custom-map-control-button');
-                locationButton.addEventListener('click', getCurrentLocation);
-                
-                // 버튼을 지도의 오른쪽 상단에 추가
-                map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
-
-                // 지도 클릭 이벤트 처리
-                map.addListener('click', function(e) {{
-                    var clickedLat = e.latLng.lat();
-                    var clickedLng = e.latLng.lng();
-                    
-                    // 클릭 위치를 부모 창에 전달
-                    parent.postMessage({{
-                        'type': 'map_click',
-                        'lat': clickedLat,
-                        'lng': clickedLng
-                    }}, "*");
-                    
-                    // 열린 정보창 닫기
-                    closeAllInfoWindows();
-                }});
-                
-                // 현재 위치 마커 추가
-                {current_location_js}
-                
-                // 마커 추가
-                {markers_js}
-            }}
-        </script>
-        <script async defer
-                src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&language={lang_code}">
-        </script>
-    </body>
-    </html>
-    """
-    return html
-
-# -------------------------------
-# 페이지 전환 함수
 def change_page(page):
+    """페이지 전환 함수"""
     st.session_state.current_page = page
+    
     # 페이지 전환 시 일부 상태 초기화
     if page != "map":
         st.session_state.clicked_location = None
-        st.session_state.nearby_places = []
-        st.session_state.selected_recommendations = []
+        st.session_state.navigation_active = False
+        st.session_state.navigation_destination = None
+        st.session_state.transport_mode = None
 
-# -------------------------------
-# 사용자 인증 함수
 def authenticate_user(username, password):
+    """사용자 인증 함수"""
+    if "users" not in st.session_state:
+        return False
+    
     return username in st.session_state.users and st.session_state.users[username] == password
 
 def register_user(username, password):
+    """사용자 등록 함수"""
+    if "users" not in st.session_state:
+        st.session_state.users = {"admin": "admin"}
+    
     if username in st.session_state.users:
         return False
+    
     st.session_state.users[username] = password
+    
+    # 신규 사용자 데이터 초기화
+    if "user_xp" not in st.session_state:
+        st.session_state.user_xp = {}
+    st.session_state.user_xp[username] = 0
+    
+    if "user_visits" not in st.session_state:
+        st.session_state.user_visits = {}
+    st.session_state.user_visits[username] = []
+    
+    save_session_data()
     return True
 
-# -------------------------------
-# 방문 기록 추가 함수
+def logout_user():
+    """로그아웃 함수"""
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    change_page("login")
+
+def init_session_state():
+    """세션 상태 초기화"""
+    # 로그인 관련 상태
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+    if "username" not in st.session_state:
+        st.session_state.username = ""
+    if "current_page" not in st.session_state:
+        st.session_state.current_page = "login"
+        
+    # 사용자 데이터
+    if "users" not in st.session_state:
+        st.session_state.users = {"admin": "admin"}  # 기본 관리자 계정
+    if "user_xp" not in st.session_state:
+        st.session_state.user_xp = {}
+    if "user_visits" not in st.session_state:
+        st.session_state.user_visits = {}
+        
+    # 지도 관련 상태
+    if 'language' not in st.session_state:
+        st.session_state.language = "한국어"
+    if 'clicked_location' not in st.session_state:
+        st.session_state.clicked_location = None
+    if 'navigation_active' not in st.session_state:
+        st.session_state.navigation_active = False
+    if 'navigation_destination' not in st.session_state:
+        st.session_state.navigation_destination = None
+    if 'transport_mode' not in st.session_state:
+        st.session_state.transport_mode = None
+        
+    # Google Maps API 키
+    if "google_maps_api_key" not in st.session_state:
+        # secrets.toml에서 가져오기 시도
+        try:
+            st.session_state.google_maps_api_key = st.secrets["google_maps_api_key"]
+        except:
+            st.session_state.google_maps_api_key = ""
+    
+    # 저장된 세션 데이터 로드
+    load_session_data()
+
+def load_session_data():
+    """저장된 세션 데이터 로드"""
+    try:
+        if os.path.exists(SESSION_DATA_FILE):
+            with open(SESSION_DATA_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                # 데이터 복원
+                st.session_state.users = data.get("users", {"admin": "admin"})
+                st.session_state.user_visits = data.get("user_visits", {})
+                st.session_state.user_xp = data.get("user_xp", {})
+                return True
+    except Exception as e:
+        print(f"세션 데이터 로드 오류: {e}")
+    return False
+
+def save_session_data():
+    """세션 데이터 저장"""
+    try:
+        # 데이터 폴더 생성
+        os.makedirs(os.path.dirname(SESSION_DATA_FILE), exist_ok=True)
+        
+        data = {
+            "users": st.session_state.users,
+            "user_visits": st.session_state.user_visits,
+            "user_xp": st.session_state.user_xp
+        }
+        
+        with open(SESSION_DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        print(f"세션 데이터 저장 오류: {e}")
+        return False
+
+def calculate_level(xp):
+    """레벨 계산 함수"""
+    return int(xp / XP_PER_LEVEL) + 1
+
+def calculate_xp_percentage(xp):
+    """경험치 비율 계산 (다음 레벨까지)"""
+    current_level = calculate_level(xp)
+    xp_for_current_level = (current_level - 1) * XP_PER_LEVEL
+    xp_for_next_level = current_level * XP_PER_LEVEL
+    
+    xp_in_current_level = xp - xp_for_current_level
+    xp_needed_for_next = xp_for_next_level - xp_for_current_level
+    
+    return int((xp_in_current_level / xp_needed_for_next) * 100)
+
 def add_visit(username, place_name, lat, lng):
+    """방문 기록 추가"""
     if username not in st.session_state.user_visits:
         st.session_state.user_visits[username] = []
+    
+    # XP 획득
+    if username not in st.session_state.user_xp:
+        st.session_state.user_xp[username] = 0
+    
+    xp_gained = PLACE_XP.get(place_name, 10)  # 기본 10XP, 장소별로 다른 XP
+    st.session_state.user_xp[username] += xp_gained
     
     # 방문 데이터 생성
     visit_data = {
@@ -293,7 +303,8 @@ def add_visit(username, place_name, lat, lng):
         "longitude": lng,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "date": datetime.now().strftime("%Y-%m-%d"),
-        "rating": None  # 나중에 평점을 추가할 수 있음
+        "xp_gained": xp_gained,
+        "rating": None
     }
     
     # 중복 방문 검사 (같은 날, 같은 장소)
@@ -306,429 +317,1212 @@ def add_visit(username, place_name, lat, lng):
     
     if not is_duplicate:
         st.session_state.user_visits[username].append(visit_data)
-        return True
-    return False
+        save_session_data()  # 방문 기록 저장
+        return True, xp_gained
+    return False, 0
 
-# -------------------------------
-# 세션 상태 데이터 저장/불러오기 함수
-def save_session_data():
-    """세션 데이터를 JSON 파일로 저장"""
+def get_location_position():
+    """사용자의 현재 위치를 반환"""
     try:
-        data = {
-            "users": st.session_state.users,
-            "user_visits": st.session_state.user_visits,
-            "google_maps_api_key": st.session_state.google_maps_api_key,
-            "map_type": st.session_state.map_type
-        }
-        with open("session_data.json", "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        return True
-    except Exception as e:
-        st.error(f"데이터 저장 오류: {e}")
-        return False
-
-def load_session_data():
-    """저장된 세션 데이터를 JSON 파일에서 불러오기"""
-    try:
-        with open("session_data.json", "r", encoding="utf-8") as f:
-            data = json.load(f)
-            
-        # 데이터 복원
-        st.session_state.users = data.get("users", {})
-        st.session_state.user_visits = data.get("user_visits", {})
+        from streamlit_js_eval import get_geolocation
         
-        # API 키 복원 (있는 경우)
-        if "google_maps_api_key" in data:
-            st.session_state.google_maps_api_key = data["google_maps_api_key"]
-            
-        # 지도 유형 복원 (있는 경우)
-        if "map_type" in data:
-            st.session_state.map_type = data["map_type"]
-            
-        return True
-    except FileNotFoundError:
-        # 파일이 없는 경우 초기 상태 유지
-        return False
-    except Exception as e:
-        st.error(f"데이터 불러오기 오류: {e}")
-        return False
-
-# -------------------------------
-# 사용자 위치 가져오기
-def get_user_location():
-    try:
         location = get_geolocation()
         if location and "coords" in location:
             return [location["coords"]["latitude"], location["coords"]["longitude"]]
-    except:
-        pass
-    return [37.5665, 126.9780]  # 기본 서울 시청 좌표
+    except Exception as e:
+        st.warning(f"위치 정보를 가져올 수 없습니다: {e}")
+        
+    return DEFAULT_LOCATION  # 기본 위치 (서울시청)
 
-# -------------------------------
-# 로그인/회원가입 페이지
-def login_page():
-    st.title("🔐 로그인 또는 회원가입")
-    tab1, tab2 = st.tabs(["로그인", "회원가입"])
-
-    with tab1:
-        username = st.text_input("아이디", key="login_username")
-        password = st.text_input("비밀번호", type="password", key="login_password")
-        if st.button("로그인"):
-            if authenticate_user(username, password):
-                st.success("🎉 로그인 성공!")
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                change_page("menu")  # 로그인 성공 시 메뉴 페이지로 이동
-                st.rerun()
-            else:
-                st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
-
-    with tab2:
-        new_user = st.text_input("새 아이디", key="register_username")
-        new_pw = st.text_input("새 비밀번호", type="password", key="register_password")
-        if st.button("회원가입"):
-            if register_user(new_user, new_pw):
-                st.success("✅ 회원가입 완료!")
-                st.session_state.logged_in = True
-                st.session_state.username = new_user
-                change_page("menu")  # 회원가입 성공 시 메뉴 페이지로 이동
-                st.rerun()
-            else:
-                st.warning("⚠️ 이미 존재하는 아이디입니다.")
-
-# -------------------------------
-# 메뉴 페이지
-def menu_page():
-    st.title(f"👋 {st.session_state.username}님, 환영합니다!")
+def load_excel_files(language="한국어"):
+    """데이터 폴더에서 모든 Excel 파일 로드"""
+    data_folder = Path("data")
+    all_markers = []
     
-    st.subheader("메뉴를 선택해주세요")
+    if not data_folder.exists():
+        st.warning("데이터 폴더가 존재하지 않습니다.")
+        return []
+        
+    # 모든 Excel 파일 찾기
+    excel_files = list(data_folder.glob("*.xlsx"))
     
-    col1, col2, col3 = st.columns(3)
+    if not excel_files:
+        st.warning("데이터 폴더에 Excel 파일이 없습니다.")
+        return []
+    
+    for file_path in excel_files:
+        try:
+            # 파일 카테고리 결정
+            file_category = "기타"
+            file_name = file_path.name.lower()
+            
+            for category, keywords in FILE_CATEGORIES.items():
+                if any(keyword.lower() in file_name for keyword in keywords):
+                    file_category = category
+                    break
+            
+            # 파일 로드
+            df = pd.read_excel(file_path, engine='openpyxl')
+            
+            # 데이터 전처리 및 마커 변환
+            markers = process_dataframe(df, file_category, language)
+            all_markers.extend(markers)
+            
+            st.success(f"{file_path.name}: {len(markers)}개 마커 로드")
+        
+        except Exception as e:
+            st.error(f"{file_path.name} 처리 오류: {str(e)}")
+    
+    return all_markers
+
+def process_dataframe(df, category, language="한국어"):
+    """데이터프레임을 Google Maps 마커 형식으로 변환"""
+    markers = []
+    
+    # 필수 열 확인: X좌표, Y좌표
+    if 'X좌표' not in df.columns or 'Y좌표' not in df.columns:
+        # 중국어 데이터의 경우 열 이름이 다를 수 있음
+        if 'X坐标' in df.columns and 'Y坐标' in df.columns:
+            df['X좌표'] = df['X坐标']
+            df['Y좌표'] = df['Y坐标']
+        else:
+            st.warning(f"'{category}' 데이터에 좌표 열이 없습니다.")
+            return []
+    
+    # 언어별 열 이름 결정
+    name_col = '명칭(한국어)'
+    if language == "영어" and '명칭(영어)' in df.columns:
+        name_col = '명칭(영어)'
+    elif language == "중국어" and '명칭(중국어)' in df.columns:
+        name_col = '명칭(중국어)'
+    
+    # 중국어 종로구 데이터 특별 처리
+    if category == "종로구 관광지" and language == "중국어":
+        if '名称' in df.columns:
+            name_col = '名称'
+    
+    # 주소 열 결정
+    address_col = None
+    address_candidates = ['주소(한국어)', '주소', '소재지', '도로명주소', '지번주소']
+    if language == "영어":
+        address_candidates = ['주소(영어)'] + address_candidates
+    elif language == "중국어":
+        address_candidates = ['주소(중국어)', '地址'] + address_candidates
+    
+    for col in address_candidates:
+        if col in df.columns:
+            address_col = col
+            break
+    
+    # 유효한 좌표 데이터만 사용
+    df = df.dropna(subset=['X좌표', 'Y좌표'])
+    valid_coords = (df['X좌표'] >= 124) & (df['X좌표'] <= 132) & (df['Y좌표'] >= 33) & (df['Y좌표'] <= 43)
+    df = df[valid_coords]
+    
+    # 마커 색상 결정
+    color = CATEGORY_COLORS.get(category, "gray")
+    
+    # 각 행을 마커로 변환
+    for _, row in df.iterrows():
+        try:
+            # 기본 정보
+            name = row[name_col] if name_col in row and pd.notna(row[name_col]) else "이름 없음"
+            lat = float(row['Y좌표'])
+            lng = float(row['X좌표'])
+            
+            # 주소 정보
+            address = ""
+            if address_col and address_col in row and pd.notna(row[address_col]):
+                address = row[address_col]
+            
+            # 추가 정보 (있는 경우)
+            info = ""
+            if address:
+                info += f"주소: {address}<br>"
+            
+            # 전화번호 (있는 경우)
+            for tel_col in ['전화번호', 'TELNO', '연락처']:
+                if tel_col in row and pd.notna(row[tel_col]):
+                    info += f"전화: {row[tel_col]}<br>"
+                    break
+            
+            # 마커 생성
+            marker = {
+                'lat': lat,
+                'lng': lng,
+                'title': name,
+                'color': color,
+                'category': category,
+                'info': info
+            }
+            markers.append(marker)
+            
+        except Exception as e:
+            print(f"마커 생성 오류: {e}")
+            continue
+    
+    return markers
+
+def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko"):
+    """Google Maps HTML 생성"""
+    if markers is None:
+        markers = []
+    
+    # 카테고리별 마커 그룹화
+    categories = {}
+    for marker in markers:
+        category = marker.get('category', '기타')
+        if category not in categories:
+            categories[category] = []
+        categories[category].append(marker)
+    
+    # 범례 HTML
+    legend_items = []
+    for category, color in CATEGORY_COLORS.items():
+        # 해당 카테고리의 마커가 있는 경우만 표시
+        if any(m.get('category') == category for m in markers):
+            count = sum(1 for m in markers if m.get('category') == category)
+            legend_html_item = '<div class="legend-item"><img src="http://maps.google.com/mapfiles/ms/icons/'
+            legend_html_item += color 
+            legend_html_item += '-dot.png" alt="'
+            legend_html_item += category 
+            legend_html_item += '"> '
+            legend_html_item += category
+            legend_html_item += ' ('
+            legend_html_item += str(count)
+            legend_html_item += ')</div>'
+            legend_items.append(legend_html_item)
+    
+    legend_html = "".join(legend_items)
+    
+    # 마커 JavaScript 코드 생성
+    markers_js = ""
+    for i, marker in enumerate(markers):
+        color = marker.get('color', 'red')
+        title = marker.get('title', '').replace("'", "\\\'").replace('"', '\\\"')
+        info = marker.get('info', '').replace("'", "\\\'").replace('"', '\\\"')
+        category = marker.get('category', '').replace("'", "\\\'").replace('"', '\\\"')
+        
+        # 마커 아이콘 URL
+        icon_url = "http://maps.google.com/mapfiles/ms/icons/" + color + "-dot.png"
+        
+        # 정보창 HTML 내용
+        info_content = """
+            <div style="padding: 10px; max-width: 300px;">
+                <h3 style="margin-top: 0; color: #1976D2;">{0}</h3>
+                <p><strong>분류:</strong> {1}</p>
+                <div>{2}</div>
+            </div>
+        """.format(title, category, info).replace("'", "\\\\'").replace("\n", "")
+        
+        # 마커 생성 코드
+        marker_js_template = """
+            var marker{0} = new google.maps.Marker({{
+                position: {{ lat: {1}, lng: {2} }},
+                map: map,
+                title: '{3}',
+                icon: '{4}',
+                animation: google.maps.Animation.DROP
+            }});
+            
+            markers.push(marker{0});
+            markerCategories.push('{5}');
+            
+            var infowindow{0} = new google.maps.InfoWindow({{
+                content: '{6}'
+            }});
+            
+            marker{0}.addListener('click', function() {{
+                closeAllInfoWindows();
+                infowindow{0}.open(map, marker{0});
+                
+                // 마커 바운스 애니메이션
+                if (currentMarker) currentMarker.setAnimation(null);
+                marker{0}.setAnimation(google.maps.Animation.BOUNCE);
+                currentMarker = marker{0};
+                
+                // 애니메이션 종료
+                setTimeout(function() {{
+                    marker{0}.setAnimation(null);
+                }}, 1500);
+                
+                // 부모 창에 마커 클릭 이벤트 전달
+                window.parent.postMessage({{
+                    'type': 'marker_click',
+                    'id': {0},
+                    'title': '{3}',
+                    'lat': {1},
+                    'lng': {2},
+                    'category': '{5}'
+                }}, '*');
+            }});
+            
+            infoWindows.push(infowindow{0});
+        """
+        
+        # format 메서드로 동적 값 채우기
+        curr_marker_js = marker_js_template.format(
+            i, marker['lat'], marker['lng'], title, icon_url, category, info_content
+        )
+        
+        markers_js += curr_marker_js
+    
+    # 필터링 함수
+    filter_js = """
+        function filterMarkers(category) {
+            for (var i = 0; i < markers.length; i++) {
+                if (category === 'all' || markerCategories[i] === category) {
+                    markers[i].setVisible(true);
+                } else {
+                    markers[i].setVisible(false);
+                }
+            }
+            
+            // 필터 버튼 활성화 상태 업데이트
+            document.querySelectorAll('.filter-button').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.getElementById('filter-' + category).classList.add('active');
+        }
+    """
+    
+    # 마커 클러스터링 코드
+    clustering_js = """
+        // 마커 클러스터링
+        var markerCluster = new MarkerClusterer(map, markers, {
+            imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+            maxZoom: 15,
+            gridSize: 50
+        });
+    """
+    
+    # 필터 버튼 HTML 생성
+    filter_buttons = '<button id="filter-all" class="filter-button active" onclick="filterMarkers(\'all\')">전체 보기</button>'
+    for cat in categories.keys():
+        filter_buttons += ' <button id="filter-' + cat + '" class="filter-button" onclick="filterMarkers(\'' + cat + '\')">' + cat + '</button>'
+    
+    # 전체 HTML 코드 생성 - 문자열 결합으로 f-string 대신 사용
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>서울 관광 지도</title>
+        <meta charset="utf-8">
+        <style>
+            #map {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                font-family: 'Noto Sans KR', Arial, sans-serif;
+            }
+            .map-controls {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 5;
+                background-color: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                max-width: 90%;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            .filter-button {
+                margin: 5px;
+                padding: 5px 10px;
+                background-color: #f8f9fa;
+                border: 1px solid #dadce0;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .filter-button:hover {
+                background-color: #e8eaed;
+            }
+            .filter-button.active {
+                background-color: #1976D2;
+                color: white;
+            }
+            #legend {
+                font-family: 'Noto Sans KR', Arial, sans-serif;
+                background-color: white;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                bottom: 25px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                font-size: 12px;
+                padding: 10px;
+                position: absolute;
+                right: 10px;
+                z-index: 5;
+            }
+            .legend-item {
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+            }
+            .legend-item img {
+                width: 20px;
+                height: 20px;
+                margin-right: 5px;
+            }
+            .custom-control {
+                background-color: #fff;
+                border: 0;
+                border-radius: 2px;
+                box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+                margin: 10px;
+                padding: 0 0.5em;
+                font: 400 18px Roboto, Arial, sans-serif;
+                overflow: hidden;
+                height: 40px;
+                cursor: pointer;
+            }
+        </style>
+        <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+    </head>
+    <body>
+        <div id="map"></div>
+        
+        <!-- 카테고리 필터 -->
+        <div class="map-controls" id="category-filter">
+            <div style="margin-bottom: 8px; font-weight: bold;">카테고리 필터</div>
+            """ + filter_buttons + """
+        </div>
+        
+        <!-- 지도 범례 -->
+        <div id="legend">
+            <div style="font-weight: bold; margin-bottom: 8px;">지도 범례</div>
+            """ + legend_html + """
+        </div>
+        
+        <script>
+            // 지도 변수
+            var map;
+            var markers = [];
+            var markerCategories = [];
+            var infoWindows = [];
+            var currentMarker = null;
+            
+            // 모든 정보창 닫기
+            function closeAllInfoWindows() {
+                for (var i = 0; i < infoWindows.length; i++) {
+                    infoWindows[i].close();
+                }
+            }
+            
+            function initMap() {
+                // 지도 생성
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: """ + str(center_lat) + """, lng: """ + str(center_lng) + """ },
+                    zoom: """ + str(zoom) + """,
+                    fullscreenControl: true,
+                    mapTypeControl: true,
+                    streetViewControl: true,
+                    zoomControl: true,
+                    mapTypeId: 'roadmap'
+                });
+                
+                // 현재 위치 버튼 추가
+                const locationButton = document.createElement("button");
+                locationButton.textContent = "📍 내 위치";
+                locationButton.classList.add("custom-control");
+                locationButton.addEventListener("click", () => {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const pos = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                };
+                                
+                                // 부모 창에 현재 위치 전달
+                                window.parent.postMessage({
+                                    'type': 'current_location',
+                                    'lat': pos.lat,
+                                    'lng': pos.lng
+                                }, '*');
+                                
+                                map.setCenter(pos);
+                                map.setZoom(15);
+                                
+                                // 현재 위치 마커 추가
+                                new google.maps.Marker({
+                                    position: pos,
+                                    map: map,
+                                    title: '내 위치',
+                                    icon: {
+                                        path: google.maps.SymbolPath.CIRCLE,
+                                        fillColor: '#4285F4',
+                                        fillOpacity: 1,
+                                        strokeColor: '#FFFFFF',
+                                        strokeWeight: 2,
+                                        scale: 8
+                                    }
+                                });
+                            },
+                            () => {
+                                alert("위치 정보를 가져오는데 실패했습니다.");
+                            }
+                        );
+                    } else {
+                        alert("이 브라우저에서는 위치 정보 기능을 지원하지 않습니다.");
+                    }
+                });
+                
+                map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
+                
+                // 범례를 지도에 추가
+                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+                    document.getElementById('legend')
+                );
+                
+                // 마커 추가
+                """ + markers_js + """
+                
+                // 마커 클러스터링
+                """ + clustering_js + """
+                
+                // 필터링 함수
+                """ + filter_js + """
+                
+                // 지도 클릭 이벤트
+                map.addListener('click', function(event) {
+                    // 열린 정보창 닫기
+                    closeAllInfoWindows();
+                    
+                    // 바운스 애니메이션 중지
+                    if (currentMarker) currentMarker.setAnimation(null);
+                    
+                    // 클릭 이벤트 데이터 전달
+                    window.parent.postMessage({
+                        'type': 'map_click',
+                        'lat': event.latLng.lat(),
+                        'lng': event.latLng.lng()
+                    }, '*');
+                });
+            }
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=""" + api_key + """&callback=initMap&language=""" + language + """" async defer></script>
+    </body>
+    </html>
+    """
+    
+    return html
+    
+def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어"):
+    """Google Maps 컴포넌트 표시"""
+    # 언어 코드 변환
+    lang_code = LANGUAGE_CODES.get(language, "ko")
+    
+    # HTML 생성
+    map_html = create_google_maps_html(
+        api_key=api_key,
+        center_lat=center_lat,
+        center_lng=center_lng,
+        markers=markers,
+        zoom=zoom,
+        language=lang_code
+    )
+    
+    # HTML 컴포넌트로 표시
+    st.components.v1.html(map_html, height=height, scrolling=False)
+
+def display_visits(visits):
+    """방문 기록 표시 함수"""
+    if not visits:
+        st.info("방문 기록이 없습니다.")
+        return
+    
+    for i, visit in enumerate(visits):
+        with st.container():
+            col1, col2, col3 = st.columns([3, 1, 1])
+            
+            with col1:
+                st.markdown(f"**{visit['place_name']}**")
+                st.caption(f"방문일: {visit['date']}")
+            
+            with col2:
+                st.markdown(f"+{visit.get('xp_gained', 0)} XP")
+            
+            with col3:
+                # 리뷰 또는 평점이 있는 경우 표시
+                if 'rating' in visit and visit['rating']:
+                    st.markdown("⭐" * int(visit['rating']))
+                else:
+                    if st.button("평가", key=f"rate_{i}"):
+                        # 평가 기능 구현 (실제로는 팝업이나 별도 UI가 필요)
+                        st.session_state.rating_place = visit['place_name']
+                        st.session_state.rating_index = i
+
+#################################################
+# 페이지 함수
+#################################################
+
+def show_login_page():
+    """로그인 페이지 표시"""
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        page_header("서울 관광앱")
+        st.image("https://github.com/veterians/seoul-tourism-app/blob/main/asset/SeoulTripView.png", width=300)
+        
+        tab1, tab2 = st.tabs(["로그인", "회원가입"])
+
+        with tab1:
+            st.markdown("### 로그인")
+            username = st.text_input("아이디", key="login_username")
+            password = st.text_input("비밀번호", type="password", key="login_password")
+            col1, col2 = st.columns([1,1])
+            with col1:
+                remember = st.checkbox("아이디 저장")
+            with col2:
+                st.markdown("")  # 빈 공간
+            
+            if st.button("로그인", use_container_width=True):
+                if authenticate_user(username, password):
+                    st.success("🎉 로그인 성공!")
+                    st.session_state.logged_in = True
+                    st.session_state.username = username
+                    change_page("menu")
+                    st.rerun()
+                else:
+                    st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+
+        with tab2:
+            st.markdown("### 회원가입")
+            new_user = st.text_input("새 아이디", key="register_username")
+            new_pw = st.text_input("새 비밀번호", type="password", key="register_password")
+            new_pw_confirm = st.text_input("비밀번호 확인", type="password", key="register_password_confirm")
+            
+            if st.button("회원가입", use_container_width=True):
+                if not new_user or not new_pw:
+                    st.error("아이디와 비밀번호를 입력해주세요.")
+                elif new_pw != new_pw_confirm:
+                    st.error("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+                elif register_user(new_user, new_pw):
+                    st.success("✅ 회원가입 완료!")
+                    st.session_state.logged_in = True
+                    st.session_state.username = new_user
+                    change_page("menu")
+                    st.rerun()
+                else:
+                    st.warning("⚠️ 이미 존재하는 아이디입니다.")
+
+def show_menu_page():
+    """메인 메뉴 페이지 표시"""
+    page_header("서울 관광앱")
+    st.markdown(f"### 👋 {st.session_state.username}님, 환영합니다!")
+    
+    # 사용자 레벨 및 경험치 정보 표시
+    display_user_level_info()
+    
+    st.markdown("---")
+    st.markdown("### 메뉴를 선택해주세요")
+    
+    col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("📍 지도 보기", use_container_width=True):
+        st.markdown("""
+        <div class="card">
+            <h3>🗺️ 관광 장소 지도</h3>
+            <p>서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("관광 장소 지도 보기", key="map_button", use_container_width=True):
             change_page("map")
             st.rerun()
     
     with col2:
-        if st.button("📝 내 방문 기록", use_container_width=True):
+        st.markdown("""
+        <div class="card">
+            <h3>🗓️ 서울 관광 코스 짜주기</h3>
+            <p>AI가 당신의 취향에 맞는 최적의 관광 코스를 추천해드립니다.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("관광 코스 짜기", key="course_button", use_container_width=True):
+            change_page("course")
+            st.rerun()
+    
+    st.markdown("")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        <div class="card">
+            <h3>📝 나의 관광 이력</h3>
+            <p>방문한 장소들의 기록과 획득한 경험치를 확인하세요.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("관광 이력 보기", key="history_button", use_container_width=True):
             change_page("history")
             st.rerun()
-    
-    with col3:
-        if st.button("⚙️ 설정", use_container_width=True):
-            change_page("settings")
-            st.rerun()
-    
+            
     # 로그아웃 버튼
+    st.markdown("---")
     if st.button("🔓 로그아웃", key="logout_button"):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        change_page("login")
+        logout_user()
         st.rerun()
 
-# -------------------------------
-# 지도 페이지
-def map_page():
-    st.title("📍 서울시 공공 위치 데이터 통합 지도")
+def show_map_page():
+    """지도 페이지 표시"""
+    page_header("서울 관광 장소 지도")
     
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
         change_page("menu")
         st.rerun()
-
-    col1, col2, col3 = st.columns([6, 1, 2])
-    with col3:
+    
+    # API 키 확인
+    api_key = st.session_state.google_maps_api_key
+    if not api_key:
+        st.error("Google Maps API 키가 설정되지 않았습니다.")
+        api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
+        if api_key:
+            st.session_state.google_maps_api_key = api_key
+            st.success("API 키가 설정되었습니다. 지도를 로드합니다.")
+            st.rerun()
+        else:
+            st.info("Google Maps를 사용하려면 API 키가 필요합니다.")
+            return
+    
+    # 언어 선택
+    col1, col2 = st.columns([4, 1])
+    with col2:
         selected_language = st.selectbox(
             "🌏 Language", 
             ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"],
             index=0 if st.session_state.language == "한국어" else 1 if st.session_state.language == "영어" else 2
         )
-        language_map_display = {
+        language_map = {
             "🇰🇷 한국어": "한국어",
             "🇺🇸 English": "영어",
             "🇨🇳 中文": "중국어"
         }
-        st.session_state.language = language_map_display[selected_language]
-
-        # 지도 유형 선택 - 이 부분 추가
-        map_type = st.radio(
-            "지도 유형",
-            ["Folium", "Google Maps"],
-            index=0 if st.session_state.map_type == "folium" else 1
-        )
-        st.session_state.map_type = map_type.lower().replace(" ", "_")
-
-    # 카테고리 선택을 사이드바로 이동
-    with st.sidebar:
-        st.header("카테고리 선택")
-        
-        # 카테고리명으로 변환하여 표시
-        category_names = [
-            "외국인전용 관광기념품 판매점",
-            "문화행사 공공서비스예약",
-            "종로구 관광데이터",
-            "체육시설 공연행사",
-            "시립미술관 전시정보"
-        ]
-        
-        selected_category = st.selectbox("📁 카테고리", category_names)
+        st.session_state.language = language_map[selected_language]
     
     # 사용자 위치 가져오기
-    user_location = get_user_location()
-    center = user_location
-    st.session_state.user_location = center
-
-    # 샘플 장소 마커 추가
-    sample_locations = [
-        {"name": "경복궁", "lat": 37.5796, "lng": 126.9770},
-        {"name": "남산타워", "lat": 37.5511, "lng": 126.9882},
-        {"name": "동대문 디자인 플라자", "lat": 37.5669, "lng": 127.0093},
-        {"name": "명동성당", "lat": 37.5635, "lng": 126.9877},
-        {"name": "서울숲", "lat": 37.5445, "lng": 127.0374},
-    ]
+    user_location = get_location_position()
     
-    # 카테고리에 따라 다른 위치 표시 (시뮬레이션)
-    if selected_category == "외국인전용 관광기념품 판매점":
-        locations = sample_locations[:2]  # 앞의 두개만
-    elif selected_category == "문화행사 공공서비스예약":
-        locations = sample_locations[1:3]  # 중간 두개
-    elif selected_category == "종로구 관광데이터":
-        locations = sample_locations[2:4]  # 중간~끝
-    else:
-        locations = sample_locations  # 전체
-    
-    # 방문했던 장소 표시 처리
-    username = st.session_state.username
-    visited_places = []
-    if username in st.session_state.user_visits and st.session_state.user_visits[username]:
-        for visit in st.session_state.user_visits[username]:
-            visited_places.append({
-                "name": visit["place_name"],
-                "lat": visit["latitude"],
-                "lng": visit["longitude"],
-                "visited": True
-            })
-    
-    # Google Maps나 Folium 중 선택한 지도 유형 표시
-    st.subheader("🗺️ 지도")
-    
-    if st.session_state.map_type == "google_maps":
-        # Google Maps API 키 가져오기
-        api_key = st.session_state.google_maps_api_key
+    # 데이터 로드 컨트롤
+    with st.sidebar:
+        st.header("데이터 관리")
         
-        if not api_key:
-            api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
-            if api_key:
-                st.session_state.google_maps_api_key = api_key
-                save_session_data()  # API 키 저장
-            else:
-                st.warning("Google Maps를 사용하려면 API 키가 필요합니다.")
-                st.info("Google Cloud Console에서 Maps JavaScript API를 활성화하고 API 키를 생성하세요.")
-                
-        if api_key:
-            # Google Maps로 표시
-            all_locations = locations.copy()
+        # 데이터 로드 버튼
+        if st.button("서울 관광 데이터 로드", use_container_width=True):
+            with st.spinner("데이터를 로드하는 중..."):
+                all_markers = load_excel_files(st.session_state.language)
+                if all_markers:
+                    st.session_state.all_markers = all_markers
+                    st.session_state.markers_loaded = True
+                    st.success(f"총 {len(all_markers)}개의 관광지 로드 완료!")
+                else:
+                    st.warning("데이터를 로드할 수 없습니다.")
+        
+        # 파일 업로드
+        uploaded_files = st.file_uploader(
+            "Excel 파일 업로드 (.xlsx)",
+            type=["xlsx"],
+            accept_multiple_files=True
+        )
+        
+        if uploaded_files:
+            if st.button("업로드한 파일 처리", use_container_width=True):
+                with st.spinner("파일을 처리하는 중..."):
+                    # 파일 처리 로직 (실제 구현 필요)
+                    st.success("파일 업로드 완료!")
+    
+    # 내비게이션 모드가 아닌 경우 기본 지도 표시
+    if not st.session_state.navigation_active:
+        map_col, info_col = st.columns([2, 1])
+        
+        with map_col:
+            # 마커 데이터 준비
+            markers = []
             
-            # 방문 장소 추가
-            for place in visited_places:
-                # 이미 표시된 위치는 건너뛰기 
-                if not any(loc["lat"] == place["lat"] and loc["lng"] == place["lng"] for loc in all_locations):
-                    all_locations.append(place)
+            # 사용자 현재 위치 마커
+            markers.append({
+                'lat': user_location[0],
+                'lng': user_location[1],
+                'title': '내 위치',
+                'color': 'blue',
+                'info': '현재 위치',
+                'category': '현재 위치'
+            })
             
-            google_map_html = create_google_map_html(
-                center_lat=center[0], 
-                center_lng=center[1], 
-                locations=all_locations, 
+            # 로드된 데이터 마커 추가
+            if hasattr(st.session_state, 'all_markers') and st.session_state.all_markers:
+                markers.extend(st.session_state.all_markers)
+                st.success(f"지도에 {len(st.session_state.all_markers)}개의 장소를 표시했습니다.")
+            
+            # Google Maps 표시
+            show_google_map(
                 api_key=api_key,
+                center_lat=user_location[0],
+                center_lng=user_location[1],
+                markers=markers,
+                zoom=12,
+                height=600,
                 language=st.session_state.language
             )
-            
-            # 지도 표시
-            st.components.v1.html(google_map_html, height=500, scrolling=False)
-            
-            # JavaScript 메시지 이벤트 처리 (클릭 이벤트 등)
-            # 참고: 실제로는 추가 JavaScript 작업이 필요할 수 있음
-            
-            # 클릭한 위치가 있을 경우 처리 (임시로 session_state 사용)
-            if st.session_state.clicked_location:
-                clicked_lat, clicked_lng = st.session_state.clicked_location["lat"], st.session_state.clicked_location["lng"]
-                st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
-                
-                # 나머지 처리는 Folium 예제와 동일하게...
-                # (이 부분은 실제로 Google Maps에서 데이터를 받아와 처리해야 함)
-    else:
-        # Folium으로 지도 표시 (기존 코드)
-        m = folium.Map(location=center, zoom_start=13)
         
-        # 현재 위치 마커 추가
-        folium.Marker(
-            center, 
-            tooltip="📍 내 위치", 
-            icon=folium.Icon(color="blue", icon="star")
-        ).add_to(m)
-    
-        # 마커 추가
-        for loc in locations:
-            folium.Marker(
-                location=[loc["lat"], loc["lng"]],
-                tooltip=loc["name"],
-                icon=folium.Icon(color="green"),
-                popup=folium.Popup(f"{loc['name']}<br>({loc['lat']:.5f}, {loc['lng']:.5f})", max_width=300)
-            ).add_to(m)
-        
-        # 방문했던 장소 마커 추가 (보라색 마커로 표시)
-        if username in st.session_state.user_visits and st.session_state.user_visits[username]:
-            for visit in st.session_state.user_visits[username]:
-                folium.Marker(
-                    location=[visit["latitude"], visit["longitude"]],
-                    tooltip=f"✅ 방문: {visit['place_name']}",
-                    icon=folium.Icon(color="purple", icon="check"),
-                    popup=folium.Popup(f"방문: {visit['place_name']}<br>날짜: {visit['date']}", max_width=300)
-                ).add_to(m)
-        
-        # 지도 표시
-        map_data = st_folium(m, width=700, height=500, key="main_map")
-        
-        # 클릭 이벤트 처리
-        if map_data and 'last_clicked' in map_data:
-            clicked_lat, clicked_lng = map_data['last_clicked']['lat'], map_data['last_clicked']['lng']
-            st.session_state.clicked_location = {'lat': clicked_lat, 'lng': clicked_lng}
+        with info_col:
+            st.subheader("장소 정보")
             
-            st.subheader(f"📍 클릭한 위치: ({clicked_lat:.5f}, {clicked_lng:.5f})")
-            
-            # 주변 장소 찾기 (가장 가까운 샘플 장소들 찾기)
-            nearby_places = []
-            for loc in sample_locations:
-                place_lat, place_lng = loc["lat"], loc["lng"]
-                distance = geodesic((clicked_lat, clicked_lng), (place_lat, place_lng)).meters
-                if distance <= 2000:  # 2km 이내
-                    nearby_places.append((distance, loc["name"], place_lat, place_lng))
-            
-            nearby_places.sort(key=lambda x: x[0])
-            st.session_state.nearby_places = nearby_places
-    
-    # 주변 장소 표시 (지도 유형에 상관없이 동일하게 작동)
-    if st.session_state.clicked_location and st.session_state.nearby_places:
-        st.subheader("🔍 주변 장소 (2km 이내)")
-        if st.session_state.nearby_places:
-            for i, (dist, name, lat, lng) in enumerate(st.session_state.nearby_places):
-                cols = st.columns([0.1, 0.7, 0.2, 0.2])
-                cols[1].markdown(f"**{name}** - {dist:.1f}m")
+            # 검색 기능
+            search_term = st.text_input("장소 검색")
+            if search_term and hasattr(st.session_state, 'all_markers') and st.session_state.all_markers:
+                search_results = [m for m in st.session_state.all_markers 
+                                 if search_term.lower() in m['title'].lower()]
                 
-                # 장소 선택 버튼
-                if cols[2].button(f"선택 {i+1}", key=f"nearby_select_{i}"):
-                    if len(st.session_state.selected_recommendations) < 3:
-                        st.session_state.selected_recommendations.append((name, lat, lng))
-                    else:
-                        st.warning("최대 3개까지 선택할 수 있습니다.")
-                    st.rerun()
-                
-                # 방문 기록 추가 버튼
-                if cols[3].button(f"방문 🏁", key=f"visit_{i}"):
-                    if add_visit(st.session_state.username, name, lat, lng):
-                        st.success(f"'{name}' 방문 기록이 추가되었습니다!")
-                        # 1초 후 페이지 새로고침
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.info("이미 오늘 방문한 장소입니다.")
-        else:
-            st.info("주변 2km 이내에 장소가 없습니다.")
-    
-    if st.session_state.selected_recommendations:
-        st.subheader("✅ 선택된 추천 장소")
-        for i, (name, lat, lng) in enumerate(st.session_state.selected_recommendations):
-            cols = st.columns([0.05, 0.85, 0.1])
-            cols[1].write(f"{name} - ({lat:.5f}, {lng:.5f})")
-            if cols[2].button("❌", key=f"remove_{i}"):
-                st.session_state.selected_recommendations.pop(i)
-                st.rerun()
-
-    # Excel 파일 업로드 섹션 추가 (Google Maps API 테스트를 위한 데이터)
-    st.divider()
-    st.subheader("📊 엑셀 데이터 업로드")
-    
-    uploaded_file = st.file_uploader("서울시 위치 데이터 Excel 파일 업로드", type=["xlsx"])
-    if uploaded_file is not None:
-        try:
-            # 엑셀 파일 읽기
-            df = pd.read_excel(uploaded_file, engine='openpyxl')
-            
-            # 필요한 열 확인
-            required_cols = ['명칭(한국어)', 'X좌표', 'Y좌표']
-            if all(col in df.columns for col in required_cols):
-                # 데이터 미리보기
-                st.write("데이터 미리보기:")
-                st.dataframe(df[required_cols].head())
-                
-                # 유효한 좌표 데이터만 필터링
-                df = df.dropna(subset=['X좌표', 'Y좌표'])
-                valid_coords = (df['X좌표'] >= 124) & (df['X좌표'] <= 132) & (df['Y좌표'] >= 33) & (df['Y좌표'] <= 43)
-                df = df[valid_coords]
-                
-                if not df.empty:
-                    st.success(f"총 {len(df)}개의 유효한 위치 데이터를 찾았습니다.")
-                    
-                    # 지도에 표시하기 버튼
-                    if st.button("이 데이터를 지도에 표시하기"):
-                        # 데이터 형식 변환
-                        excel_locations = []
-                        for _, row in df.iterrows():
-                            excel_locations.append({
-                                "name": row['명칭(한국어)'],
-                                "lat": row['Y좌표'],
-                                "lng": row['X좌표']
-                            })
-                        
-                        # Google Maps인 경우 HTML 재생성
-                        if st.session_state.map_type == "google_maps" and st.session_state.google_maps_api_key:
-                            google_map_html = create_google_map_html(
-                                center_lat=center[0], 
-                                center_lng=center[1], 
-                                locations=excel_locations, 
-                                api_key=st.session_state.google_maps_api_key,
-                                language=st.session_state.language
-                            )
+                if search_results:
+                    st.markdown(f"### 🔍 검색 결과 ({len(search_results)}개)")
+                    for i, marker in enumerate(search_results[:5]):  # 상위 5개만
+                        with st.container():
+                            st.markdown(f"**{marker['title']}**")
+                            st.caption(f"분류: {marker.get('category', '기타')}")
                             
-                            # 지도 새로 표시
-                            st.subheader("🗺️ 업로드한 데이터 지도")
-                            st.components.v1.html(google_map_html, height=500, scrolling=False)
-                        
-                        # Folium인 경우 새 지도 생성
-                        else:
-                            excel_map = folium.Map(location=center, zoom_start=11)
+                            col1, col2 = st.columns([1,1])
+                            with col1:
+                                if st.button(f"길찾기", key=f"nav_{i}"):
+                                    st.session_state.navigation_active = True
+                                    st.session_state.navigation_destination = {
+                                        "name": marker['title'],
+                                        "lat": marker['lat'],
+                                        "lng": marker['lng']
+                                    }
+                                    st.rerun()
                             
-                            # 현재 위치 마커
-                            folium.Marker(
-                                center, 
-                                tooltip="📍 내 위치", 
-                                icon=folium.Icon(color="blue", icon="star")
-                            ).add_to(excel_map)
-                            
-                            # 엑셀 데이터 마커 추가
-                            for loc in excel_locations:
-                                folium.Marker(
-                                    location=[loc["lat"], loc["lng"]],
-                                    tooltip=loc["name"],
-                                    icon=folium.Icon(color="red"),  # 엑셀 데이터는 빨간색으로 구분
-                                    popup=folium.Popup(f"{loc['name']}<br>({loc['lat']:.5f}, {loc['lng']:.5f})", max_width=300)
-                                ).add_to(excel_map)
-                            
-                            # 지도 표시
-                            st.subheader("🗺️ 업로드한 데이터 지도")
-                            st_folium(excel_map, width=700, height=500, key="excel_map")
+                            with col2:
+                                if st.button(f"방문기록", key=f"visit_{i}"):
+                                    success, xp = add_visit(
+                                        st.session_state.username,
+                                        marker['title'],
+                                        marker['lat'],
+                                        marker['lng']
+                                    )
+                                    if success:
+                                        st.success(f"'{marker['title']}' 방문! +{xp} XP 획득!")
+                                        time.sleep(1)
+                                        st.rerun()
+                                    else:
+                                        st.info("이미 오늘 방문한 장소입니다.")
                 else:
-                    st.warning("유효한 좌표 데이터가 없습니다.")
+                    st.info(f"'{search_term}'에 대한 검색 결과가 없습니다.")
+            
+            # 카테고리별 통계
+            if hasattr(st.session_state, 'all_markers') and st.session_state.all_markers:
+                st.subheader("카테고리별 장소")
+                categories = {}
+                for m in st.session_state.all_markers:
+                    cat = m.get('category', '기타')
+                    if cat not in categories:
+                        categories[cat] = 0
+                    categories[cat] += 1
+                
+                for cat, count in categories.items():
+                    st.markdown(f"- **{cat}**: {count}개")
+    else:
+        # 내비게이션 모드 UI
+        destination = st.session_state.navigation_destination
+        if not destination:
+            st.error("목적지 정보가 없습니다.")
+            if st.button("지도로 돌아가기"):
+                st.session_state.navigation_active = False
+                st.rerun()
+        else:
+            st.subheader(f"🧭 {destination['name']}까지 내비게이션")
+            
+            # 목적지 정보 표시
+            dest_lat, dest_lng = destination["lat"], destination["lng"]
+            user_lat, user_lng = user_location
+            
+            # 직선 거리 계산
+            distance = geodesic((user_lat, user_lng), (dest_lat, dest_lng)).meters
+            
+            if not st.session_state.transport_mode:
+                st.markdown("### 이동 수단 선택")
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    walk_time = distance / 67  # 도보 속도 약 4km/h (67m/분)
+                    st.markdown("""
+                    <div class="card">
+                        <h3>🚶 도보</h3>
+                        <p>예상 소요 시간: {:.0f}분</p>
+                    </div>
+                    """.format(walk_time), unsafe_allow_html=True)
+                    
+                    if st.button("도보 선택", use_container_width=True):
+                        st.session_state.transport_mode = "walk"
+                        st.rerun()
+                
+                with col2:
+                    transit_time = distance / 200  # 대중교통 속도 약 12km/h (200m/분)
+                    st.markdown("""
+                    <div class="card">
+                        <h3>🚍 대중교통</h3>
+                        <p>예상 소요 시간: {:.0f}분</p>
+                    </div>
+                    """.format(transit_time), unsafe_allow_html=True)
+                    
+                    if st.button("대중교통 선택", use_container_width=True):
+                        st.session_state.transport_mode = "transit"
+                        st.rerun()
+                
+                with col3:
+                    car_time = distance / 500  # 자동차 속도 약 30km/h (500m/분)
+                    st.markdown("""
+                    <div class="card">
+                        <h3>🚗 자동차</h3>
+                        <p>예상 소요 시간: {:.0f}분</p>
+                    </div>
+                    """.format(car_time), unsafe_allow_html=True)
+                    
+                    if st.button("자동차 선택", use_container_width=True):
+                        st.session_state.transport_mode = "car"
+                        st.rerun()
+                
+                if st.button("← 지도로 돌아가기", use_container_width=True):
+                    st.session_state.navigation_active = False
+                    st.rerun()
+            
             else:
-                st.error("필요한 열(명칭(한국어), X좌표, Y좌표)이 엑셀 파일에 존재하지 않습니다.")
-        except Exception as e:
-            st.error(f"엑셀 파일 처리 중 오류가 발생했습니다: {str(e)}")
+                # 선택된 교통수단에 따른 내비게이션 표시
+                transport_mode = st.session_state.transport_mode
+                transport_icons = {
+                    "walk": "🚶",
+                    "transit": "🚍",
+                    "car": "🚗"
+                }
+                transport_names = {
+                    "walk": "도보",
+                    "transit": "대중교통",
+                    "car": "자동차"
+                }
+                
+                st.markdown(f"### {transport_icons[transport_mode]} {transport_names[transport_mode]} 경로")
+                
+                # 경로 데이터 준비 (두 지점 연결)
+                route = [
+                    {"lat": user_lat, "lng": user_lng},  # 출발지
+                    {"lat": dest_lat, "lng": dest_lng}   # 목적지
+                ]
+                
+                # 마커 데이터 준비
+                markers = [
+                    {
+                        'lat': user_lat, 
+                        'lng': user_lng, 
+                        'title': '내 위치', 
+                        'color': 'blue', 
+                        'info': '출발 지점',
+                        'category': '내 위치'
+                    },
+                    {
+                        'lat': dest_lat, 
+                        'lng': dest_lng, 
+                        'title': destination["name"], 
+                        'color': 'red', 
+                        'info': f'목적지: {destination["name"]}',
+                        'category': '목적지'
+                    }
+                ]
+                
+                # 내비게이션 UI
+                nav_col, info_col = st.columns([2, 1])
+                
+                with nav_col:
+                    # 지도에 출발지-목적지 경로 표시
+                    show_google_map(
+                        api_key=api_key,
+                        center_lat=(user_lat + dest_lat) / 2,  # 중간 지점
+                        center_lng=(user_lng + dest_lng) / 2,
+                        markers=markers,
+                        zoom=14,
+                        height=600,
+                        language=st.session_state.language
+                    )
+                
+                with info_col:
+                    # 경로 정보 표시
+                    st.markdown("### 경로 정보")
+                    st.markdown(f"**{destination['name']}까지**")
+                    st.markdown(f"- 거리: {distance:.0f}m")
+                    
+                    # 교통수단별 예상 시간
+                    if transport_mode == "walk":
+                        speed = 67  # m/min
+                        transport_desc = "도보"
+                    elif transport_mode == "transit":
+                        speed = 200  # m/min
+                        transport_desc = "대중교통"
+                    else:  # car
+                        speed = 500  # m/min
+                        transport_desc = "자동차"
+                    
+                    time_min = distance / speed
+                    st.markdown(f"- 예상 소요 시간: {time_min:.0f}분")
+                    st.markdown(f"- 이동 수단: {transport_desc}")
+                    
+                    # 턴바이턴 내비게이션 지시사항 (예시)
+                    st.markdown("### 경로 안내")
+                    directions = [
+                        "현재 위치에서 출발합니다",
+                        f"{distance*0.3:.0f}m 직진 후 오른쪽으로 턴",
+                        f"{distance*0.2:.0f}m 직진 후 왼쪽으로 턴",
+                        f"{distance*0.5:.0f}m 직진 후 목적지 도착"
+                    ]
+                    
+                    for i, direction in enumerate(directions):
+                        st.markdown(f"{i+1}. {direction}")
+                    
+                    # 다른 교통수단 선택 버튼
+                    st.markdown("### 다른 이동 수단")
+                    other_modes = {"walk": "도보", "transit": "대중교통", "car": "자동차"}
+                    other_modes.pop(transport_mode)  # 현재 모드 제거
+                    
+                    cols = st.columns(len(other_modes))
+                    for i, (mode, name) in enumerate(other_modes.items()):
+                        with cols[i]:
+                            if st.button(name):
+                                st.session_state.transport_mode = mode
+                                st.rerun()
+                    
+                    if st.button("내비게이션 종료", use_container_width=True):
+                        st.session_state.navigation_active = False
+                        st.session_state.transport_mode = None
+                        st.rerun()
 
-# -------------------------------
-# 방문 기록 페이지
-def history_page():
-    st.title("📝 나의 방문 기록")
+def show_course_page():
+    """관광 코스 추천 페이지 표시"""
+    page_header("서울 관광 코스 짜주기")
+    
+    # 뒤로가기 버튼
+    if st.button("← 메뉴로 돌아가기"):
+        change_page("menu")
+        st.rerun()
+    
+    # AI 추천 아이콘 및 소개
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image("https://i.imgur.com/8JfVh5H.png", width=80)
+    with col2:
+        st.markdown("### AI가 추천하는 맞춤 코스")
+        st.markdown("여행 일정과 취향을 입력하시면 최적의 관광 코스를 추천해 드립니다.")
+    
+    # 여행 정보 입력 섹션
+    st.markdown("---")
+    st.subheader("여행 정보 입력")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        start_date = st.date_input("여행 시작일")
+    
+    with col2:
+        end_date = st.date_input("여행 종료일", value=start_date)
+    
+    # 일수 계산
+    delta = (end_date - start_date).days + 1
+    st.caption(f"총 {delta}일 일정")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        num_people = st.number_input("여행 인원", min_value=1, max_value=10, value=2)
+    
+    with col2:
+        include_children = st.checkbox("아이 동반")
+    
+    # 여행 스타일 선택
+    st.markdown("### 여행 스타일")
+    travel_styles = ["활동적인", "휴양", "맛집", "쇼핑", "역사/문화", "자연"]
+    
+    # 3열로 버튼식 선택
+    cols = st.columns(3)
+    selected_styles = []
+    
+    for i, style in enumerate(travel_styles):
+        with cols[i % 3]:
+            if st.checkbox(style, key=f"style_{style}"):
+                selected_styles.append(style)
+    
+    # 코스 생성 버튼
+    st.markdown("---")
+    generate_course = st.button("코스 생성하기", type="primary", use_container_width=True)
+    
+    if generate_course:
+        if not selected_styles:
+            st.warning("최소 하나 이상의 여행 스타일을 선택해주세요.")
+        else:
+            with st.spinner("최적의 관광 코스를 생성 중입니다..."):
+                # 로딩 효과를 위한 딜레이
+                time.sleep(2)
+                
+                # 스타일에 따른 코스 추천
+                if "역사/문화" in selected_styles:
+                    course_type = "문화 코스"
+                elif "쇼핑" in selected_styles or "맛집" in selected_styles:
+                    course_type = "쇼핑 코스"
+                elif "휴양" in selected_styles or "자연" in selected_styles:
+                    course_type = "자연 코스"
+                else:
+                    course_type = "대중적 코스"
+                
+                # 현재 데이터 확인
+                if not hasattr(st.session_state, 'all_markers') or not st.session_state.all_markers:
+                    with st.spinner("관광지 데이터를 로드하는 중..."):
+                        all_markers = load_excel_files(st.session_state.language)
+                        if all_markers:
+                            st.session_state.all_markers = all_markers
+                        else:
+                            # 데이터가 없을 경우 기본 코스 사용
+                            all_markers = []
+                else:
+                    all_markers = st.session_state.all_markers
+                
+                # 기본 코스에서 추천
+                recommended_course = RECOMMENDATION_COURSES.get(course_type, [])
+                
+                # 충분한 데이터가 있으면 실제 마커 데이터 사용
+                if all_markers and len(all_markers) > 10:
+                    # 카테고리별 장소 필터링
+                    filtered_markers = []
+                    if "역사/문화" in selected_styles:
+                        filtered_markers.extend([m for m in all_markers if "역사" in m.get('category', '').lower() or "문화" in m.get('category', '').lower() or "미술관" in m.get('category', '').lower()])
+                    if "쇼핑" in selected_styles:
+                        filtered_markers.extend([m for m in all_markers if "쇼핑" in m.get('category', '').lower() or "기념품" in m.get('category', '').lower()])
+                    if "맛집" in selected_styles:
+                        filtered_markers.extend([m for m in all_markers if "음식" in m.get('category', '').lower() or "맛집" in m.get('category', '').lower()])
+                    if "자연" in selected_styles:
+                        filtered_markers.extend([m for m in all_markers if "자연" in m.get('category', '').lower() or "공원" in m.get('category', '').lower()])
+                    
+                    # 중복 제거
+                    seen = set()
+                    filtered_markers = [m for m in filtered_markers if not (m['title'] in seen or seen.add(m['title']))]
+                    
+                    # 장소가 충분하면 사용, 그렇지 않으면 기본 코스에 추가
+                    if filtered_markers and len(filtered_markers) >= delta * 3:
+                        random.shuffle(filtered_markers)
+                        recommended_course = []
+                        for i in range(min(delta * 3, len(filtered_markers))):
+                            recommended_course.append(filtered_markers[i]['title'])
+                    elif filtered_markers:
+                        # 기본 코스에 필터링된 장소 추가
+                        for m in filtered_markers[:5]:
+                            if m['title'] not in recommended_course:
+                                recommended_course.append(m['title'])
+                
+                st.success("코스 생성 완료!")
+                
+                # 코스 표시
+                st.markdown("## 추천 코스")
+                st.markdown(f"**{course_type}** - {delta}일 일정")
+                
+                # 코스 마커 및 정보 준비
+                course_markers = []
+                
+                # 일별 코스 표시
+                for day in range(1, min(delta+1, 4)):  # 최대 3일까지
+                    st.markdown(f"### Day {day}")
+                    
+                    # 일별 방문 장소 선택
+                    day_spots = []
+                    if day == 1:
+                        day_spots = recommended_course[:3]  # 첫날 3곳
+                    elif day == 2:
+                        day_spots = recommended_course[3:6] if len(recommended_course) > 3 else recommended_course[:3]
+                    else:  # 3일차 이상
+                        day_spots = recommended_course[6:9] if len(recommended_course) > 6 else recommended_course[:3]
+                    
+                    # 표시할 장소가 없으면 기본 추천
+                    if not day_spots:
+                        day_spots = ["경복궁", "남산서울타워", "명동"]
+                    
+                    timeline = st.columns(len(day_spots))
+                    
+                    for i, spot_name in enumerate(day_spots):
+                        # 장소 정보 찾기 (마커 데이터에서 또는 기본값 사용)
+                        spot_info = None
+                        if all_markers:
+                            spot_info = next((m for m in all_markers if m['title'] == spot_name), None)
+                        
+                        # 방문 시간대 설정
+                        time_slots = ["09:00-12:00", "13:00-16:00", "16:00-19:00"]
+                        time_slot = time_slots[i % 3]
+                        
+                        with timeline[i]:
+                            st.markdown(f"**{time_slot}**")
+                            st.markdown(f"**{spot_name}**")
+                            
+                            if spot_info:
+                                st.caption(f"분류: {spot_info.get('category', '관광지')}")
+                                
+                                # 경로에 추가
+                                course_markers.append(spot_info)
+                            else:
+                                st.caption("관광지")
+                
+                # 지도에 코스 표시
+                st.markdown("### 🗺️ 코스 지도")
+                
+                # 필요한 경우 API 키 확인
+                api_key = st.session_state.google_maps_api_key
+                if not api_key:
+                    st.error("Google Maps API 키가 설정되지 않았습니다.")
+                    api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
+                    if api_key:
+                        st.session_state.google_maps_api_key = api_key
+                
+                # 코스 마커 표시
+                if course_markers:
+                    # 지도 중심 좌표 계산 (마커들의 평균)
+                    center_lat = sum(m['lat'] for m in course_markers) / len(course_markers)
+                    center_lng = sum(m['lng'] for m in course_markers) / len(course_markers)
+                    
+                    # 지도 표시
+                    show_google_map(
+                        api_key=api_key,
+                        center_lat=center_lat,
+                        center_lng=center_lng,
+                        markers=course_markers,
+                        zoom=12,
+                        height=500,
+                        language=st.session_state.language
+                    )
+                else:
+                    # 실제 좌표 데이터가 없는 경우
+                    st.warning("코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다.")
+                
+                # 일정 저장 버튼
+                if st.button("이 코스 저장하기", use_container_width=True):
+                    if 'saved_courses' not in st.session_state:
+                        st.session_state.saved_courses = []
+                    
+                    st.session_state.saved_courses.append({
+                        "type": course_type,
+                        "days": delta,
+                        "places": recommended_course,
+                        "date": start_date.strftime("%Y-%m-%d")
+                    })
+                    
+                    st.success("코스가 저장되었습니다!")
+
+def show_history_page():
+    """관광 이력 페이지 표시"""
+    page_header("나의 관광 이력")
     
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
@@ -737,307 +1531,186 @@ def history_page():
     
     username = st.session_state.username
     
-    # 방문 기록 표시
+    # 사용자 레벨과 경험치 표시
+    user_xp = st.session_state.user_xp.get(username, 0)
+    user_level = calculate_level(user_xp)
+    xp_percentage = calculate_xp_percentage(user_xp)
+    
+    col1, col2, col3 = st.columns([1, 3, 1])
+    
+    with col1:
+        st.image("https://i.imgur.com/W3UVTgZ.png", width=100)  # 사용자 아이콘
+    
+    with col2:
+        st.markdown(f"## 레벨 {user_level}")
+        st.progress(xp_percentage / 100)
+        st.markdown(f"**총 경험치: {user_xp} XP** (다음 레벨까지 {XP_PER_LEVEL - (user_xp % XP_PER_LEVEL)} XP)")
+    
+    with col3:
+        st.write("")  # 빈 공간
+    
+    # 방문 통계
     if username in st.session_state.user_visits and st.session_state.user_visits[username]:
-        # 방문기록 지도로 보기
-        st.subheader("🗺️ 방문 기록 지도")
+        visits = st.session_state.user_visits[username]
         
-        # 사용자 위치 또는 서울 시청을 중심으로
-        user_location = get_user_location()
+        total_visits = len(visits)
+        unique_places = len(set([v['place_name'] for v in visits]))
+        total_xp = sum([v.get('xp_gained', 0) for v in visits])
         
-        # Google Maps와 Folium 중 선택
-        if st.session_state.map_type == "google_maps" and st.session_state.google_maps_api_key:
-            # 방문 장소 목록 생성
-            visit_locations = []
-            for visit in st.session_state.user_visits[username]:
-                visit_locations.append({
-                    "name": visit["place_name"],
-                    "lat": visit["latitude"],
-                    "lng": visit["longitude"],
-                    "visited": True
-                })
-            
-            # Google Maps HTML 생성
-            visit_map_html = create_google_map_html(
-                center_lat=user_location[0], 
-                center_lng=user_location[1], 
-                locations=visit_locations, 
-                api_key=st.session_state.google_maps_api_key,
-                language=st.session_state.language
-            )
-            
-            # 지도 표시
-            st.components.v1.html(visit_map_html, height=400, scrolling=False)
-        else:
-            # Folium 지도 생성
-            visit_map = folium.Map(location=user_location, zoom_start=12)
-            
-            # 현재 위치 마커
-            folium.Marker(
-                user_location, 
-                tooltip="📍 내 현재 위치", 
-                icon=folium.Icon(color="blue", icon="star")
-            ).add_to(visit_map)
-            
-            # 방문 장소 마커 추가
-            for idx, visit in enumerate(st.session_state.user_visits[username]):
-                popup_content = f"""
-                <b>{visit['place_name']}</b><br>
-                방문 일시: {visit['timestamp']}<br>
-                """
-                
-                if visit.get('rating'):
-                    stars = "⭐" * int(visit['rating'])
-                    popup_content += f"평점: {stars} ({visit['rating']})"
-                
-                # 마커 색상은 방문 순서에 따라 다양하게
-                colors = ["purple", "darkpurple", "cadetblue", "pink", "darkred", "darkblue"]
-                color_idx = idx % len(colors)
-                
-                folium.Marker(
-                    location=[visit["latitude"], visit["longitude"]],
-                    tooltip=f"{idx+1}. {visit['place_name']}",
-                    popup=folium.Popup(popup_content, max_width=300),
-                    icon=folium.Icon(color=colors[color_idx])
-                ).add_to(visit_map)
-            
-            # 지도 표시
-            st_folium(visit_map, width=700, height=400, key="history_map")
-        
-        # 목록으로 방문 기록 표시
-        st.subheader("📋 방문 기록 목록")
-        
-        # 정렬 옵션
-        sort_option = st.radio(
-            "정렬 방식",
-            ["최신순", "오래된순", "이름순"],
-            horizontal=True
-        )
-        
-        if sort_option == "최신순":
-            sorted_visits = sorted(st.session_state.user_visits[username], 
-                                  key=lambda x: x['timestamp'], reverse=True)
-        elif sort_option == "오래된순":
-            sorted_visits = sorted(st.session_state.user_visits[username], 
-                                  key=lambda x: x['timestamp'])
-        else:  # 이름순
-            sorted_visits = sorted(st.session_state.user_visits[username], 
-                                  key=lambda x: x['place_name'])
-        
-        for i, visit in enumerate(sorted_visits):
-            col1, col2 = st.columns([3, 1])
-            
-            with col1:
-                st.markdown(f"**{visit['place_name']}**")
-                st.markdown(f"방문 일시: {visit['timestamp']}")
-                
-                # 평점 입력 또는 표시
-                if 'rating' not in visit or visit['rating'] is None:
-                    new_rating = st.slider(f"평점 입력: {visit['place_name']}", 
-                                          min_value=1, max_value=5, value=3, 
-                                          key=f"rating_{i}")
-                    if st.button("평점 저장", key=f"save_rating_{i}"):
-                        visit['rating'] = new_rating
-                        st.success(f"{visit['place_name']}에 대한 평점이 저장되었습니다!")
-                        save_session_data()  # 평점 저장 시 데이터도 저장
-                        time.sleep(1)
-                        st.rerun()
-                else:
-                    st.markdown(f"⭐ 평점: {'⭐' * int(visit['rating'])} ({visit['rating']})")
-            
-            with col2:
-                # 삭제 버튼
-                if st.button("🗑️ 삭제", key=f"delete_visit_{i}"):
-                    st.session_state.user_visits[username].remove(visit)
-                    save_session_data()  # 삭제 시 데이터도 저장
-                    st.success("방문 기록이 삭제되었습니다.")
-                    time.sleep(1)
-                    st.rerun()
-            
-            st.divider()
-        
-        # 방문 통계
-        st.subheader("📊 방문 통계")
-        total_visits = len(st.session_state.user_visits[username])
-        unique_places = len(set([v['place_name'] for v in st.session_state.user_visits[username]]))
-        avg_rating = 0
-        rated_visits = [v for v in st.session_state.user_visits[username] if v.get('rating') is not None]
-        if rated_visits:
-            avg_rating = sum([v['rating'] for v in rated_visits]) / len(rated_visits)
+        st.markdown("---")
         
         col1, col2, col3 = st.columns(3)
-        col1.metric("총 방문 횟수", f"{total_visits}회")
-        col2.metric("방문한 장소 수", f"{unique_places}곳")
-        col3.metric("평균 평점", f"{avg_rating:.1f}/5")
         
-        # 데이터 내보내기
-        st.subheader("💾 데이터 내보내기")
+        with col1:
+            st.metric("총 방문 횟수", f"{total_visits}회")
         
-        # JSON 형식으로 데이터 변환
-        visit_data_json = json.dumps(st.session_state.user_visits[username], ensure_ascii=False, indent=2)
+        with col2:
+            st.metric("방문한 장소 수", f"{unique_places}곳")
         
-        st.download_button(
-            label="📥 방문 기록 다운로드 (JSON)",
-            data=visit_data_json,
-            file_name=f"{username}_visit_history.json",
-            mime="application/json"
-        )
+        with col3:
+            st.metric("획득한 경험치", f"{total_xp} XP")
         
+        # 방문 기록 목록 표시
+        st.markdown("---")
+        st.subheader("📝 방문 기록")
+        
+        # 정렬 옵션
+        tab1, tab2, tab3 = st.tabs(["전체", "최근순", "경험치순"])
+        
+        with tab1:
+            display_visits(visits)
+        
+        with tab2:
+            recent_visits = sorted(visits, key=lambda x: x['timestamp'], reverse=True)
+            display_visits(recent_visits)
+        
+        with tab3:
+            xp_visits = sorted(visits, key=lambda x: x.get('xp_gained', 0), reverse=True)
+            display_visits(xp_visits)
+        
+        # 방문한 장소를 지도에 표시
+        st.markdown("---")
+        st.subheader("🗺️ 방문 지도")
+        
+        # 필요한 경우 API 키 확인
+        api_key = st.session_state.google_maps_api_key
+        if not api_key:
+            st.error("Google Maps API 키가 설정되지 않았습니다.")
+            api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
+            if api_key:
+                st.session_state.google_maps_api_key = api_key
+        
+        # 방문 장소 마커 생성
+        visit_markers = []
+        for visit in visits:
+            marker = {
+                'lat': visit["latitude"],
+                'lng': visit["longitude"],
+                'title': visit["place_name"],
+                'color': 'purple',  # 방문한 장소는 보라색으로 표시
+                'info': f"방문일: {visit['date']}<br>획득 XP: +{visit.get('xp_gained', 0)}",
+                'category': '방문한 장소'
+            }
+            visit_markers.append(marker)
+        
+        if visit_markers:
+            # 지도 중심 좌표 계산 (마커들의 평균)
+            center_lat = sum(m['lat'] for m in visit_markers) / len(visit_markers)
+            center_lng = sum(m['lng'] for m in visit_markers) / len(visit_markers)
+            
+            # Google Maps 표시
+            show_google_map(
+                api_key=api_key,
+                center_lat=center_lat,
+                center_lng=center_lng,
+                markers=visit_markers,
+                zoom=12,
+                height=500,
+                language=st.session_state.language
+            )
+        else:
+            st.info("지도에 표시할 방문 기록이 없습니다.")
     else:
         st.info("아직 방문 기록이 없습니다. 지도에서 장소를 방문하면 여기에 기록됩니다.")
         
-        # 예시 데이터 보여주기
+        # 예시 데이터 생성 버튼
         if st.button("예시 데이터 생성"):
-            example_visits = [
-                {"place_name": "경복궁", "latitude": 37.5796, "longitude": 126.9770, "timestamp": "2023-10-15 14:30:00", "date": "2023-10-15", "rating": 5},
-                {"place_name": "남산타워", "latitude": 37.5511, "longitude": 126.9882, "timestamp": "2023-10-10 12:15:00", "date": "2023-10-10", "rating": 4},
-                {"place_name": "동대문 디자인 플라자", "latitude": 37.5669, "longitude": 127.0093, "timestamp": "2023-10-05 16:45:00", "date": "2023-10-05", "rating": 4.5}
+            # 샘플 방문 데이터
+            sample_visits = [
+                {
+                    "place_name": "경복궁",
+                    "latitude": 37.5796,
+                    "longitude": 126.9770,
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "xp_gained": 80
+                },
+                {
+                    "place_name": "남산서울타워",
+                    "latitude": 37.5511,
+                    "longitude": 126.9882,
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "xp_gained": 65
+                },
+                {
+                    "place_name": "명동",
+                    "latitude": 37.5635,
+                    "longitude": 126.9877,
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "xp_gained": 25
+                }
             ]
             
             if username not in st.session_state.user_visits:
                 st.session_state.user_visits[username] = []
-                
-            st.session_state.user_visits[username].extend(example_visits)
-            save_session_data()  # 예시 데이터 생성 시 저장
-            st.success("예시 방문 기록이 생성되었습니다!")
-            time.sleep(1)
+            
+            st.session_state.user_visits[username] = sample_visits
+            
+            # XP 부여
+            total_xp = sum([v['xp_gained'] for v in sample_visits])
+            if username not in st.session_state.user_xp:
+                st.session_state.user_xp[username] = 0
+            st.session_state.user_xp[username] += total_xp
+            
+            st.success(f"예시 데이터가 생성되었습니다! +{total_xp} XP 획득!")
             st.rerun()
 
-# -------------------------------
-# 설정 페이지
-def settings_page():
-    st.title("⚙️ 설정")
-    
-    # 뒤로가기 버튼
-    if st.button("← 메뉴로 돌아가기"):
-        change_page("menu")
-        st.rerun()
-    
-    # 언어 설정
-    st.subheader("언어 설정")
-    language = st.radio(
-        "선호하는 언어를 선택하세요",
-        ["한국어", "영어", "중국어"],
-        index=["한국어", "영어", "중국어"].index(st.session_state.language)
-    )
-    st.session_state.language = language
-    
-    # 지도 설정 (추가)
-    st.subheader("🗺️ 지도 설정")
-    map_type = st.radio(
-        "기본 지도 유형",
-        ["Folium (기본)", "Google Maps (API 키 필요)"],
-        index=0 if st.session_state.map_type == "folium" else 1
-    )
-    
-    if "google" in map_type.lower():
-        st.session_state.map_type = "google_maps"
-        
-        # Google Maps API 키 설정
-        current_api_key = st.session_state.google_maps_api_key
-        api_key = st.text_input(
-            "Google Maps API 키", 
-            value=current_api_key if current_api_key else "",
-            type="password",
-            help="Google Cloud Console에서 Maps JavaScript API 키를 생성하세요."
-        )
-        
-        if api_key != current_api_key:
-            st.session_state.google_maps_api_key = api_key
-            if api_key:
-                st.success("API 키가 저장되었습니다.")
-            else:
-                st.warning("API 키가 비어 있습니다. Google Maps 기능이 제한됩니다.")
-    else:
-        st.session_state.map_type = "folium"
-        st.info("Folium은 API 키 없이 사용할 수 있는 오픈소스 지도 라이브러리입니다.")
-    
-    # 데이터 관리
-    st.subheader("📊 데이터 관리")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if st.button("💾 모든 데이터 저장", help="현재 앱의 모든 사용자 및 방문 데이터를 저장합니다."):
-            if save_session_data():
-                st.success("데이터가 성공적으로 저장되었습니다!")
-            else:
-                st.error("데이터 저장 중 오류가 발생했습니다.")
-    
-    with col2:
-        if st.button("📤 데이터 불러오기", help="저장된 데이터를 불러옵니다."):
-            if load_session_data():
-                st.success("데이터를 성공적으로 불러왔습니다!")
-            else:
-                st.warning("저장된 데이터가 없거나 불러오기 중 오류가 발생했습니다.")
-    
-    # 알림 설정
-    st.subheader("🔔 알림 설정")
-    st.checkbox("이메일 알림 받기", value=True)
-    st.checkbox("푸시 알림 받기", value=False)
-    
-    # 계정 설정
-    st.subheader("👤 계정 설정")
-    if st.button("🔑 비밀번호 변경"):
-        old_pw = st.text_input("현재 비밀번호", type="password")
-        new_pw = st.text_input("새 비밀번호", type="password")
-        confirm_pw = st.text_input("비밀번호 확인", type="password")
-        
-        if st.button("비밀번호 변경 확인"):
-            username = st.session_state.username
-            if username in st.session_state.users and st.session_state.users[username] == old_pw:
-                if new_pw == confirm_pw:
-                    st.session_state.users[username] = new_pw
-                    st.success("비밀번호가 변경되었습니다!")
-                    save_session_data()  # 변경사항 저장
-                else:
-                    st.error("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.")
-            else:
-                st.error("현재 비밀번호가 일치하지 않습니다.")
-    
-    # 위험 영역
-    st.divider()
-    st.subheader("⚠️ 위험 영역", help="이 작업은 되돌릴 수 없습니다!")
-    
-    delete_visit_data = st.checkbox("내 방문 기록 삭제")
-    if delete_visit_data:
-        if st.button("방문 기록 전체 삭제", type="primary", help="모든 방문 기록을 영구적으로 삭제합니다."):
-            username = st.session_state.username
-            if username in st.session_state.user_visits:
-                st.session_state.user_visits[username] = []
-                st.success("모든 방문 기록이 삭제되었습니다.")
-                save_session_data()  # 변경사항 저장
-    
-    delete_account = st.checkbox("계정 삭제")
-    if delete_account:
-        if st.button("계정 영구 삭제", type="primary", help="계정과 모든 데이터를 영구적으로 삭제합니다."):
-            username = st.session_state.username
-            confirm_text = st.text_input("계정을 삭제하려면 '삭제 확인'을 입력하세요")
-            
-            if confirm_text == "삭제 확인":
-                if username in st.session_state.users:
-                    del st.session_state.users[username]
-                    if username in st.session_state.user_visits:
-                        del st.session_state.user_visits[username]
-                    st.session_state.logged_in = False
-                    st.session_state.username = ""
-                    save_session_data()  # 변경사항 저장
-                    st.success("계정이 삭제되었습니다.")
-                    change_page("login")
-                    time.sleep(2)
-                    st.rerun()
+#################################################
+# 메인 앱 로직
+#################################################
 
-# -------------------------------
-# 앱 실행 흐름 제어
-if st.session_state.logged_in:
-    if st.session_state.current_page == "menu":
-        menu_page()
+# 데이터 폴더 생성
+data_folder = Path("data")
+if not data_folder.exists():
+    data_folder.mkdir(parents=True, exist_ok=True)
+
+# CSS 스타일 적용
+apply_custom_css()
+
+# 세션 상태 초기화
+init_session_state()
+
+# 페이지 라우팅
+def main():
+    # 로그인 상태에 따른 페이지 제어
+    if not st.session_state.logged_in and st.session_state.current_page != "login":
+        st.session_state.current_page = "login"
+    
+    # 현재 페이지에 따라 해당 함수 호출
+    if st.session_state.current_page == "login":
+        show_login_page()
+    elif st.session_state.current_page == "menu":
+        show_menu_page()
     elif st.session_state.current_page == "map":
-        map_page()
+        show_map_page()
+    elif st.session_state.current_page == "course":
+        show_course_page()
     elif st.session_state.current_page == "history":
-        history_page()
-    elif st.session_state.current_page == "settings":
-        settings_page()
+        show_history_page()
     else:
-        menu_page()  # 기본적으로 메뉴 페이지 표시
-else:
-    login_page()  # 로그인하지 않은 경우 로그인 페이지 표시
+        show_menu_page()  # 기본값
+
+if __name__ == "__main__":
+    main()
