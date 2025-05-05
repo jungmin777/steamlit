@@ -29,6 +29,9 @@ if not data_folder.exists():
 else:
     st.success("데이터 폴더가 존재합니다.")
 
+data_folder = Path("data")
+path_string = str(data_folder)
+print(path_string)
 #################################################
 # 상수 및 설정 값
 #################################################
