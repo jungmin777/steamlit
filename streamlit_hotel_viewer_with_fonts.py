@@ -1716,7 +1716,7 @@ def main():
         
         data_folder = Path("data")
         path_string = str(data_folder)
-        print(path_string)
+        st.success(path_string)
         show_login_page()
     elif st.session_state.current_page == "menu":
         show_menu_page()
