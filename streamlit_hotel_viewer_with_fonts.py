@@ -866,58 +866,205 @@ def display_visits(visits):
 #################################################
 # 페이지 함수
 #################################################
-
 def show_login_page():
     """로그인 페이지 표시"""
+    # 언어 설정 초기화
+    if 'language' not in st.session_state:
+        st.session_state.language = "한국어"
+    
+    # 언어별 텍스트 사전
+    texts = {
+        "한국어": {
+            "app_title": "서울 관광앱",
+            "login_tab": "로그인",
+            "join_tab": "회원가입",
+            "login_title": "로그인",
+            "join_title": "회원가입",
+            "id_label": "아이디",
+            "pw_label": "비밀번호",
+            "pw_confirm_label": "비밀번호 확인",
+            "remember_id": "아이디 저장",
+            "login_button": "로그인",
+            "join_button": "가입하기",
+            "login_success": "🎉 로그인 성공!",
+            "login_failed": "❌ 아이디 또는 비밀번호가 올바르지 않습니다.",
+            "input_required": "아이디와 비밀번호를 입력해주세요.",
+            "pw_mismatch": "비밀번호와 비밀번호 확인이 일치하지 않습니다.",
+            "join_success": "✅ 회원가입 완료!",
+            "user_exists": "⚠️ 이미 존재하는 아이디입니다.",
+            "new_id": "새 아이디",
+            "new_pw": "새 비밀번호"
+        },
+        "영어": {
+            "app_title": "Seoul Tourism App",
+            "login_tab": "Login",
+            "join_tab": "Join",
+            "login_title": "Login",
+            "join_title": "Join",
+            "id_label": "ID",
+            "pw_label": "Password",
+            "pw_confirm_label": "Confirm Password",
+            "remember_id": "Remember ID",
+            "login_button": "Login",
+            "join_button": "Join",
+            "login_success": "🎉 Login successful!",
+            "login_failed": "❌ ID or password is incorrect.",
+            "input_required": "Please enter ID and password.",
+            "pw_mismatch": "Passwords do not match.",
+            "join_success": "✅ Registration completed!",
+            "user_exists": "⚠️ ID already exists.",
+            "new_id": "New ID",
+            "new_pw": "New Password"
+        },
+        "중국어": {
+            "app_title": "首尔观光应用",
+            "login_tab": "登录",
+            "join_tab": "注册",
+            "login_title": "登录",
+            "join_title": "注册",
+            "id_label": "账号",
+            "pw_label": "密码",
+            "pw_confirm_label": "确认密码",
+            "remember_id": "记住账号",
+            "login_button": "登录",
+            "join_button": "注册",
+            "login_success": "🎉 登录成功！",
+            "login_failed": "❌ 账号或密码不正确。",
+            "input_required": "请输入账号和密码。",
+            "pw_mismatch": "两次输入的密码不一致。",
+            "join_success": "✅ 注册完成！",
+            "user_exists": "⚠️ 此账号已存在。",
+            "new_id": "新账号",
+            "new_pw": "新密码"
+        }
+    }
+    
+    # 현재 선택된 언어에 따른 텍스트 가져오기
+    current_lang_texts = texts[st.session_state.language]
+    
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        page_header("서울 관광앱")
-#       st.image("https://github.com/veterians/seoul-tourism-app/blob/main/asset/SeoulTripView.png", width=300)
+        page_header(current_lang_texts["app_title"])
+        
+        # 언어 선택 드롭다운
+        language_options = {
+            "🇰🇷 한국어": "한국어",
+            "🇺🇸 English": "영어",
+            "🇨🇳 中文": "중국어"
+        }
+        selected_lang = st.selectbox(
+            "Language / 언어 / 语言",
+            options=list(language_options.keys()),
+            index=list(language_options.values()).index(st.session_state.language),
+            key="language_selector"
+        )
+        
+        # 언어 변경 시 session_state 업데이트
+        if language_options[selected_lang] != st.session_state.language:
+            st.session_state.language = language_options[selected_lang]
+            st.rerun()  # 언어 변경 후 페이지 새로고침
+        
+        # 메인 이미지
         main_image_path = Path("asset") / "SeoulTripView.png"
         st.image(main_image_path, width=300)
         
-        tab1, tab2 = st.tabs(["로그인", "회원가입"])
-
+        # 로그인/회원가입 탭
+        tab1, tab2 = st.tabs([current_lang_texts["login_tab"], current_lang_texts["join_tab"]])
+        
         with tab1:
-            st.markdown("### 로그인")
-            username = st.text_input("아이디", key="login_username")
-            password = st.text_input("비밀번호", type="password", key="login_password")
+            st.markdown(f"### {current_lang_texts['login_title']}")
+            username = st.text_input(current_lang_texts["id_label"], key="login_username")
+            password = st.text_input(current_lang_texts["pw_label"], type="password", key="login_password")
+            
             col1, col2 = st.columns([1,1])
             with col1:
-                remember = st.checkbox("아이디 저장")
+                remember = st.checkbox(current_lang_texts["remember_id"])
             with col2:
                 st.markdown("")  # 빈 공간
             
-            if st.button("로그인", use_container_width=True):
+            if st.button(current_lang_texts["login_button"], use_container_width=True):
                 if authenticate_user(username, password):
-                    st.success("🎉 로그인 성공!")
+                    st.success(current_lang_texts["login_success"])
                     st.session_state.logged_in = True
                     st.session_state.username = username
                     change_page("menu")
                     st.rerun()
                 else:
-                    st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
-
+                    st.error(current_lang_texts["login_failed"])
+        
         with tab2:
-            st.markdown("### 회원가입")
-            new_user = st.text_input("새 아이디", key="register_username")
-            new_pw = st.text_input("새 비밀번호", type="password", key="register_password")
-            new_pw_confirm = st.text_input("비밀번호 확인", type="password", key="register_password_confirm")
+            st.markdown(f"### {current_lang_texts['join_title']}")
+            new_user = st.text_input(current_lang_texts["new_id"], key="register_username")
+            new_pw = st.text_input(current_lang_texts["new_pw"], type="password", key="register_password")
+            new_pw_confirm = st.text_input(current_lang_texts["pw_confirm_label"], type="password", key="register_password_confirm")
             
-            if st.button("회원가입", use_container_width=True):
+            if st.button(current_lang_texts["join_button"], use_container_width=True):
                 if not new_user or not new_pw:
-                    st.error("아이디와 비밀번호를 입력해주세요.")
+                    st.error(current_lang_texts["input_required"])
                 elif new_pw != new_pw_confirm:
-                    st.error("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+                    st.error(current_lang_texts["pw_mismatch"])
                 elif register_user(new_user, new_pw):
-                    st.success("✅ 회원가입 완료!")
+                    st.success(current_lang_texts["join_success"])
                     st.session_state.logged_in = True
                     st.session_state.username = new_user
                     change_page("menu")
                     st.rerun()
                 else:
-                    st.warning("⚠️ 이미 존재하는 아이디입니다.")
+                    st.warning(current_lang_texts["user_exists"])
+
+
+# def show_login_page():
+#     """로그인 페이지 표시"""
+#     col1, col2, col3 = st.columns([1, 2, 1])
+    
+#     with col2:
+#         page_header("서울 관광앱")
+# #       st.image("https://github.com/veterians/seoul-tourism-app/blob/main/asset/SeoulTripView.png", width=300)
+#         main_image_path = Path("asset") / "SeoulTripView.png"
+#         st.image(main_image_path, width=300)
+        
+#         tab1, tab2 = st.tabs(["Login", "Join"])
+
+#         with tab1:
+#             st.markdown("### Login")
+#             username = st.text_input("ID", key="login_username")
+#             password = st.text_input("PW", type="password", key="login_password")
+#             col1, col2 = st.columns([1,1])
+#             with col1:
+#                 remember = st.checkbox("아이디 저장")
+#             with col2:
+#                 st.markdown("")  # 빈 공간
+            
+#             if st.button("Login", use_container_width=True):
+#                 if authenticate_user(username, password):
+#                     st.success("🎉 로그인 성공!")
+#                     st.session_state.logged_in = True
+#                     st.session_state.username = username
+#                     change_page("menu")
+#                     st.rerun()
+#                 else:
+#                     st.error("❌ 아이디 또는 비밀번호가 올바르지 않습니다.")
+
+#         with tab2:
+#             st.markdown("### Join")
+#             new_user = st.text_input("새 아이디", key="register_username")
+#             new_pw = st.text_input("새 비밀번호", type="password", key="register_password")
+#             new_pw_confirm = st.text_input("비밀번호 확인", type="password", key="register_password_confirm")
+            
+#             if st.button("Join", use_container_width=True):
+#                 if not new_user or not new_pw:
+#                     st.error("아이디와 비밀번호를 입력해주세요.")
+#                 elif new_pw != new_pw_confirm:
+#                     st.error("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+#                 elif register_user(new_user, new_pw):
+#                     st.success("✅ 회원가입 완료!")
+#                     st.session_state.logged_in = True
+#                     st.session_state.username = new_user
+#                     change_page("menu")
+#                     st.rerun()
+#                 else:
+#                     st.warning("⚠️ 이미 존재하는 아이디입니다.")
 
 def show_menu_page():
     """메인 메뉴 페이지 표시"""
