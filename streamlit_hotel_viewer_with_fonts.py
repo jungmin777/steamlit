@@ -17,21 +17,7 @@ st.set_page_config(
 )
 
 
-current_directory = os.getcwd()
-print("현재 작업 디렉토리:", current_directory)
 
-data_folder = Path("data")
-
-st.write(f"Data folder path: {data_folder.resolve()}")  # 실제 경로 확인
-
-if not data_folder.exists():
-    st.warning("데이터 폴더가 존재하지 않습니다.")
-else:
-    st.success("데이터 폴더가 존재합니다.")
-
-data_folder = Path("data")
-path_string = str(data_folder)
-print(path_string)
 #################################################
 # 상수 및 설정 값
 #################################################
@@ -1716,6 +1702,21 @@ def main():
     
     # 현재 페이지에 따라 해당 함수 호출
     if st.session_state.current_page == "login":
+        current_directory = os.getcwd()
+        print("현재 작업 디렉토리:", current_directory)
+        
+        data_folder = Path("data")
+        
+        st.write(f"Data folder path: {data_folder.resolve()}")  # 실제 경로 확인
+        
+        if not data_folder.exists():
+            st.warning("데이터 폴더가 존재하지 않습니다.")
+        else:
+            st.success("데이터 폴더가 존재합니다.")
+        
+        data_folder = Path("data")
+        path_string = str(data_folder)
+        print(path_string)
         show_login_page()
     elif st.session_state.current_page == "menu":
         show_menu_page()
