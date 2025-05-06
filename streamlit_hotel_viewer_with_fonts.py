@@ -470,10 +470,29 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     if markers is None:
         markers = []
     
+    # 카테고리별 마커 색상 정의 (원본 코드에서는 외부에서 가져오는 것으로 보임)
+    CATEGORY_COLORS = {
+        "관광지": "red",
+        "식당": "blue", 
+        "카페": "green",
+        "쇼핑": "purple",
+        "숙소": "orange",
+        "기타": "yellow"
+    }
+    
     # 카테고리별 마커 그룹화
     categories = {}
     for marker in markers:
-        category = marker.get('category', '기타')
+        # AttrDict 객체를 처리하기 위해 get 대신 dict 처럼 접근할 경우를 위한 예외 처리
+        try:
+            category = marker.get('category', '기타')
+        except AttributeError:
+            # get 메서드가 없는 경우 직접 접근 시도
+            try:
+                category = marker['category'] if 'category' in marker else '기타'
+            except:
+                category = '기타'
+        
         if category not in categories:
             categories[category] = []
         categories[category].append(marker)
@@ -482,8 +501,8 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     legend_items = []
     for category, color in CATEGORY_COLORS.items():
         # 해당 카테고리의 마커가 있는 경우만 표시
-        if any(m.get('category') == category for m in markers):
-            count = sum(1 for m in markers if m.get('category') == category)
+        if any(get_marker_category(m) == category for m in markers):
+            count = sum(1 for m in markers if get_marker_category(m) == category)
             legend_html_item = '<div class="legend-item"><img src="http://maps.google.com/mapfiles/ms/icons/'
             legend_html_item += color 
             legend_html_item += '-dot.png" alt="'
@@ -500,10 +519,28 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     # 마커 JavaScript 코드 생성
     markers_js = ""
     for i, marker in enumerate(markers):
-        color = marker.get('color', 'red')
-        title = marker.get('title', '').replace("'", "\\\'").replace('"', '\\\"')
-        info = marker.get('info', '').replace("'", "\\\'").replace('"', '\\\"')
-        category = marker.get('category', '').replace("'", "\\\'").replace('"', '\\\"')
+        # 안전하게 값을 가져오는 함수를 사용
+        color = get_marker_value(marker, 'color', 'red')
+        title = str(get_marker_value(marker, 'title', '')).replace("'", "\\\'").replace('"', '\\\"')
+        info = str(get_marker_value(marker, 'info', '')).replace("'", "\\\'").replace('"', '\\\"')
+        category = str(get_marker_value(marker, 'category', '기타')).replace("'", "\\\'").replace('"', '\\\"')
+        
+        # 위도, 경도 값 안전하게 가져오기
+        try:
+            lat = float(marker['lat']) if 'lat' in marker else 0
+        except (TypeError, ValueError):
+            try:
+                lat = float(marker.get('lat', 0))
+            except:
+                lat = 0
+        
+        try:
+            lng = float(marker['lng']) if 'lng' in marker else 0
+        except (TypeError, ValueError): 
+            try:
+                lng = float(marker.get('lng', 0))
+            except:
+                lng = 0
         
         # 마커 아이콘 URL
         icon_url = "http://maps.google.com/mapfiles/ms/icons/" + color + "-dot.png"
@@ -564,7 +601,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         
         # format 메서드로 동적 값 채우기
         curr_marker_js = marker_js_template.format(
-            i, marker['lat'], marker['lng'], title, icon_url, category, info_content
+            i, lat, lng, title, icon_url, category, info_content
         )
         
         markers_js += curr_marker_js
@@ -817,6 +854,29 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     """
     
     return html
+
+# 마커 객체에서 카테고리 안전하게 가져오기
+def get_marker_category(marker):
+    try:
+        return marker.get('category', '기타')
+    except AttributeError:
+        try:
+            return marker['category'] if 'category' in marker else '기타'
+        except:
+            return '기타'
+
+# 마커 객체에서 값 안전하게 가져오기
+def get_marker_value(marker, key, default_value):
+    try:
+        # .get 메서드 시도
+        return marker.get(key, default_value)
+    except AttributeError:
+        # 딕셔너리 접근 시도
+        try:
+            return marker[key] if key in marker else default_value
+        except:
+            # 모든 경우 실패시 기본값 반환
+            return default_value
     
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어"):
     """Google Maps 컴포넌트 표시"""
