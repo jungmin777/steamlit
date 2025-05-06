@@ -466,11 +466,40 @@ def process_dataframe(df, category, language="한국어"):
     return markers
 
 def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko"):
-    """Google Maps HTML 생성"""
+    """
+    Google Maps HTML 생성 - AttrDict 객체와 안전하게 작동하도록 수정
+    모든 입력값을 적절한 타입으로 변환하고 예외 처리를 추가함
+    """
     if markers is None:
         markers = []
     
-    # 카테고리별 마커 색상 정의 (원본 코드에서는 외부에서 가져오는 것으로 보임)
+    # 안전하게 파라미터 변환
+    try:
+        api_key = str(api_key)
+    except:
+        api_key = ""
+    
+    try:
+        center_lat = float(center_lat)
+    except:
+        center_lat = 37.566535  # 서울시청 기본값
+    
+    try:
+        center_lng = float(center_lng)
+    except:
+        center_lng = 126.9779692  # 서울시청 기본값
+    
+    try:
+        zoom = int(zoom)
+    except:
+        zoom = 13  # 기본 줌 레벨
+    
+    try:
+        language = str(language)
+    except:
+        language = "ko"  # 기본 언어
+    
+    # 카테고리별 마커 색상 정의
     CATEGORY_COLORS = {
         "관광지": "red",
         "식당": "blue", 
@@ -483,15 +512,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     # 카테고리별 마커 그룹화
     categories = {}
     for marker in markers:
-        # AttrDict 객체를 처리하기 위해 get 대신 dict 처럼 접근할 경우를 위한 예외 처리
-        try:
-            category = marker.get('category', '기타')
-        except AttributeError:
-            # get 메서드가 없는 경우 직접 접근 시도
-            try:
-                category = marker['category'] if 'category' in marker else '기타'
-            except:
-                category = '기타'
+        category = safe_get_value(marker, 'category', '기타')
         
         if category not in categories:
             categories[category] = []
@@ -501,110 +522,100 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     legend_items = []
     for category, color in CATEGORY_COLORS.items():
         # 해당 카테고리의 마커가 있는 경우만 표시
-        if any(get_marker_category(m) == category for m in markers):
-            count = sum(1 for m in markers if get_marker_category(m) == category)
-            legend_html_item = '<div class="legend-item"><img src="http://maps.google.com/mapfiles/ms/icons/'
-            legend_html_item += color 
-            legend_html_item += '-dot.png" alt="'
-            legend_html_item += category 
-            legend_html_item += '"> '
-            legend_html_item += category
-            legend_html_item += ' ('
-            legend_html_item += str(count)
-            legend_html_item += ')</div>'
-            legend_items.append(legend_html_item)
+        try:
+            has_category = any(safe_get_value(m, 'category', '기타') == category for m in markers)
+            if has_category:
+                count = sum(1 for m in markers if safe_get_value(m, 'category', '기타') == category)
+                legend_html_item = f'<div class="legend-item"><img src="http://maps.google.com/mapfiles/ms/icons/{color}-dot.png" alt="{category}"> {category} ({count})</div>'
+                legend_items.append(legend_html_item)
+        except Exception as e:
+            # 범례 생성 중 오류 발생시 스킵
+            continue
     
     legend_html = "".join(legend_items)
     
     # 마커 JavaScript 코드 생성
     markers_js = ""
     for i, marker in enumerate(markers):
-        # 안전하게 값을 가져오는 함수를 사용
-        color = get_marker_value(marker, 'color', 'red')
-        title = str(get_marker_value(marker, 'title', '')).replace("'", "\\\'").replace('"', '\\\"')
-        info = str(get_marker_value(marker, 'info', '')).replace("'", "\\\'").replace('"', '\\\"')
-        category = str(get_marker_value(marker, 'category', '기타')).replace("'", "\\\'").replace('"', '\\\"')
-        
-        # 위도, 경도 값 안전하게 가져오기
         try:
-            lat = float(marker['lat']) if 'lat' in marker else 0
-        except (TypeError, ValueError):
+            # 안전하게 값을 가져오기
+            color = safe_get_value(marker, 'color', CATEGORY_COLORS.get(safe_get_value(marker, 'category', '기타'), 'red'))
+            title = str(safe_get_value(marker, 'title', '')).replace("'", "\\\'").replace('"', '\\\"')
+            info = str(safe_get_value(marker, 'info', '')).replace("'", "\\\'").replace('"', '\\\"')
+            category = str(safe_get_value(marker, 'category', '기타')).replace("'", "\\\'").replace('"', '\\\"')
+            
+            # 위도, 경도 값 안전하게 가져오기
             try:
-                lat = float(marker.get('lat', 0))
+                lat = float(safe_get_value(marker, 'lat', center_lat))
             except:
-                lat = 0
-        
-        try:
-            lng = float(marker['lng']) if 'lng' in marker else 0
-        except (TypeError, ValueError): 
+                lat = center_lat
+            
             try:
-                lng = float(marker.get('lng', 0))
+                lng = float(safe_get_value(marker, 'lng', center_lng))
             except:
-                lng = 0
-        
-        # 마커 아이콘 URL
-        icon_url = "http://maps.google.com/mapfiles/ms/icons/" + color + "-dot.png"
-        
-        # 정보창 HTML 내용
-        info_content = """
-            <div style="padding: 10px; max-width: 300px;">
-                <h3 style="margin-top: 0; color: #1976D2;">{0}</h3>
-                <p><strong>분류:</strong> {1}</p>
-                <div>{2}</div>
-            </div>
-        """.format(title, category, info).replace("'", "\\\\'").replace("\n", "")
-        
-        # 마커 생성 코드
-        marker_js_template = """
-            var marker{0} = new google.maps.Marker({{
-                position: {{ lat: {1}, lng: {2} }},
-                map: map,
-                title: '{3}',
-                icon: '{4}',
-                animation: google.maps.Animation.DROP
-            }});
+                lng = center_lng
             
-            markers.push(marker{0});
-            markerCategories.push('{5}');
+            # 마커 아이콘 URL
+            icon_url = f"http://maps.google.com/mapfiles/ms/icons/{color}-dot.png"
             
-            var infowindow{0} = new google.maps.InfoWindow({{
-                content: '{6}'
-            }});
+            # 정보창 HTML 내용
+            info_content = f"""
+                <div style="padding: 10px; max-width: 300px;">
+                    <h3 style="margin-top: 0; color: #1976D2;">{title}</h3>
+                    <p><strong>분류:</strong> {category}</p>
+                    <div>{info}</div>
+                </div>
+            """.replace("'", "\\\\'").replace("\n", "")
             
-            marker{0}.addListener('click', function() {{
-                closeAllInfoWindows();
-                infowindow{0}.open(map, marker{0});
+            # 마커 생성 코드
+            marker_js = f"""
+                var marker{i} = new google.maps.Marker({{
+                    position: {{ lat: {lat}, lng: {lng} }},
+                    map: map,
+                    title: '{title}',
+                    icon: '{icon_url}',
+                    animation: google.maps.Animation.DROP
+                }});
                 
-                // 마커 바운스 애니메이션
-                if (currentMarker) currentMarker.setAnimation(null);
-                marker{0}.setAnimation(google.maps.Animation.BOUNCE);
-                currentMarker = marker{0};
+                markers.push(marker{i});
+                markerCategories.push('{category}');
                 
-                // 애니메이션 종료
-                setTimeout(function() {{
-                    marker{0}.setAnimation(null);
-                }}, 1500);
+                var infowindow{i} = new google.maps.InfoWindow({{
+                    content: '{info_content}'
+                }});
                 
-                // 부모 창에 마커 클릭 이벤트 전달
-                window.parent.postMessage({{
-                    'type': 'marker_click',
-                    'id': {0},
-                    'title': '{3}',
-                    'lat': {1},
-                    'lng': {2},
-                    'category': '{5}'
-                }}, '*');
-            }});
+                marker{i}.addListener('click', function() {{
+                    closeAllInfoWindows();
+                    infowindow{i}.open(map, marker{i});
+                    
+                    // 마커 바운스 애니메이션
+                    if (currentMarker) currentMarker.setAnimation(null);
+                    marker{i}.setAnimation(google.maps.Animation.BOUNCE);
+                    currentMarker = marker{i};
+                    
+                    // 애니메이션 종료
+                    setTimeout(function() {{
+                        marker{i}.setAnimation(null);
+                    }}, 1500);
+                    
+                    // 부모 창에 마커 클릭 이벤트 전달
+                    window.parent.postMessage({{
+                        'type': 'marker_click',
+                        'id': {i},
+                        'title': '{title}',
+                        'lat': {lat},
+                        'lng': {lng},
+                        'category': '{category}'
+                    }}, '*');
+                }});
+                
+                infoWindows.push(infowindow{i});
+            """
             
-            infoWindows.push(infowindow{0});
-        """
-        
-        # format 메서드로 동적 값 채우기
-        curr_marker_js = marker_js_template.format(
-            i, lat, lng, title, icon_url, category, info_content
-        )
-        
-        markers_js += curr_marker_js
+            markers_js += marker_js
+        except Exception as e:
+            # 마커 처리 중 오류 발생시 해당 마커 스킵
+            continue
     
     # 필터링 함수
     filter_js = """
@@ -635,32 +646,39 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         });
     """
     
-    # 필터 버튼 HTML 생성
+    # 필터 버튼 HTML 생성 - f-string으로 변경
     filter_buttons = '<button id="filter-all" class="filter-button active" onclick="filterMarkers(\'all\')">전체 보기</button>'
-    for cat in categories.keys():
-        filter_buttons += ' <button id="filter-' + cat + '" class="filter-button" onclick="filterMarkers(\'' + cat + '\')">' + cat + '</button>'
     
-    # 전체 HTML 코드 생성 - 문자열 결합으로 f-string 대신 사용
-    html = """
+    # 안전하게 카테고리 키에 접근
+    try:
+        for cat in categories.keys():
+            cat_str = str(cat).replace("'", "\\'")
+            filter_buttons += f' <button id="filter-{cat_str}" class="filter-button" onclick="filterMarkers(\'{cat_str}\')">{cat_str}</button>'
+    except Exception as e:
+        # 필터 버튼 생성 오류시 전체 보기만 남김
+        pass
+    
+    # 전체 HTML 코드 생성 - 문자열 결합 대신 f-string 사용
+    html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>서울 관광 지도</title>
         <meta charset="utf-8">
         <style>
-            #map {
+            #map {{
                 height: 100%;
                 width: 100%;
                 margin: 0;
                 padding: 0;
-            }
-            html, body {
+            }}
+            html, body {{
                 height: 100%;
                 margin: 0;
                 padding: 0;
                 font-family: 'Noto Sans KR', Arial, sans-serif;
-            }
-            .map-controls {
+            }}
+            .map-controls {{
                 position: absolute;
                 top: 10px;
                 left: 10px;
@@ -672,23 +690,23 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 max-width: 90%;
                 overflow-x: auto;
                 white-space: nowrap;
-            }
-            .filter-button {
+            }}
+            .filter-button {{
                 margin: 5px;
                 padding: 5px 10px;
                 background-color: #f8f9fa;
                 border: 1px solid #dadce0;
                 border-radius: 4px;
                 cursor: pointer;
-            }
-            .filter-button:hover {
+            }}
+            .filter-button:hover {{
                 background-color: #e8eaed;
-            }
-            .filter-button.active {
+            }}
+            .filter-button.active {{
                 background-color: #1976D2;
                 color: white;
-            }
-            #legend {
+            }}
+            #legend {{
                 font-family: 'Noto Sans KR', Arial, sans-serif;
                 background-color: white;
                 border: 1px solid #ccc;
@@ -700,18 +718,18 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 position: absolute;
                 right: 10px;
                 z-index: 5;
-            }
-            .legend-item {
+            }}
+            .legend-item {{
                 margin-bottom: 5px;
                 display: flex;
                 align-items: center;
-            }
-            .legend-item img {
+            }}
+            .legend-item img {{
                 width: 20px;
                 height: 20px;
                 margin-right: 5px;
-            }
-            .custom-control {
+            }}
+            .custom-control {{
                 background-color: #fff;
                 border: 0;
                 border-radius: 2px;
@@ -722,7 +740,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 overflow: hidden;
                 height: 40px;
                 cursor: pointer;
-            }
+            }}
         </style>
         <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
     </head>
@@ -732,13 +750,13 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <!-- 카테고리 필터 -->
         <div class="map-controls" id="category-filter">
             <div style="margin-bottom: 8px; font-weight: bold;">카테고리 필터</div>
-            """ + filter_buttons + """
+            {filter_buttons}
         </div>
         
         <!-- 지도 범례 -->
         <div id="legend">
             <div style="font-weight: bold; margin-bottom: 8px;">지도 범례</div>
-            """ + legend_html + """
+            {legend_html}
         </div>
         
         <script>
@@ -750,70 +768,70 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             var currentMarker = null;
             
             // 모든 정보창 닫기
-            function closeAllInfoWindows() {
-                for (var i = 0; i < infoWindows.length; i++) {
+            function closeAllInfoWindows() {{
+                for (var i = 0; i < infoWindows.length; i++) {{
                     infoWindows[i].close();
-                }
-            }
+                }}
+            }}
             
-            function initMap() {
+            function initMap() {{
                 // 지도 생성
-                map = new google.maps.Map(document.getElementById('map'), {
-                    center: { lat: """ + str(center_lat) + """, lng: """ + str(center_lng) + """ },
-                    zoom: """ + str(zoom) + """,
+                map = new google.maps.Map(document.getElementById('map'), {{
+                    center: {{ lat: {center_lat}, lng: {center_lng} }},
+                    zoom: {zoom},
                     fullscreenControl: true,
                     mapTypeControl: true,
                     streetViewControl: true,
                     zoomControl: true,
                     mapTypeId: 'roadmap'
-                });
+                }});
                 
                 // 현재 위치 버튼 추가
                 const locationButton = document.createElement("button");
                 locationButton.textContent = "📍 내 위치";
                 locationButton.classList.add("custom-control");
-                locationButton.addEventListener("click", () => {
-                    if (navigator.geolocation) {
+                locationButton.addEventListener("click", () => {{
+                    if (navigator.geolocation) {{
                         navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                const pos = {
+                            (position) => {{
+                                const pos = {{
                                     lat: position.coords.latitude,
                                     lng: position.coords.longitude,
-                                };
+                                }};
                                 
                                 // 부모 창에 현재 위치 전달
-                                window.parent.postMessage({
+                                window.parent.postMessage({{
                                     'type': 'current_location',
                                     'lat': pos.lat,
                                     'lng': pos.lng
-                                }, '*');
+                                }}, '*');
                                 
                                 map.setCenter(pos);
                                 map.setZoom(15);
                                 
                                 // 현재 위치 마커 추가
-                                new google.maps.Marker({
+                                new google.maps.Marker({{
                                     position: pos,
                                     map: map,
                                     title: '내 위치',
-                                    icon: {
+                                    icon: {{
                                         path: google.maps.SymbolPath.CIRCLE,
                                         fillColor: '#4285F4',
                                         fillOpacity: 1,
                                         strokeColor: '#FFFFFF',
                                         strokeWeight: 2,
                                         scale: 8
-                                    }
-                                });
-                            },
-                            () => {
+                                    }}
+                                }});
+                            }},
+                            () => {{
                                 alert("위치 정보를 가져오는데 실패했습니다.");
-                            }
+                            }}
                         );
-                    } else {
+                    }} else {{
                         alert("이 브라우저에서는 위치 정보 기능을 지원하지 않습니다.");
-                    }
-                });
+                    }}
+                }});
                 
                 map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
                 
@@ -823,16 +841,16 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 );
                 
                 // 마커 추가
-                """ + markers_js + """
+                {markers_js}
                 
                 // 마커 클러스터링
-                """ + clustering_js + """
+                {clustering_js}
                 
                 // 필터링 함수
-                """ + filter_js + """
+                {filter_js}
                 
                 // 지도 클릭 이벤트
-                map.addListener('click', function(event) {
+                map.addListener('click', function(event) {{
                     // 열린 정보창 닫기
                     closeAllInfoWindows();
                     
@@ -840,42 +858,41 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                     if (currentMarker) currentMarker.setAnimation(null);
                     
                     // 클릭 이벤트 데이터 전달
-                    window.parent.postMessage({
+                    window.parent.postMessage({{
                         'type': 'map_click',
                         'lat': event.latLng.lat(),
                         'lng': event.latLng.lng()
-                    }, '*');
-                });
-            }
+                    }}, '*');
+                }});
+            }}
         </script>
-        <script src="https://maps.googleapis.com/maps/api/js?key=""" + api_key + """&callback=initMap&language=""" + language + """" async defer></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&language={language}" async defer></script>
     </body>
     </html>
     """
     
     return html
 
-# 마커 객체에서 카테고리 안전하게 가져오기
-def get_marker_category(marker):
+def safe_get_value(obj, key, default_value):
+    """어떤 형태의 객체에서도 안전하게 값을 가져오는 함수"""
+    # None 체크
+    if obj is None:
+        return default_value
+    
+    # 먼저 딕셔너리처럼 접근
     try:
-        return marker.get('category', '기타')
-    except AttributeError:
+        # get 메서드 사용 시도
         try:
-            return marker['category'] if 'category' in marker else '기타'
-        except:
-            return '기타'
-
-# 마커 객체에서 값 안전하게 가져오기
-def get_marker_value(marker, key, default_value):
-    try:
-        # .get 메서드 시도
-        return marker.get(key, default_value)
-    except AttributeError:
-        # 딕셔너리 접근 시도
+            return obj.get(key, default_value)
+        except AttributeError:
+            # get이 없으면 인덱스로 접근 시도
+            return obj[key] if key in obj else default_value
+    except:
+        # 딕셔너리 접근 실패시 속성으로 접근 시도
         try:
-            return marker[key] if key in marker else default_value
+            return getattr(obj, key, default_value)
         except:
-            # 모든 경우 실패시 기본값 반환
+            # 모든 접근 방식 실패시 기본값 반환
             return default_value
     
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어"):
