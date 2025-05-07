@@ -1695,6 +1695,7 @@ def show_menu_page():
     ##############################
     
     st.warning(st.session_state.language)
+    st.warning(st.session_state.texts)
     """메인 메뉴 페이지 표시"""
     # 언어 설정에 따른 텍스트 가져오기
     # current_lang_texts = st.session_state.texts[st.session_state.language]
