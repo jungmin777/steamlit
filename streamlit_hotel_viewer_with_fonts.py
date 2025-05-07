@@ -440,7 +440,7 @@ def load_excel_files(language="한국어"):
     if not all_markers:
         st.error("모든 파일에서 유효한 마커를 찾을 수 없습니다.")
     else:
-        #st.success(f"총 {len(all_markers)}개의 마커를 성공적으로 로드했습니다.")
+        st.success(f"총 {len(all_markers)}개의 마커를 성공적으로 로드했습니다.")
     
     return all_markers
 
