@@ -1184,13 +1184,13 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 panel: document.getElementById("panel"),
               }});
             
-              directionsRenderer.addListener("directions_changed", () => {
+              directionsRenderer.addListener("directions_changed", () => {{
                 const directions = directionsRenderer.getDirections();
             
-                if (directions) {
+                if (directions) {{
                   computeTotalDistance(directions);
-                }
-              });
+                }}
+              }});
               displayRoute(
                 "Perth, WA",
                 "Sydney, NSW",
