@@ -567,7 +567,7 @@ def process_dataframe(df, category, language="한국어"):
             valid_df = df[valid_coords]
             
             if not valid_df.empty:
-                #st.success(f"좌표 변환 성공! 유효한 좌표 {len(valid_df)}개 발견")
+                st.success(f"좌표 변환 성공! 유효한 좌표 {len(valid_df)}개 발견")
             else:
                 st.error("좌표 변환 실패! 유효한 한국 영역 좌표를 찾을 수 없습니다.")
                 return []
