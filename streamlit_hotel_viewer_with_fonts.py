@@ -4,6 +4,7 @@ import pandas as pd
 
 # Streamlit secrets에서 API 키를 가져옵니다.
 gmaps_api_key = st.secrets["google_maps_api_key"]
+st.warning(gmaps_api_key)
 
 # Google Maps 클라이언트를 초기화합니다.
 gmaps = googlemaps.Client(key=gmaps_api_key)
@@ -15,19 +16,25 @@ locations = [
     {"lat": 37.4979, "lng": 127.0276},  # 강남역
 ]
 
-# 출발지는 사용자 위치로 가정합니다.
-origin = "서울, 대한민국"  # 사용자의 현재 위치를 동적으로 가져올 수 있다면 더 좋습니다.
+# 출발지 (임시 서울 중심부 위도, 경도)
+origin_lat = 37.55
+origin_lng = 126.98
+origin = f"{origin_lat},{origin_lng}"
 
-# 장소들의 위도, 경도를 스트링으로 변환합니다.
+# 경유지 (원하는 방문 순서대로)
 waypoints = [f"{loc['lat']},{loc['lng']}" for loc in locations]
+
+# 첫 번째 장소를 목적지로 설정하고, 나머지 장소를 경유지로 설정
+destination = waypoints[0]
+intermediate_waypoints = waypoints[1:]
 
 # Directions API를 호출하여 경로를 계산합니다.
 directions_result = gmaps.directions(
     origin,
-    locations[0],  # 첫 번째 장소를 목적지로 설정
-    waypoints=waypoints[1:],  # 나머지 장소들을 경유지로 설정
-    optimize_waypoints=True,  # 경유지 순서 최적화
-    mode="driving",  # 이동 수단 설정 (운전)
+    destination,
+    waypoints=intermediate_waypoints,
+    optimize_waypoints=False,  # 순서 최적화 비활성화
+    mode="driving",
 )
 
 if directions_result:
