@@ -1479,7 +1479,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         </script>
         
         <!-- Google Maps JavaScript API 로드 -->
-        <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap&libraries=places" async defer></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSDLDyZseqxDhWl1StYnORBrKN1Kv9Ns&callback=initMap&libraries=places" async defer></script>
     </body>
     </html>
     """
