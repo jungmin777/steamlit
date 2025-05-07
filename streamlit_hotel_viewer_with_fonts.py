@@ -1211,19 +1211,19 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                   travelMode: google.maps.TravelMode.DRIVING,
                   avoidTolls: true,
                 }})
-                .then((result) => {
+                .then((result) => {{
                   display.setDirections(result);
-                })
-                .catch((e) => {
+                }})
+                .catch((e) => {{
                   alert("Could not display directions due to: " + e);
-                });
+                }});
             }}
             
             function computeTotalDistance(result) {{
               let total = 0;
               const myroute = result.routes[0];
             
-              if (!myroute) {
+              if (!myroute) {{
                 return;
               }}
             
