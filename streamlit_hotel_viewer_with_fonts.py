@@ -1706,7 +1706,7 @@ def show_menu_page():
     lang = "ko"
     if st.session_state.language == "영어":
         lang = "en"
-    elif st.session_state.language == "중국어"
+    elif st.session_state.language == "중국어":
         lang = "zh"
     display_user_level_info(lang)
     
