@@ -391,7 +391,7 @@ def load_excel_files(language="한국어"):
     excel_files = list(data_folder.glob("*.xlsx"))
     
     if not excel_files:
-        st.error("Excel 파일을 찾을 수 없습니다. GitHub 저장소의 파일을 확인해주세요.")
+        #st.error("Excel 파일을 찾을 수 없습니다. GitHub 저장소의 파일을 확인해주세요.")
         st.info("확인할 경로: asset/*.xlsx")
         return []
     
@@ -453,22 +453,22 @@ def process_dataframe(df, category, language="한국어"):
     y_candidates = [col for col in df.columns if ('y' in col.lower() or 'Y' in col) and '좌표' in col]
     
     # 중국어 좌표 열 처리
-    if not x_candidates:
-        x_candidates = [col for col in df.columns if 'X坐标' in col or 'x坐标' in col]
-    if not y_candidates:
-        y_candidates = [col for col in df.columns if 'Y坐标' in col or 'y坐标' in col]
+    # if not x_candidates:
+    #     x_candidates = [col for col in df.columns if 'X坐标' in col or 'x坐标' in col]
+    # if not y_candidates:
+    #     y_candidates = [col for col in df.columns if 'Y坐标' in col or 'y坐标' in col]
     
     # 단순 X, Y 열 확인
-    if not x_candidates:
-        x_candidates = [col for col in df.columns if col.upper() == 'X' or col.lower() == 'x']
-    if not y_candidates:
-        y_candidates = [col for col in df.columns if col.upper() == 'Y' or col.lower() == 'y']
+    # if not x_candidates:
+    #     x_candidates = [col for col in df.columns if col.upper() == 'X' or col.lower() == 'x']
+    # if not y_candidates:
+    #     y_candidates = [col for col in df.columns if col.upper() == 'Y' or col.lower() == 'y']
     
     # 경도/위도 열 확인
-    if not x_candidates:
-        x_candidates = [col for col in df.columns if '경도' in col or 'longitude' in col.lower() or 'lon' in col.lower()]
-    if not y_candidates:
-        y_candidates = [col for col in df.columns if '위도' in col or 'latitude' in col.lower() or 'lat' in col.lower()]
+    # if not x_candidates:
+    #     x_candidates = [col for col in df.columns if '경도' in col or 'longitude' in col.lower() or 'lon' in col.lower()]
+    # if not y_candidates:
+    #     y_candidates = [col for col in df.columns if '위도' in col or 'latitude' in col.lower() or 'lat' in col.lower()]
     
     # X, Y 좌표 열 선택
     x_col = x_candidates[0] if x_candidates else None
@@ -501,12 +501,12 @@ def process_dataframe(df, category, language="한국어"):
                     st.info(f"Y좌표(위도)로 '{col}' 열을 자동 감지했습니다. 범위: {col_min:.2f}~{col_max:.2f}")
     
     # 3. 좌표 열을 여전히 못 찾은 경우 마지막 시도: 단순히 마지막 두 개의 숫자 열 사용
-    if not x_col or not y_col:
-        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-        if len(numeric_cols) >= 2:
-            x_col = numeric_cols[-2]  # 뒤에서 두 번째 숫자 열
-            y_col = numeric_cols[-1]  # 마지막 숫자 열
-            st.warning(f"좌표 추정: X좌표='{x_col}', Y좌표='{y_col}' (마지막 두 숫자 열)")
+    # if not x_col or not y_col:
+    #     numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+    #     if len(numeric_cols) >= 2:
+    #         x_col = numeric_cols[-2]  # 뒤에서 두 번째 숫자 열
+    #         y_col = numeric_cols[-1]  # 마지막 숫자 열
+    #         st.warning(f"좌표 추정: X좌표='{x_col}', Y좌표='{y_col}' (마지막 두 숫자 열)")
     
     # 4. 여전히 좌표 열을 찾지 못한 경우
     if not x_col or not y_col:
@@ -521,12 +521,12 @@ def process_dataframe(df, category, language="한국어"):
     df = df.dropna(subset=[x_col, y_col])
     
     # 문자열을 숫자로 변환
-    try:
-        df[x_col] = pd.to_numeric(df[x_col], errors='coerce')
-        df[y_col] = pd.to_numeric(df[y_col], errors='coerce')
-        df = df.dropna(subset=[x_col, y_col])  # 변환 후 NaN이 된 값 제거
-    except Exception as e:
-        st.warning(f"좌표 변환 오류: {str(e)}")
+    # try:
+    #     df[x_col] = pd.to_numeric(df[x_col], errors='coerce')
+    #     df[y_col] = pd.to_numeric(df[y_col], errors='coerce')
+    #     df = df.dropna(subset=[x_col, y_col])  # 변환 후 NaN이 된 값 제거
+    # except Exception as e:
+    #     st.warning(f"좌표 변환 오류: {str(e)}")
     
     # 0 값 제거
     df = df[(df[x_col] != 0) & (df[y_col] != 0)]
@@ -536,18 +536,18 @@ def process_dataframe(df, category, language="한국어"):
     valid_coords = (df[x_col] >= 124) & (df[x_col] <= 132) & (df[y_col] >= 33) & (df[y_col] <= 43)
     
     # X,Y가 바뀐 경우 체크 (Y가 경도, X가 위도인 경우)
-    swapped_coords = (df[y_col] >= 124) & (df[y_col] <= 132) & (df[x_col] >= 33) & (df[x_col] <= 43)
+  #  swapped_coords = (df[y_col] >= 124) & (df[y_col] <= 132) & (df[x_col] >= 33) & (df[x_col] <= 43)
     
     # X,Y가 바뀐 경우 자동 교정
-    if swapped_coords.sum() > valid_coords.sum():
-        st.warning(f"'{category}' 데이터의 X,Y 좌표가 바뀐 것으로 보입니다. 자동으로 교정합니다.")
-        df['temp_x'] = df[x_col].copy()
-        df[x_col] = df[y_col]
-        df[y_col] = df['temp_x']
-        df = df.drop('temp_x', axis=1)
+    # if swapped_coords.sum() > valid_coords.sum():
+    #     st.warning(f"'{category}' 데이터의 X,Y 좌표가 바뀐 것으로 보입니다. 자동으로 교정합니다.")
+    #     df['temp_x'] = df[x_col].copy()
+    #     df[x_col] = df[y_col]
+    #     df[y_col] = df['temp_x']
+    #     df = df.drop('temp_x', axis=1)
         
         # 다시 유효성 검증
-        valid_coords = (df[x_col] >= 124) & (df[x_col] <= 132) & (df[y_col] >= 33) & (df[y_col] <= 43)
+   #     valid_coords = (df[x_col] >= 124) & (df[x_col] <= 132) & (df[y_col] >= 33) & (df[y_col] <= 43)
     
     # 유효한 좌표만 필터링
     valid_df = df[valid_coords]
@@ -692,23 +692,23 @@ def build_info_html(row, name, address, category):
     if address:
         info += f"<p><strong>주소:</strong> {address}</p>"
     
-    # 전화번호 정보
-    for tel_col in ['전화번호', 'TELNO', '연락처', '전화', 'TEL', 'CONTACT']:
-        if tel_col in row and pd.notna(row[tel_col]):
-            info += f"<p><strong>전화:</strong> {row[tel_col]}</p>"
-            break
+    # # 전화번호 정보
+    # for tel_col in ['전화번호', 'TELNO', '연락처', '전화', 'TEL', 'CONTACT']:
+    #     if tel_col in row and pd.notna(row[tel_col]):
+    #         info += f"<p><strong>전화:</strong> {row[tel_col]}</p>"
+    #         break
     
-    # 운영시간 정보
-    for time_col in ['이용시간', '운영시간', 'OPENHOUR', 'HOUR', '영업시간', '개장시간']:
-        if time_col in row and pd.notna(row[time_col]):
-            info += f"<p><strong>운영시간:</strong> {row[time_col]}</p>"
-            break
+    # # 운영시간 정보
+    # for time_col in ['이용시간', '운영시간', 'OPENHOUR', 'HOUR', '영업시간', '개장시간']:
+    #     if time_col in row and pd.notna(row[time_col]):
+    #         info += f"<p><strong>운영시간:</strong> {row[time_col]}</p>"
+    #         break
     
-    # 입장료 정보
-    for fee_col in ['입장료', '이용요금', 'FEE', '요금', '비용']:
-        if fee_col in row and pd.notna(row[fee_col]):
-            info += f"<p><strong>입장료:</strong> {row[fee_col]}</p>"
-            break
+    # # 입장료 정보
+    # for fee_col in ['입장료', '이용요금', 'FEE', '요금', '비용']:
+    #     if fee_col in row and pd.notna(row[fee_col]):
+    #         info += f"<p><strong>입장료:</strong> {row[fee_col]}</p>"
+    #         break
     
     info += "</div>"
     return info
@@ -1613,39 +1613,149 @@ def show_login_page():
                     st.warning(current_lang_texts["user_exists"])
 
 def show_menu_page():
+    ##############################
+    # 언어별 페이지 설정
+    ##############################
+    # 언어별 텍스트 사전에 메뉴 페이지 관련 항목 추가
+    texts = {
+        "한국어": {
+            "app_title": "서울 관광앱",
+            "login_tab": "로그인",
+            "join_tab": "회원가입",
+            "login_title": "로그인",
+            "join_title": "회원가입",
+            "id_label": "아이디",
+            "pw_label": "비밀번호",
+            "pw_confirm_label": "비밀번호 확인",
+            "remember_id": "아이디 저장",
+            "login_button": "로그인",
+            "join_button": "가입하기",
+            "login_success": "🎉 로그인 성공!",
+            "login_failed": "❌ 아이디 또는 비밀번호가 올바르지 않습니다.",
+            "input_required": "아이디와 비밀번호를 입력해주세요.",
+            "pw_mismatch": "비밀번호와 비밀번호 확인이 일치하지 않습니다.",
+            "join_success": "✅ 회원가입 완료!",
+            "user_exists": "⚠️ 이미 존재하는 아이디입니다.",
+            "new_id": "새 아이디",
+            "new_pw": "새 비밀번호",
+            "welcome_msg": "{username}님, 환영합니다!",
+            "select_menu": "메뉴를 선택해주세요",
+            "map_title": "🗺️ 관광 장소 지도",
+            "map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
+            "view_map_button": "관광 장소 지도 보기",
+            "course_title": "🗓️ 서울 관광 코스 짜주기",
+            "course_description": "AI가 당신의 취향에 맞는 최적의 관광 코스를 추천해드립니다.",
+            "create_course_button": "관광 코스 짜기",
+            "history_title": "📝 나의 관광 이력",
+            "history_description": "방문한 장소들의 기록과 획득한 경험치를 확인하세요.",
+            "view_history_button": "관광 이력 보기",
+            "logout_button": "🔓 로그아웃"
+        },
+        "영어": {
+            "app_title": "Seoul Tourism App",
+            "login_tab": "Login",
+            "join_tab": "Join",
+            "login_title": "Login",
+            "join_title": "Join",
+            "id_label": "ID",
+            "pw_label": "Password",
+            "pw_confirm_label": "Confirm Password",
+            "remember_id": "Remember ID",
+            "login_button": "Login",
+            "join_button": "Join",
+            "login_success": "🎉 Login successful!",
+            "login_failed": "❌ ID or password is incorrect.",
+            "input_required": "Please enter ID and password.",
+            "pw_mismatch": "Passwords do not match.",
+            "join_success": "✅ Registration completed!",
+            "user_exists": "⚠️ ID already exists.",
+            "new_id": "New ID",
+            "new_pw": "New Password",
+            "welcome_msg": "👋 Welcome, {username}!",
+            "select_menu": "Please select a menu",
+            "map_title": "🗺️ Tourist Attractions Map",
+            "map_description": "Find Seoul's major attractions on the map and navigate to them.",
+            "view_map_button": "View Tourist Map",
+            "course_title": "🗓️ Seoul Tour Course Planner",
+            "course_description": "AI will recommend the optimal tour course tailored to your preferences.",
+            "create_course_button": "Create Tour Course",
+            "history_title": "📝 My Tour History",
+            "history_description": "Check your visited places and earned experience points.",
+            "view_history_button": "View Tour History",
+            "logout_button": "🔓 Logout"
+        },
+        "중국어": {
+            "app_title": "首尔观光应用",
+            "login_tab": "登录",
+            "join_tab": "注册",
+            "login_title": "登录",
+            "join_title": "注册",
+            "id_label": "账号",
+            "pw_label": "密码",
+            "pw_confirm_label": "确认密码",
+            "remember_id": "记住账号",
+            "login_button": "登录",
+            "join_button": "注册",
+            "login_success": "🎉 登录成功！",
+            "login_failed": "❌ 账号或密码不正确。",
+            "input_required": "请输入账号和密码。",
+            "pw_mismatch": "两次输入的密码不一致。",
+            "join_success": "✅ 注册完成！",
+            "user_exists": "⚠️ 此账号已存在。",
+            "new_id": "新账号",
+            "new_pw": "新密码",
+            "welcome_msg": "👋 欢迎，{username}！",
+            "select_menu": "请选择菜单",
+            "map_title": "🗺️ 观光景点地图",
+            "map_description": "在地图上查找首尔的主要景点并导航到这些地点。",
+            "view_map_button": "查看观光地图",
+            "course_title": "🗓️ 首尔观光路线规划",
+            "course_description": "AI将根据您的喜好推荐最佳观光路线。",
+            "create_course_button": "创建观光路线",
+            "history_title": "📝 我的观光历史",
+            "history_description": "查看您访问过的地点和获得的经验值。",
+            "view_history_button": "查看观光历史",
+            "logout_button": "🔓 登出"
+        }
+    }
+    
+    
     """메인 메뉴 페이지 표시"""
-    page_header("서울 관광앱")
-    st.markdown(f"### 👋 {st.session_state.username}님, 환영합니다!")
+    # 언어 설정에 따른 텍스트 가져오기
+    current_lang_texts = texts[st.session_state.language]
+    
+    page_header(current_lang_texts["app_title"])
+    st.markdown(f"### 👋 {current_lang_texts['welcome_msg'].format(username=st.session_state.username)}")
     
     # 사용자 레벨 및 경험치 정보 표시
     display_user_level_info()
     
     st.markdown("---")
-    st.markdown("### 메뉴를 선택해주세요")
+    st.markdown(f"### {current_lang_texts['select_menu']}")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-            <h3>🗺️ 관광 장소 지도</h3>
-            <p>서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.</p>
+            <h3>{current_lang_texts['map_title']}</h3>
+            <p>{current_lang_texts['map_description']}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("관광 장소 지도 보기", key="map_button", use_container_width=True):
+        if st.button(current_lang_texts['view_map_button'], key="map_button", use_container_width=True):
             change_page("map")
             st.rerun()
     
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-            <h3>🗓️ 서울 관광 코스 짜주기</h3>
-            <p>AI가 당신의 취향에 맞는 최적의 관광 코스를 추천해드립니다.</p>
+            <h3>{current_lang_texts['course_title']}</h3>
+            <p>{current_lang_texts['course_description']}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("관광 코스 짜기", key="course_button", use_container_width=True):
+        if st.button(current_lang_texts['create_course_button'], key="course_button", use_container_width=True):
             change_page("course")
             st.rerun()
     
@@ -1654,20 +1764,20 @@ def show_menu_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
-            <h3>📝 나의 관광 이력</h3>
-            <p>방문한 장소들의 기록과 획득한 경험치를 확인하세요.</p>
+            <h3>{current_lang_texts['history_title']}</h3>
+            <p>{current_lang_texts['history_description']}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("관광 이력 보기", key="history_button", use_container_width=True):
+        if st.button(current_lang_texts['view_history_button'], key="history_button", use_container_width=True):
             change_page("history")
             st.rerun()
             
     # 로그아웃 버튼
     st.markdown("---")
-    if st.button("🔓 로그아웃", key="logout_button"):
+    if st.button(current_lang_texts['logout_button'], key="logout_button"):
         logout_user()
         st.rerun()
 
