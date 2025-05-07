@@ -231,7 +231,6 @@ def init_session_state():
         # secrets.toml에서 가져오기 시도
         try:
             st.session_state.google_maps_api_key = st.secrets["google_maps_api_key"]
-            st.success(st.session_state.google_maps_api_key)
         except:
             st.session_state.google_maps_api_key = ""
     
