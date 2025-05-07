@@ -799,24 +799,6 @@ def build_info_html(row, name, address, category):
     if address:
         info += f"<p><strong>주소:</strong> {address}</p>"
     
-    # # 전화번호 정보
-    # for tel_col in ['전화번호', 'TELNO', '연락처', '전화', 'TEL', 'CONTACT']:
-    #     if tel_col in row and pd.notna(row[tel_col]):
-    #         info += f"<p><strong>전화:</strong> {row[tel_col]}</p>"
-    #         break
-    
-    # # 운영시간 정보
-    # for time_col in ['이용시간', '운영시간', 'OPENHOUR', 'HOUR', '영업시간', '개장시간']:
-    #     if time_col in row and pd.notna(row[time_col]):
-    #         info += f"<p><strong>운영시간:</strong> {row[time_col]}</p>"
-    #         break
-    
-    # # 입장료 정보
-    # for fee_col in ['입장료', '이용요금', 'FEE', '요금', '비용']:
-    #     if fee_col in row and pd.notna(row[fee_col]):
-    #         info += f"<p><strong>입장료:</strong> {row[fee_col]}</p>"
-    #         break
-    
     info += "</div>"
     return info
     
@@ -1593,7 +1575,66 @@ def show_login_page():
             "join_success": "✅ 회원가입 완료!",
             "user_exists": "⚠️ 이미 존재하는 아이디입니다.",
             "new_id": "새 아이디",
-            "new_pw": "새 비밀번호"
+            "new_pw": "새 비밀번호",
+            "welcome_msg": "👋 {username}님, 환영합니다!",
+            "select_menu": "원하는 메뉴를 선택하세요",
+            "map_title": "🗺️ 서울 관광 장소 지도",
+            "map_description": "서울의 주요 관광 명소를 지도에서 확인하고 길을 찾으세요.",
+            "view_map_button": "관광 지도 보기",
+            "course_title": "🗓️ 서울 여행 코스 추천",
+            "course_description": "AI가 당신의 취향에 맞는 최적의 여행 코스를 추천해 드립니다.",
+            "create_course_button": "여행 코스 만들기",
+            "history_title": "📝 나의 여행 기록",
+            "history_description": "방문했던 장소와 획득한 경험치를 확인하세요.",
+            "view_history_button": "여행 기록 보기",
+            "logout_button": "🔓 로그아웃",
+            "map_back_to_menu": "← 메뉴로 돌아가기",
+            "map_api_key_not_set": "Google Maps API 키가 설정되지 않았습니다.",
+            "map_enter_api_key": "Google Maps API 키를 입력하세요",
+            "map_api_key_set_success": "API 키가 설정되었습니다. 지도를 로드합니다.",
+            "map_api_key_required_info": "Google Maps를 사용하려면 API 키가 필요합니다.",
+            "language": "🌏 언어",
+            "map_loading_data": "서울 관광 데이터를 로드하는 중...",
+            "map_load_complete": "총 {num_markers}개의 관광지 로드 완료!",
+            "map_load_failed": "관광지 데이터를 로드할 수 없습니다.",
+            "map_my_location": "내 위치",
+            "map_current_location": "현재 위치",
+            "map_current_location_category": "현재 위치",
+            "map_markers_displayed": "지도에 {num_markers}개의 장소를 표시했습니다.",
+            "map_place_info": "장소 정보",
+            "map_search_place": "장소 검색",
+            "map_search_results": "검색 결과",
+            "map_find_directions": "길찾기",
+            "map_visit_history": "방문기록",
+            "map_visited": "방문",
+            "map_xp_earned": "획득",
+            "map_already_visited_today": "이미 오늘 방문한 장소입니다.",
+            "map_no_search_results": "'{search_term}'에 대한 검색 결과가 없습니다.",
+            "map_places_by_category": "카테고리별 장소",
+            "map_category": "분류",
+            "map_other_category": "기타",
+            "map_no_destination_info": "목적지 정보가 없습니다.",
+            "map_back_to_map": "지도로 돌아가기",
+            "map_navigation_to": "까지 내비게이션",
+            "map_select_transport": "이동 수단 선택",
+            "map_walking": "도보",
+            "map_estimated_time": "예상 소요 시간",
+            "map_minute": "분",
+            "map_select_walk": "도보 선택",
+            "map_transit": "대중교통",
+            "map_select_transit": "대중교통 선택",
+            "map_driving": "자동차",
+            "map_select_drive": "자동차 선택",
+            "map_route": "경로",
+            "map_distance": "거리",
+            "map_transport": "이동 수단",
+            "map_route_guide": "경로 안내",
+            "map_departure": "현재 위치에서 출발합니다",
+            "map_straight_and_turn_right": "{distance:.0f}m 직진 후 오른쪽으로 턴",
+            "map_straight_and_turn_left": "{distance:.0f}m 직진 후 왼쪽으로 턴",
+            "map_arrive_at_destination": "{distance:.0f}m 직진 후 목적지 도착",
+            "map_other_transport_modes": "다른 이동 수단",
+            "map_end_navigation": "내비게이션 종료"
         },
         "영어": {
             "app_title": "Seoul Tourism App",
@@ -1617,7 +1658,7 @@ def show_login_page():
             "new_pw": "New Password",
             "welcome_msg": "👋 Welcome, {username}!",
             "select_menu": "Please select a menu",
-            "map_title": "🗺️ Tourist Attractions Map",
+            "map_title": "🗺️ Seoul Tourist Attractions Map",
             "map_description": "Find Seoul's major attractions on the map and navigate to them.",
             "view_map_button": "View Tourist Map",
             "course_title": "🗓️ Seoul Tour Course Planner",
@@ -1626,7 +1667,54 @@ def show_login_page():
             "history_title": "📝 My Tour History",
             "history_description": "Check your visited places and earned experience points.",
             "view_history_button": "View Tour History",
-            "logout_button": "🔓 Logout"
+            "logout_button": "🔓 Logout",
+            "map_back_to_menu": "← Back to Menu",
+            "map_api_key_not_set": "Google Maps API key is not set.",
+            "map_enter_api_key": "Enter your Google Maps API key",
+            "map_api_key_set_success": "API key has been set. Loading map...",
+            "map_api_key_required_info": "An API key is required to use Google Maps.",
+            "language": "🌏 Language",
+            "map_loading_data": "Loading Seoul tourism data...",
+            "map_load_complete": "{num_markers} tourist attractions loaded!",
+            "map_load_failed": "Unable to load tourist attraction data.",
+            "map_my_location": "My Location",
+            "map_current_location": "Current Location",
+            "map_current_location_category": "Current Location",
+            "map_markers_displayed": "{num_markers} places displayed on the map.",
+            "map_place_info": "Place Information",
+            "map_search_place": "Search for a place",
+            "map_search_results": "Search Results",
+            "map_find_directions": "Directions",
+            "map_visit_history": "Visit History",
+            "map_visited": "Visited",
+            "map_xp_earned": "XP earned",
+            "map_already_visited_today": "You have already visited this place today.",
+            "map_no_search_results": "No search results found for '{search_term}'.",
+            "map_places_by_category": "Places by Category",
+            "map_category": "Category",
+            "map_other_category": "Other",
+            "map_no_destination_info": "No destination information available.",
+            "map_back_to_map": "Back to Map",
+            "map_navigation_to": "Navigation to",
+            "map_select_transport": "Select Transportation",
+            "map_walking": "Walking",
+            "map_estimated_time": "Estimated Time",
+            "map_minute": "min",
+            "map_select_walk": "Select Walking",
+            "map_transit": "Transit",
+            "map_select_transit": "Select Transit",
+            "map_driving": "Driving",
+            "map_select_drive": "Select Driving",
+            "map_route": "Route",
+            "map_distance": "Distance",
+            "map_transport": "Transportation",
+            "map_route_guide": "Route Guide",
+            "map_departure": "Starting from your current location",
+            "map_straight_and_turn_right": "Go straight for {distance:.0f}m and then turn right",
+            "map_straight_and_turn_left": "Go straight for {distance:.0f}m and then turn left",
+            "map_arrive_at_destination": "Go straight for {distance:.0f}m and you will arrive at your destination",
+            "map_other_transport_modes": "Other Transportation Modes",
+            "map_end_navigation": "End Navigation"
         },
         "중국어": {
             "app_title": "首尔观光应用",
@@ -1650,7 +1738,7 @@ def show_login_page():
             "new_pw": "新密码",
             "welcome_msg": "👋 欢迎，{username}！",
             "select_menu": "请选择菜单",
-            "map_title": "🗺️ 观光景点地图",
+            "map_title": "🗺️ 首尔观光景点地图",
             "map_description": "在地图上查找首尔的主要景点并导航到这些地点。",
             "view_map_button": "查看观光地图",
             "course_title": "🗓️ 首尔观光路线规划",
@@ -1659,7 +1747,54 @@ def show_login_page():
             "history_title": "📝 我的观光历史",
             "history_description": "查看您访问过的地点和获得的经验值。",
             "view_history_button": "查看观光历史",
-            "logout_button": "🔓 登出"
+            "logout_button": "🔓 登出",
+            "map_back_to_menu": "← 返回菜单",
+            "map_api_key_not_set": "Google Maps API 密钥未设置。",
+            "map_enter_api_key": "请输入您的 Google Maps API 密钥",
+            "map_api_key_set_success": "API 密钥已设置。正在加载地图...",
+            "map_api_key_required_info": "使用 Google Maps 需要 API 密钥。",
+            "language": "🌏 语言",
+            "map_loading_data": "正在加载首尔旅游数据...",
+            "map_load_complete": "已加载 {num_markers} 个旅游景点！",
+            "map_load_failed": "无法加载旅游景点数据。",
+            "map_my_location": "我的位置",
+            "map_current_location": "当前位置",
+            "map_current_location_category": "当前位置",
+            "map_markers_displayed": "地图上显示 {num_markers} 个地点。",
+            "map_place_info": "地点信息",
+            "map_search_place": "搜索地点",
+            "map_search_results": "搜索结果",
+            "map_find_directions": "查找路线",
+            "map_visit_history": "访问历史",
+            "map_visited": "已访问",
+            "map_xp_earned": "已获得经验值",
+            "map_already_visited_today": "您今天已经访问过此地点。",
+            "map_no_search_results": "未找到与 '{search_term}' 相关的搜索结果。",
+            "map_places_by_category": "按类别划分的地点",
+            "map_category": "类别",
+            "map_other_category": "其他",
+            "map_no_destination_info": "没有可用的目的地信息。",
+            "map_back_to_map": "返回地图",
+            "map_navigation_to": "导航至",
+            "map_select_transport": "选择交通方式",
+            "map_walking": "步行",
+            "map_estimated_time": "预计时间",
+            "map_minute": "分钟",
+            "map_select_walk": "选择步行",
+            "map_transit": "公共交通",
+            "map_select_transit": "选择公共交通",
+            "map_driving": "驾驶",
+            "map_select_drive": "选择驾驶",
+            "map_route": "路线",
+            "map_distance": "距离",
+            "map_transport": "交通方式",
+            "map_route_guide": "路线指引",
+            "map_departure": "从您当前的位置出发",
+            "map_straight_and_turn_right": "直行 {distance:.0f} 米，然后右转",
+            "map_straight_and_turn_left": "直行 {distance:.0f} 米，然后左转",
+            "map_arrive_at_destination": "直行 {distance:.0f} 米，您将到达目的地",
+            "map_other_transport_modes": "其他交通方式",
+            "map_end_navigation": "结束导航"
         }
     }
     
@@ -1819,31 +1954,32 @@ def show_menu_page():
 
 def show_map_page():
     """지도 페이지 표시 - 내비게이션 기능 개선"""
-    page_header("서울 관광 장소 지도")
-    
+    current_lang_texts = st.session_state.texts[st.session_state.language]
+    page_header(current_lang_texts.get("map_title", "서울 관광 장소 지도"))
+
     # 뒤로가기 버튼
-    if st.button("← 메뉴로 돌아가기"):
+    if st.button(current_lang_texts.get("map_back_to_menu")):
         change_page("menu")
         st.rerun()
-    
+
     # API 키 확인
     api_key = st.session_state.google_maps_api_key
     if not api_key or api_key == "YOUR_GOOGLE_MAPS_API_KEY":
-        st.error("Google Maps API 키가 설정되지 않았습니다.")
-        api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
+        st.error(current_lang_texts.get("map_api_key_not_set"))
+        api_key = st.text_input(current_lang_texts.get("map_enter_api_key"), type="password")
         if api_key:
             st.session_state.google_maps_api_key = api_key
-            #st.success("API 키가 설정되었습니다. 지도를 로드합니다.")
+            #st.success(current_lang_texts.get("map_api_key_set_success"))
             st.rerun()
         else:
-            st.info("Google Maps를 사용하려면 API 키가 필요합니다.")
+            st.info(current_lang_texts.get("map_api_key_required_info"))
             return
-    
+
     # 언어 선택
     col1, col2 = st.columns([4, 1])
     with col2:
         selected_language = st.selectbox(
-            "🌏 Language", 
+            current_lang_texts.get("language"),
             ["🇰🇷 한국어", "🇺🇸 English", "🇨🇳 中文"],
             index=0 if st.session_state.language == "한국어" else 1 if st.session_state.language == "영어" else 2
         )
@@ -1853,45 +1989,45 @@ def show_map_page():
             "🇨🇳 中文": "중국어"
         }
         st.session_state.language = language_map[selected_language]
-    
+
     # 사용자 위치 가져오기
     user_location = get_location_position()
-    
+
     # 자동으로 Excel 파일 로드 (아직 로드되지 않은 경우)
     if not st.session_state.markers_loaded or not st.session_state.all_markers:
-        with st.spinner("서울 관광 데이터를 로드하는 중..."):
+        with st.spinner(current_lang_texts.get("map_loading_data")):
             all_markers = load_excel_files(st.session_state.language)
             if all_markers:
                 st.session_state.all_markers = all_markers
                 st.session_state.markers_loaded = True
                 st.session_state.tourism_data = all_markers  # 코스 추천을 위해 저장
-                #st.success(f"총 {len(all_markers)}개의 관광지 로드 완료!")
+                #st.success(current_lang_texts.get("map_load_complete").format(num_markers=len(all_markers)))
             else:
-                st.warning("관광지 데이터를 로드할 수 없습니다.")
-    
+                st.warning(current_lang_texts.get("map_load_failed"))
+
     # 내비게이션 모드가 아닌 경우 기본 지도 표시
     if not st.session_state.navigation_active:
         map_col, info_col = st.columns([2, 1])
-        
+
         with map_col:
             # 마커 데이터 준비
             markers = []
-            
+
             # 사용자 현재 위치 마커
             markers.append({
                 'lat': user_location[0],
                 'lng': user_location[1],
-                'title': '내 위치',
+                'title': current_lang_texts.get("map_my_location"),
                 'color': 'blue',
-                'info': '현재 위치',
-                'category': '현재 위치'
+                'info': current_lang_texts.get("map_current_location"),
+                'category': current_lang_texts.get("map_current_location_category")
             })
-            
+
             # 로드된 데이터 마커 추가
             if st.session_state.all_markers:
                 markers.extend(st.session_state.all_markers)
-                #st.success(f"지도에 {len(st.session_state.all_markers)}개의 장소를 표시했습니다.")
-            
+                #st.success(current_lang_texts.get("map_markers_displayed").format(num_markers=len(st.session_state.all_markers)))
+
             # Google Maps 표시
             show_google_map(
                 api_key=api_key,
@@ -1902,26 +2038,26 @@ def show_map_page():
                 height=600,
                 language=st.session_state.language
             )
-        
+
         with info_col:
-            st.subheader("장소 정보")
-            
+            st.subheader(current_lang_texts.get("map_place_info"))
+
             # 검색 기능
-            search_term = st.text_input("장소 검색")
+            search_term = st.text_input(current_lang_texts.get("map_search_place"))
             if search_term and st.session_state.all_markers:
-                search_results = [m for m in st.session_state.all_markers 
-                                 if search_term.lower() in m['title'].lower()]
-                
+                search_results = [m for m in st.session_state.all_markers
+                                  if search_term.lower() in m['title'].lower()]
+
                 if search_results:
-                    st.markdown(f"### 🔍 검색 결과 ({len(search_results)}개)")
+                    st.markdown(f"### 🔍 {current_lang_texts.get('map_search_results')} ({len(search_results)}개)")
                     for i, marker in enumerate(search_results[:5]):  # 상위 5개만
                         with st.container():
                             st.markdown(f"**{marker['title']}**")
-                            st.caption(f"분류: {marker.get('category', '기타')}")
-                            
+                            st.caption(f"{current_lang_texts.get('map_category')}: {marker.get('category', current_lang_texts.get('map_other_category'))}")
+
                             col1, col2 = st.columns([1,1])
                             with col1:
-                                if st.button(f"길찾기", key=f"nav_{i}"):
+                                if st.button(current_lang_texts.get("map_find_directions"), key=f"nav_{i}"):
                                     st.session_state.navigation_active = True
                                     st.session_state.navigation_destination = {
                                         "name": marker['title'],
@@ -1929,9 +2065,9 @@ def show_map_page():
                                         "lng": marker['lng']
                                     }
                                     st.rerun()
-                            
+
                             with col2:
-                                if st.button(f"방문기록", key=f"visit_{i}"):
+                                if st.button(current_lang_texts.get("map_visit_history"), key=f"visit_{i}"):
                                     success, xp = add_visit(
                                         st.session_state.username,
                                         marker['title'],
@@ -1939,92 +2075,92 @@ def show_map_page():
                                         marker['lng']
                                     )
                                     if success:
-                                        st.success(f"'{marker['title']}' 방문! +{xp} XP 획득!")
+                                        st.success(current_lang_texts.get("map_visited") + f" '{marker['title']}'! +{xp} XP " + current_lang_texts.get("map_xp_earned") + "!")
                                         time.sleep(1)
                                         st.rerun()
                                     else:
-                                        st.info("이미 오늘 방문한 장소입니다.")
+                                        st.info(current_lang_texts.get("map_already_visited_today"))
                 else:
-                    st.info(f"'{search_term}'에 대한 검색 결과가 없습니다.")
-            
+                    st.info(current_lang_texts.get("map_no_search_results").format(search_term=search_term))
+
             # 카테고리별 통계
             if st.session_state.all_markers:
-                st.subheader("카테고리별 장소")
+                st.subheader(current_lang_texts.get("map_places_by_category"))
                 categories = {}
                 for m in st.session_state.all_markers:
-                    cat = m.get('category', '기타')
+                    cat = m.get('category', current_lang_texts.get('map_other_category'))
                     if cat not in categories:
                         categories[cat] = 0
                     categories[cat] += 1
-                
+
                 for cat, count in categories.items():
                     st.markdown(f"- **{cat}**: {count}개")
     else:
         # 내비게이션 모드 UI
         destination = st.session_state.navigation_destination
         if not destination:
-            st.error("목적지 정보가 없습니다.")
-            if st.button("지도로 돌아가기"):
+            st.error(current_lang_texts.get("map_no_destination_info"))
+            if st.button(current_lang_texts.get("map_back_to_map")):
                 st.session_state.navigation_active = False
                 st.rerun()
         else:
-            st.subheader(f"🧭 {destination['name']}까지 내비게이션")
-            
+            st.subheader(f"🧭 {destination['name']} {current_lang_texts.get('map_navigation_to')}")
+
             # 목적지 정보 표시
             dest_lat, dest_lng = destination["lat"], destination["lng"]
             user_lat, user_lng = user_location
-            
+
             # 직선 거리 계산
             distance = geodesic((user_lat, user_lng), (dest_lat, dest_lng)).meters
-            
+
             if not st.session_state.transport_mode:
-                st.markdown("### 이동 수단 선택")
-                
+                st.markdown(f"### {current_lang_texts.get('map_select_transport')}")
+
                 col1, col2, col3 = st.columns(3)
-                
+
                 with col1:
                     walk_time = distance / 67  # 도보 속도 약 4km/h (67m/분)
-                    st.markdown("""
+                    st.markdown(f"""
                     <div class="card">
-                        <h3>🚶 도보</h3>
-                        <p>예상 소요 시간: {:.0f}분</p>
+                        <h3>🚶 {current_lang_texts.get('map_walking')}</h3>
+                        <p>{current_lang_texts.get('map_estimated_time')}: {walk_time:.0f}{current_lang_texts.get('map_minute')}</p>
                     </div>
-                    """.format(walk_time), unsafe_allow_html=True)
-                    
-                    if st.button("도보 선택", use_container_width=True):
+                    """, unsafe_allow_html=True)
+
+                    if st.button(current_lang_texts.get("map_select_walk"), use_container_width=True):
                         st.session_state.transport_mode = "walking"
                         st.rerun()
-                
+
                 with col2:
                     transit_time = distance / 200  # 대중교통 속도 약 12km/h (200m/분)
-                    st.markdown("""
+                    st.markdown(f"""
                     <div class="card">
-                        <h3>🚍 대중교통</h3>
-                        <p>예상 소요 시간: {:.0f}분</p>
+                        <h3>🚍 {current_lang_texts.get('map_transit')}</h3>
+                        <p>{current_lang_texts.get('map_estimated_time')}: {transit_time:.0f}{current_lang_texts.get('map_minute')}</p>
                     </div>
-                    """.format(transit_time), unsafe_allow_html=True)
-                    
-                    if st.button("대중교통 선택", use_container_width=True):
+                    """, unsafe_allow_html=True)
+
+                    if st.button(current_lang_texts.get("map_select_transit"), use_container_width=True):
                         st.session_state.transport_mode = "transit"
                         st.rerun()
-                
+
                 with col3:
                     car_time = distance / 500  # 자동차 속도 약 30km/h (500m/분)
-                    st.markdown("""
+                    st.markdown(f"""
                     <div class="card">
-                        <h3>🚗 자동차</h3>
-                        <p>예상 소요 시간: {:.0f}분</p>
+                        <h3>🚗 {current_lang_texts.get('map_driving')}</h3>
+                        <p>{current_lang_texts.get('map_estimated_time')}: {car_time:.0f}{current_lang_texts.get('map_minute')}</p>
                     </div>
-                    """.format(car_time), unsafe_allow_html=True)
-                    
-                    if st.button("자동차 선택", use_container_width=True):
+                    """, unsafe_allow_html=True)
+
+                    if st.button(current_lang_texts.get("map_select_drive"), use_container_width=True):
                         st.session_state.transport_mode = "driving"
                         st.rerun()
-                
-                if st.button("← 지도로 돌아가기", use_container_width=True):
+
+                if st.button(current_lang_texts.get("map_back_to_map"), use_container_width=True):
                     st.session_state.navigation_active = False
                     st.rerun()
-            
+
             else:
                 # 선택된 교통수단에 따른 내비게이션 표시
                 transport_mode = st.session_state.transport_mode
@@ -2034,36 +2170,36 @@ def show_map_page():
                     "driving": "🚗"
                 }
                 transport_names = {
-                    "walking": "도보",
-                    "transit": "대중교통", 
-                    "driving": "자동차"
+                    "walking": current_lang_texts.get('map_walking'),
+                    "transit": current_lang_texts.get('map_transit'),
+                    "driving": current_lang_texts.get('map_driving')
                 }
-                
-                st.markdown(f"### {transport_icons[transport_mode]} {transport_names[transport_mode]} 경로")
-                
+
+                st.markdown(f"### {transport_icons[transport_mode]} {transport_names[transport_mode]} {current_lang_texts.get('map_route')}")
+
                 # 마커 데이터 준비
                 markers = [
                     {
-                        'lat': user_lat, 
-                        'lng': user_lng, 
-                        'title': '내 위치', 
-                        'color': 'blue', 
-                        'info': '출발 지점',
-                        'category': '내 위치'
+                        'lat': user_lat,
+                        'lng': user_lng,
+                        'title': current_lang_texts.get("map_my_location"),
+                        'color': 'blue',
+                        'info': current_lang_texts.get("map_departure"),
+                        'category': current_lang_texts.get("map_my_location")
                     },
                     {
-                        'lat': dest_lat, 
-                        'lng': dest_lng, 
-                        'title': destination["name"], 
-                        'color': 'red', 
-                        'info': f'목적지: {destination["name"]}',
-                        'category': '목적지'
+                        'lat': dest_lat,
+                        'lng': dest_lng,
+                        'title': destination["name"],
+                        'color': 'red',
+                        'info': f'{current_lang_texts.get("map_destination", "목적지")}: {destination["name"]}',
+                        'category': current_lang_texts.get("map_destination", "목적지")
                     }
                 ]
-                
+
                 # 내비게이션 UI
                 nav_col, info_col = st.columns([2, 1])
-                
+
                 with nav_col:
                     # 내비게이션 모드일 때 지도 표시 부분 - 수정된 부분
                     show_google_map(
@@ -2079,53 +2215,53 @@ def show_map_page():
                         end_location={"lat": dest_lat, "lng": dest_lng},
                         transport_mode=transport_mode
                     )
-                
+
                 with info_col:
                     # 경로 정보 표시
-                    st.markdown("### 경로 정보")
-                    st.markdown(f"**{destination['name']}까지**")
-                    st.markdown(f"- 거리: {distance:.0f}m")
-                    
+                    st.markdown(f"### {current_lang_texts.get('map_route_info', '경로 정보')}")
+                    st.markdown(f"**{destination['name']} {current_lang_texts.get('map_to', '까지')}**")
+                    st.markdown(f"- {current_lang_texts.get('map_distance')}: {distance:.0f}m")
+
                     # 교통수단별 예상 시간
                     if transport_mode == "walking":
                         speed = 67  # m/min
-                        transport_desc = "도보"
+                        transport_desc = current_lang_texts.get('map_walking')
                     elif transport_mode == "transit":
                         speed = 200  # m/min
-                        transport_desc = "대중교통"
+                        transport_desc = current_lang_texts.get('map_transit')
                     else:  # driving
                         speed = 500  # m/min
-                        transport_desc = "자동차"
-                    
+                        transport_desc = current_lang_texts.get('map_driving')
+
                     time_min = distance / speed
-                    st.markdown(f"- 예상 소요 시간: {time_min:.0f}분")
-                    st.markdown(f"- 이동 수단: {transport_desc}")
-                    
+                    st.markdown(f"- {current_lang_texts.get('map_estimated_time')}: {time_min:.0f}{current_lang_texts.get('map_minute')}")
+                    st.markdown(f"- {current_lang_texts.get('map_transport')}: {transport_desc}")
+
                     # 턴바이턴 내비게이션 지시사항 (예시)
-                    st.markdown("### 경로 안내")
+                    st.markdown(f"### {current_lang_texts.get('map_route_guide')}")
                     directions = [
-                        "현재 위치에서 출발합니다",
-                        f"{distance*0.3:.0f}m 직진 후 오른쪽으로 턴",
-                        f"{distance*0.2:.0f}m 직진 후 왼쪽으로 턴",
-                        f"{distance*0.5:.0f}m 직진 후 목적지 도착"
+                        current_lang_texts.get('map_departure'),
+                        current_lang_texts.get('map_straight_and_turn_right').format(distance=distance*0.3),
+                        current_lang_texts.get('map_straight_and_turn_left').format(distance=distance*0.2),
+                        current_lang_texts.get('map_arrive_at_destination').format(distance=distance*0.5)
                     ]
-                    
+
                     for i, direction in enumerate(directions):
                         st.markdown(f"{i+1}. {direction}")
-                    
+
                     # 다른 교통수단 선택 버튼
-                    st.markdown("### 다른 이동 수단")
-                    other_modes = {"walking": "도보", "transit": "대중교통", "driving": "자동차"}
-                    other_modes.pop(transport_mode)  # 현재 모드 제거
-                    
+                    st.markdown(f"### {current_lang_texts.get('map_other_transport_modes')}")
+                    other_modes = {"walking": current_lang_texts.get('map_walking'), "transit": current_lang_texts.get('map_transit'), "driving": current_lang_texts.get('map_driving')}
+                    del other_modes[transport_mode]  # 현재 모드 제거
+
                     cols = st.columns(len(other_modes))
                     for i, (mode, name) in enumerate(other_modes.items()):
                         with cols[i]:
                             if st.button(name):
                                 st.session_state.transport_mode = mode
                                 st.rerun()
-                    
-                    if st.button("내비게이션 종료", use_container_width=True):
+
+                    if st.button(current_lang_texts.get("map_end_navigation"), use_container_width=True):
                         st.session_state.navigation_active = False
                         st.session_state.transport_mode = None
                         st.rerun()
