@@ -1953,8 +1953,6 @@ def show_menu_page():
     
 
 def show_map_page():
-
-    st.warning(st.session_state.texts)
     """지도 페이지 표시 - 내비게이션 기능 개선"""
     current_lang_texts = st.session_state.texts[st.session_state.language]
     page_header(current_lang_texts.get("map_title", "서울 관광 장소 지도"))
