@@ -1175,7 +1175,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <script>
             // 지도 초기화 함수
             function initMap() {
-                // 출발지와 도착지 좌표
+                
                 const origin = { lat: 37.5796, lng: 126.9770 };
                 const destination = { lat: 37.5778, lng: 127.0856 };
                 
