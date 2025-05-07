@@ -155,24 +155,42 @@ def page_header(title):
     """페이지 헤더 표시"""
     st.markdown(f'<div class="main-header">{title}</div>', unsafe_allow_html=True)
 
-def display_user_level_info():
-    """사용자 레벨 및 경험치 정보 표시"""
+def display_user_level_info(lang="ko"):
+    """사용자 레벨 및 경험치 정보 표시 (다국어 지원)"""
+    # 다국어 메시지 정의
+    messages = {
+        "level": {
+            "ko": "레벨",
+            "en": "Level",
+            "zh": "等级",
+        },
+        "xp_remaining": {
+            "ko": "다음 레벨까지 {xp} XP 남음",
+            "en": "{xp} XP remaining to next level",
+            "zh": "距离下一等级还需 {xp} XP",
+        }
+    }
+
     username = st.session_state.username
     user_xp = st.session_state.user_xp.get(username, 0)
     user_level = calculate_level(user_xp)
     xp_percentage = calculate_xp_percentage(user_xp)
-    
+    xp_left = XP_PER_LEVEL - (user_xp % XP_PER_LEVEL)
+
     col1, col2 = st.columns([1, 4])
+
     with col1:
         main_image_path = Path("asset") / "SeoulTripView.png"
         if main_image_path.exists():
             st.image(main_image_path, use_container_width=True)
         else:
             st.info("이미지를 찾을 수 없습니다: asset/SeoulTripView.png")
+
     with col2:
-        st.markdown(f"**레벨 {user_level}** ({user_xp} XP)")
+        st.markdown(f"**{messages['level'][lang]} {user_level}** ({user_xp} XP)")
         st.progress(xp_percentage / 100)
-        st.caption(f"다음 레벨까지 {XP_PER_LEVEL - (user_xp % XP_PER_LEVEL)} XP 남음")
+        st.caption(messages["xp_remaining"][lang].format(xp=xp_left))
+
 
 def change_page(page):
     """페이지 전환 함수"""
@@ -261,7 +279,19 @@ def init_session_state():
                 "join_success": "✅ 회원가입 완료!",
                 "user_exists": "⚠️ 이미 존재하는 아이디입니다.",
                 "new_id": "새 아이디",
-                "new_pw": "새 비밀번호"
+                "new_pw": "새 비밀번호",
+                "welcome_msg": "{username}님, 환영합니다!",
+                "select_menu": "메뉴를 선택해주세요",
+                "map_title": "🗺️ 관광 장소 지도",
+                "map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
+                "view_map_button": "관광 장소 지도 보기",
+                "course_title": "🗓️ 서울 관광 코스 짜주기",
+                "course_description": "AI가 당신의 취향에 맞는 최적의 관광 코스를 추천해드립니다.",
+                "create_course_button": "관광 코스 짜기",
+                "history_title": "📝 나의 관광 이력",
+                "history_description": "방문한 장소들의 기록과 획득한 경험치를 확인하세요.",
+                "view_history_button": "관광 이력 보기",
+                "logout_button": "🔓 로그아웃"
             }
         }
     if 'clicked_location' not in st.session_state:
@@ -1530,7 +1560,19 @@ def show_login_page():
             "join_success": "✅ Registration completed!",
             "user_exists": "⚠️ ID already exists.",
             "new_id": "New ID",
-            "new_pw": "New Password"
+            "new_pw": "New Password",
+            "welcome_msg": "👋 Welcome, {username}!",
+            "select_menu": "Please select a menu",
+            "map_title": "🗺️ Tourist Attractions Map",
+            "map_description": "Find Seoul's major attractions on the map and navigate to them.",
+            "view_map_button": "View Tourist Map",
+            "course_title": "🗓️ Seoul Tour Course Planner",
+            "course_description": "AI will recommend the optimal tour course tailored to your preferences.",
+            "create_course_button": "Create Tour Course",
+            "history_title": "📝 My Tour History",
+            "history_description": "Check your visited places and earned experience points.",
+            "view_history_button": "View Tour History",
+            "logout_button": "🔓 Logout"
         },
         "중국어": {
             "app_title": "首尔观光应用",
@@ -1551,7 +1593,19 @@ def show_login_page():
             "join_success": "✅ 注册完成！",
             "user_exists": "⚠️ 此账号已存在。",
             "new_id": "新账号",
-            "new_pw": "新密码"
+            "new_pw": "新密码",
+            "welcome_msg": "👋 欢迎，{username}！",
+            "select_menu": "请选择菜单",
+            "map_title": "🗺️ 观光景点地图",
+            "map_description": "在地图上查找首尔的主要景点并导航到这些地点。",
+            "view_map_button": "查看观光地图",
+            "course_title": "🗓️ 首尔观光路线规划",
+            "course_description": "AI将根据您的喜好推荐最佳观光路线。",
+            "create_course_button": "创建观光路线",
+            "history_title": "📝 我的观光历史",
+            "history_description": "查看您访问过的地点和获得的经验值。",
+            "view_history_button": "查看观光历史",
+            "logout_button": "🔓 登出"
         }
     }
     
@@ -1639,119 +1693,22 @@ def show_menu_page():
     ##############################
     # 언어별 페이지 설정
     ##############################
-    # 언어별 텍스트 사전에 메뉴 페이지 관련 항목 추가
-    texts = {
-        "한국어": {
-            "app_title": "서울 관광앱",
-            "login_tab": "로그인",
-            "join_tab": "회원가입",
-            "login_title": "로그인",
-            "join_title": "회원가입",
-            "id_label": "아이디",
-            "pw_label": "비밀번호",
-            "pw_confirm_label": "비밀번호 확인",
-            "remember_id": "아이디 저장",
-            "login_button": "로그인",
-            "join_button": "가입하기",
-            "login_success": "🎉 로그인 성공!",
-            "login_failed": "❌ 아이디 또는 비밀번호가 올바르지 않습니다.",
-            "input_required": "아이디와 비밀번호를 입력해주세요.",
-            "pw_mismatch": "비밀번호와 비밀번호 확인이 일치하지 않습니다.",
-            "join_success": "✅ 회원가입 완료!",
-            "user_exists": "⚠️ 이미 존재하는 아이디입니다.",
-            "new_id": "새 아이디",
-            "new_pw": "새 비밀번호",
-            "welcome_msg": "{username}님, 환영합니다!",
-            "select_menu": "메뉴를 선택해주세요",
-            "map_title": "🗺️ 관광 장소 지도",
-            "map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
-            "view_map_button": "관광 장소 지도 보기",
-            "course_title": "🗓️ 서울 관광 코스 짜주기",
-            "course_description": "AI가 당신의 취향에 맞는 최적의 관광 코스를 추천해드립니다.",
-            "create_course_button": "관광 코스 짜기",
-            "history_title": "📝 나의 관광 이력",
-            "history_description": "방문한 장소들의 기록과 획득한 경험치를 확인하세요.",
-            "view_history_button": "관광 이력 보기",
-            "logout_button": "🔓 로그아웃"
-        },
-        "영어": {
-            "app_title": "Seoul Tourism App",
-            "login_tab": "Login",
-            "join_tab": "Join",
-            "login_title": "Login",
-            "join_title": "Join",
-            "id_label": "ID",
-            "pw_label": "Password",
-            "pw_confirm_label": "Confirm Password",
-            "remember_id": "Remember ID",
-            "login_button": "Login",
-            "join_button": "Join",
-            "login_success": "🎉 Login successful!",
-            "login_failed": "❌ ID or password is incorrect.",
-            "input_required": "Please enter ID and password.",
-            "pw_mismatch": "Passwords do not match.",
-            "join_success": "✅ Registration completed!",
-            "user_exists": "⚠️ ID already exists.",
-            "new_id": "New ID",
-            "new_pw": "New Password",
-            "welcome_msg": "👋 Welcome, {username}!",
-            "select_menu": "Please select a menu",
-            "map_title": "🗺️ Tourist Attractions Map",
-            "map_description": "Find Seoul's major attractions on the map and navigate to them.",
-            "view_map_button": "View Tourist Map",
-            "course_title": "🗓️ Seoul Tour Course Planner",
-            "course_description": "AI will recommend the optimal tour course tailored to your preferences.",
-            "create_course_button": "Create Tour Course",
-            "history_title": "📝 My Tour History",
-            "history_description": "Check your visited places and earned experience points.",
-            "view_history_button": "View Tour History",
-            "logout_button": "🔓 Logout"
-        },
-        "중국어": {
-            "app_title": "首尔观光应用",
-            "login_tab": "登录",
-            "join_tab": "注册",
-            "login_title": "登录",
-            "join_title": "注册",
-            "id_label": "账号",
-            "pw_label": "密码",
-            "pw_confirm_label": "确认密码",
-            "remember_id": "记住账号",
-            "login_button": "登录",
-            "join_button": "注册",
-            "login_success": "🎉 登录成功！",
-            "login_failed": "❌ 账号或密码不正确。",
-            "input_required": "请输入账号和密码。",
-            "pw_mismatch": "两次输入的密码不一致。",
-            "join_success": "✅ 注册完成！",
-            "user_exists": "⚠️ 此账号已存在。",
-            "new_id": "新账号",
-            "new_pw": "新密码",
-            "welcome_msg": "👋 欢迎，{username}！",
-            "select_menu": "请选择菜单",
-            "map_title": "🗺️ 观光景点地图",
-            "map_description": "在地图上查找首尔的主要景点并导航到这些地点。",
-            "view_map_button": "查看观光地图",
-            "course_title": "🗓️ 首尔观光路线规划",
-            "course_description": "AI将根据您的喜好推荐最佳观光路线。",
-            "create_course_button": "创建观光路线",
-            "history_title": "📝 我的观光历史",
-            "history_description": "查看您访问过的地点和获得的经验值。",
-            "view_history_button": "查看观光历史",
-            "logout_button": "🔓 登出"
-        }
-    }
     
     
     """메인 메뉴 페이지 표시"""
     # 언어 설정에 따른 텍스트 가져오기
-    current_lang_texts = texts[st.session_state.language]
+    current_lang_texts = st.session_state.texts[st.session_state.language]
     
     page_header(current_lang_texts["app_title"])
     st.markdown(f"### 👋 {current_lang_texts['welcome_msg'].format(username=st.session_state.username)}")
     
     # 사용자 레벨 및 경험치 정보 표시
-    display_user_level_info()
+    lang = "ko"
+    if st.session_state.language == "영어":
+        lang = "en"
+    elif st.session_state.language == "중국어"
+        lang = "zh"
+    display_user_level_info(lang)
     
     st.markdown("---")
     st.markdown(f"### {current_lang_texts['select_menu']}")
