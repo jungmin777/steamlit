@@ -8,6 +8,7 @@ st.warning(gmaps_api_key)
 
 # Google Maps 클라이언트를 초기화합니다.
 gmaps = googlemaps.Client(key=gmaps_api_key)
+st.success(gmaps)
 
 # 위도, 경도 정보를 사용하여 장소 3곳을 정의합니다.
 locations = [
@@ -36,6 +37,7 @@ directions_result = gmaps.directions(
     optimize_waypoints=False,  # 순서 최적화 비활성화
     mode="driving",
 )
+st.warning(directions_result)
 
 if directions_result:
     # 경로 정보를 추출합니다.
