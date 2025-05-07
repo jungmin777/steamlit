@@ -1142,24 +1142,24 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Google Maps 경로 시각화</title>
         <style>
-            #map {
+            #map {{
                 height: 500px;
                 width: 100%;
-            }
-            body {
+            }}
+            body {{
                 font-family: Arial, sans-serif;
                 margin: 0;
                 padding: 20px;
-            }
-            .info-panel {
+            }}
+            .info-panel {{
                 margin-bottom: 20px;
                 padding: 15px;
                 background-color: #f5f5f5;
                 border-radius: 5px;
-            }
-            .route-details {
+            }}
+            .route-details {{
                 margin-top: 20px;
-            }
+            }}
         </style>
     </head>
     <body>
@@ -1173,16 +1173,16 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     
         <script>
             function initMap() {
-              const map = new google.maps.Map(document.getElementById("map"), {
+              const map = new google.maps.Map(document.getElementById("map"), {{
                 zoom: 4,
-                center: { lat: -24.345, lng: 134.46 }, // Australia.
-              });
+                center: {{ lat: -24.345, lng: 134.46 }}, // Australia.
+                }});
               const directionsService = new google.maps.DirectionsService();
-              const directionsRenderer = new google.maps.DirectionsRenderer({
+              const directionsRenderer = new google.maps.DirectionsRenderer({{
                 draggable: true,
                 map,
                 panel: document.getElementById("panel"),
-              });
+              }});
             
               directionsRenderer.addListener("directions_changed", () => {
                 const directions = directionsRenderer.getDirections();
