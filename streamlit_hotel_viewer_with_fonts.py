@@ -1,16 +1,17 @@
 import streamlit as st
 import requests
+import json
 import folium
 import polyline
 from streamlit_folium import folium_static
 import pandas as pd
 
 # 제목 설정
-st.title("경로 안내 시스템")
+st.title("경로 안내 시스템 (Routes API)")
 st.write("현재위치에서 경복궁, 창경궁을 거쳐 코엑스까지 가는 경로를 보여줍니다.")
 
-# Google Maps API 키 (실제로 사용할 API 키로 대체해야 합니다)
-api_key = st.secrets["google_maps_api_key"]  # Streamlit secrets에서 API 키 가져오기
+# Google Maps API 키
+api_key = st.secrets["google_maps_api_key"]
 
 # 위치 정보 (위도, 경도)
 locations = {
@@ -36,26 +37,49 @@ if use_custom_location:
 # 교통수단 선택
 travel_mode = st.selectbox(
     "교통수단 선택",
-    ["DRIVING", "WALKING", "BICYCLING", "TRANSIT"]
+    ["DRIVE", "TRANSIT", "WALK", "BICYCLE", "TWO_WHEELER"]
 )
 
-# API 요청 함수
-def get_directions(origin, destination, waypoints, mode, api_key):
-    base_url = "https://maps.googleapis.com/maps/api/directions/json"
+# Routes API 요청 함수
+def get_routes(origin, destination, waypoints, travel_mode, api_key):
+    url = f"https://routes.googleapis.com/directions/v2:computeRoutes"
     
-    # 웨이포인트 형식 변환
-    waypoints_str = "|".join([f"{wp['lat']},{wp['lng']}" for wp in waypoints])
-    
-    params = {
-        "origin": f"{origin['lat']},{origin['lng']}",
-        "destination": f"{destination['lat']},{destination['lng']}",
-        "waypoints": waypoints_str,
-        "mode": mode.lower(),
-        "language": "ko",  # 한국어로 결과 반환
-        "key": api_key
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": api_key,
+        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.steps,routes.legs.distanceMeters,routes.legs.duration"
     }
     
-    response = requests.get(base_url, params=params)
+    # 웨이포인트 구성
+    intermediate_destinations = [
+        {"location": {"latLng": {"latitude": wp["lat"], "longitude": wp["lng"]}}}
+        for wp in waypoints
+    ]
+    
+    data = {
+        "origin": {
+            "location": {
+                "latLng": {
+                    "latitude": origin["lat"],
+                    "longitude": origin["lng"]
+                }
+            }
+        },
+        "destination": {
+            "location": {
+                "latLng": {
+                    "latitude": destination["lat"],
+                    "longitude": destination["lng"]
+                }
+            }
+        },
+        "intermediates": intermediate_destinations,
+        "travelMode": travel_mode,
+        "routingPreference": "TRAFFIC_AWARE",
+        "languageCode": "ko-KR"
+    }
+    
+    response = requests.post(url, headers=headers, data=json.dumps(data))
     return response.json()
 
 # 경로 요청 버튼
@@ -66,98 +90,95 @@ if st.button("경로 검색"):
         destination = locations["코엑스"]
         waypoints = [locations["경복궁"], locations["창경궁"]]
         
-        # Google Directions API 호출
-        directions_result = get_directions(origin, destination, waypoints, travel_mode, api_key)
-        
-        # API 응답 확인
-        if directions_result["status"] == "OK":
-            # 결과 표시
-            st.success("경로를 찾았습니다!")
+        try:
+            # Google Routes API 호출
+            routes_result = get_routes(origin, destination, waypoints, travel_mode, api_key)
             
-            # 지도 생성
-            m = folium.Map(location=[origin["lat"], origin["lng"]], zoom_start=12)
-            
-            # 시작점 마커 추가
-            folium.Marker(
-                [origin["lat"], origin["lng"]],
-                popup="출발지: 현재위치",
-                icon=folium.Icon(color="green", icon="play")
-            ).add_to(m)
-            
-            # 경유지 마커 추가
-            folium.Marker(
-                [locations["경복궁"]["lat"], locations["경복궁"]["lng"]],
-                popup="경유지: 경복궁",
-                icon=folium.Icon(color="blue")
-            ).add_to(m)
-            
-            folium.Marker(
-                [locations["창경궁"]["lat"], locations["창경궁"]["lng"]],
-                popup="경유지: 창경궁",
-                icon=folium.Icon(color="blue")
-            ).add_to(m)
-            
-            # 도착지 마커 추가
-            folium.Marker(
-                [destination["lat"], destination["lng"]], 
-                popup="도착지: 코엑스",
-                icon=folium.Icon(color="red", icon="stop")
-            ).add_to(m)
-            
-            # 경로 정보 및 폴리라인 추가
-            route = directions_result["routes"][0]
-            
-            # 전체 경로의 폴리라인 추가
-            for leg in route["legs"]:
-                leg_polyline = leg["overview_polyline"]["points"]
-                points = polyline.decode(leg_polyline)
-                folium.PolyLine(points, color="blue", weight=3, opacity=0.7).add_to(m)
-            
-            # 지도 표시
-            folium_static(m)
-            
-            # 경로 세부 정보 표시
-            total_distance = 0
-            total_duration = 0
-            
-            st.subheader("경로 세부 정보")
-            
-            # 각 구간별 정보
-            segments = []
-            
-            for i, leg in enumerate(route["legs"]):
-                total_distance += leg["distance"]["value"]
-                total_duration += leg["duration"]["value"]
+            # API 응답 확인
+            if "routes" in routes_result and routes_result["routes"]:
+                # 결과 표시
+                st.success("경로를 찾았습니다!")
                 
-                if i == 0:
-                    start = "현재위치"
-                    end = "경복궁"
-                elif i == 1:
-                    start = "경복궁"
-                    end = "창경궁"
-                else:
-                    start = "창경궁"
-                    end = "코엑스"
+                # 지도 생성
+                m = folium.Map(location=[origin["lat"], origin["lng"]], zoom_start=12)
+                
+                # 시작점 마커 추가
+                folium.Marker(
+                    [origin["lat"], origin["lng"]],
+                    popup="출발지: 현재위치",
+                    icon=folium.Icon(color="green", icon="play")
+                ).add_to(m)
+                
+                # 경유지 마커 추가
+                folium.Marker(
+                    [locations["경복궁"]["lat"], locations["경복궁"]["lng"]],
+                    popup="경유지: 경복궁",
+                    icon=folium.Icon(color="blue")
+                ).add_to(m)
+                
+                folium.Marker(
+                    [locations["창경궁"]["lat"], locations["창경궁"]["lng"]],
+                    popup="경유지: 창경궁",
+                    icon=folium.Icon(color="blue")
+                ).add_to(m)
+                
+                # 도착지 마커 추가
+                folium.Marker(
+                    [destination["lat"], destination["lng"]], 
+                    popup="도착지: 코엑스",
+                    icon=folium.Icon(color="red", icon="stop")
+                ).add_to(m)
+                
+                # 경로 정보 및 폴리라인 추가
+                route = routes_result["routes"][0]
+                
+                # 인코딩된 폴리라인을 디코딩하여 지도에 추가
+                encoded_polyline = route["polyline"]["encodedPolyline"]
+                points = polyline.decode(encoded_polyline)
+                folium.PolyLine(points, color="blue", weight=3, opacity=0.7).add_to(m)
+                
+                # 지도 표시
+                folium_static(m)
+                
+                # 경로 세부 정보 표시
+                total_distance = route["distanceMeters"]
+                total_duration = int(route["duration"].replace("s", ""))  # "123s" -> 123
+                
+                st.subheader("경로 세부 정보")
+                
+                # 각 구간별 정보 (있는 경우)
+                if "legs" in route:
+                    segments = []
                     
-                segments.append({
-                    "구간": f"{start} → {end}",
-                    "거리": leg["distance"]["text"],
-                    "소요 시간": leg["duration"]["text"]
-                })
-            
-            # 구간별 정보를 표로 표시
-            df = pd.DataFrame(segments)
-            st.table(df)
-            
-            # 전체 요약 정보
-            st.info(f"총 거리: {total_distance/1000:.2f} km, 총 소요 시간: {total_duration//60} 분")
-            
-        else:
-            st.error(f"경로를 찾을 수 없습니다. 오류: {directions_result['status']}")
-            if "error_message" in directions_result:
-                st.error(directions_result["error_message"])
+                    waypoint_names = ["현재위치", "경복궁", "창경궁", "코엑스"]
+                    
+                    for i, leg in enumerate(route["legs"]):
+                        distance = leg["distanceMeters"]
+                        duration = int(leg["duration"].replace("s", ""))
+                        
+                        segments.append({
+                            "구간": f"{waypoint_names[i]} → {waypoint_names[i+1]}",
+                            "거리": f"{distance/1000:.2f} km",
+                            "소요 시간": f"{duration//60} 분"
+                        })
+                    
+                    # 구간별 정보를 표로 표시
+                    df = pd.DataFrame(segments)
+                    st.table(df)
+                
+                # 전체 요약 정보
+                st.info(f"총 거리: {total_distance/1000:.2f} km, 총 소요 시간: {total_duration//60} 분")
+                
+            else:
+                st.error("경로를 찾을 수 없습니다.")
+                st.json(routes_result)
+        
+        except Exception as e:
+            st.error(f"오류가 발생했습니다: {str(e)}")
+            st.write("자세한 오류 정보:")
+            st.exception(e)
 
 # 주의사항 표시
 st.markdown("---")
-st.caption("이 앱을 사용하려면 유효한 Google Maps API 키가 필요합니다. API 키는 'Google Cloud Console'에서 발급받을 수 있습니다.")
-st.caption("Google Maps Directions API는 사용량에 따라 요금이 부과될 수 있습니다.")
+st.caption("이 앱을 사용하려면 유효한 Google Maps API 키가 필요하며, Routes API가 활성화되어 있어야 합니다.")
+st.caption("Google Maps Routes API는 사용량에 따라 요금이 부과될 수 있습니다.")
