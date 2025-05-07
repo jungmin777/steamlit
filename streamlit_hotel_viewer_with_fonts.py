@@ -563,8 +563,8 @@ def load_excel_files(language="한국어"):
     
     # 찾은 파일 목록 표시
     #st.success(f"{len(excel_files)}개의 Excel 파일을 찾았습니다.")
-    for file_path in excel_files:
-        st.info(f"파일 발견: {file_path.name}")
+    # for file_path in excel_files:
+    #     st.info(f"파일 발견: {file_path.name}")
     
     # 각 파일 처리
     for file_path in excel_files:
@@ -579,7 +579,7 @@ def load_excel_files(language="한국어"):
                     break
             
             # 파일 로드
-            st.info(f"'{file_path.name}' 파일을 '{file_category}' 카테고리로 로드 중...")
+            #st.info(f"'{file_path.name}' 파일을 '{file_category}' 카테고리로 로드 중...")
             df = pd.read_excel(file_path, engine='openpyxl')
             
             if df.empty:
