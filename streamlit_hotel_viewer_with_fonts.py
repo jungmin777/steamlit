@@ -396,7 +396,7 @@ def load_excel_files(language="한국어"):
         return []
     
     # 찾은 파일 목록 표시
-    st.success(f"{len(excel_files)}개의 Excel 파일을 찾았습니다.")
+    #st.success(f"{len(excel_files)}개의 Excel 파일을 찾았습니다.")
     for file_path in excel_files:
         st.info(f"파일 발견: {file_path.name}")
     
@@ -421,14 +421,14 @@ def load_excel_files(language="한국어"):
                 continue
             
             # 데이터프레임 기본 정보 출력
-            st.success(f"'{file_path.name}' 파일 로드 완료: {len(df)}행, {len(df.columns)}열")
+            #st.success(f"'{file_path.name}' 파일 로드 완료: {len(df)}행, {len(df.columns)}열")
             
             # 데이터 전처리 및 마커 변환
             markers = process_dataframe(df, file_category, language)
             
             if markers:
                 all_markers.extend(markers)
-                st.success(f"'{file_path.name}'에서 {len(markers)}개 마커 추출 성공")
+                #st.success(f"'{file_path.name}'에서 {len(markers)}개 마커 추출 성공")
             else:
                 st.warning(f"'{file_path.name}'에서 유효한 마커를 추출할 수 없습니다.")
             
@@ -440,7 +440,7 @@ def load_excel_files(language="한국어"):
     if not all_markers:
         st.error("모든 파일에서 유효한 마커를 찾을 수 없습니다.")
     else:
-        st.success(f"총 {len(all_markers)}개의 마커를 성공적으로 로드했습니다.")
+        #st.success(f"총 {len(all_markers)}개의 마커를 성공적으로 로드했습니다.")
     
     return all_markers
 
@@ -515,7 +515,7 @@ def process_dataframe(df, category, language="한국어"):
         return []
     
     # 5. 좌표 데이터 전처리
-    st.success(f"좌표 열 감지 성공: X='{x_col}', Y='{y_col}'")
+    #st.success(f"좌표 열 감지 성공: X='{x_col}', Y='{y_col}'")
     
     # NaN 값 처리
     df = df.dropna(subset=[x_col, y_col])
@@ -567,7 +567,7 @@ def process_dataframe(df, category, language="한국어"):
             valid_df = df[valid_coords]
             
             if not valid_df.empty:
-                st.success(f"좌표 변환 성공! 유효한 좌표 {len(valid_df)}개 발견")
+                #st.success(f"좌표 변환 성공! 유효한 좌표 {len(valid_df)}개 발견")
             else:
                 st.error("좌표 변환 실패! 유효한 한국 영역 좌표를 찾을 수 없습니다.")
                 return []
@@ -624,7 +624,7 @@ def process_dataframe(df, category, language="한국어"):
             print(f"마커 생성 오류 (행 #{idx}): {e}")
             continue
     
-    st.success(f"'{category}' 데이터에서 {success_count}개의 마커를 성공적으로 생성했습니다.")
+    #st.success(f"'{category}' 데이터에서 {success_count}개의 마커를 성공적으로 생성했습니다.")
     return markers
 
 # 이름 열 결정 함수
@@ -1687,7 +1687,7 @@ def show_map_page():
         api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
         if api_key:
             st.session_state.google_maps_api_key = api_key
-            st.success("API 키가 설정되었습니다. 지도를 로드합니다.")
+            #st.success("API 키가 설정되었습니다. 지도를 로드합니다.")
             st.rerun()
         else:
             st.info("Google Maps를 사용하려면 API 키가 필요합니다.")
@@ -1719,7 +1719,7 @@ def show_map_page():
                 st.session_state.all_markers = all_markers
                 st.session_state.markers_loaded = True
                 st.session_state.tourism_data = all_markers  # 코스 추천을 위해 저장
-                st.success(f"총 {len(all_markers)}개의 관광지 로드 완료!")
+                #st.success(f"총 {len(all_markers)}개의 관광지 로드 완료!")
             else:
                 st.warning("관광지 데이터를 로드할 수 없습니다.")
     
@@ -1744,7 +1744,7 @@ def show_map_page():
             # 로드된 데이터 마커 추가
             if st.session_state.all_markers:
                 markers.extend(st.session_state.all_markers)
-                st.success(f"지도에 {len(st.session_state.all_markers)}개의 장소를 표시했습니다.")
+                #st.success(f"지도에 {len(st.session_state.all_markers)}개의 장소를 표시했습니다.")
             
             # Google Maps 표시
             show_google_map(
@@ -2001,7 +2001,7 @@ def show_course_page():
                 st.session_state.all_markers = all_markers
                 st.session_state.markers_loaded = True
                 st.session_state.tourism_data = all_markers
-                st.success(f"총 {len(all_markers)}개의 관광지 로드 완료!")
+                #st.success(f"총 {len(all_markers)}개의 관광지 로드 완료!")
             else:
                 st.warning("관광지 데이터를 로드할 수 없습니다.")
     
@@ -2298,7 +2298,7 @@ def show_history_page():
             api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
             if api_key:
                 st.session_state.google_maps_api_key = api_key
-                st.success("API 키가 설정되었습니다.")
+                #st.success("API 키가 설정되었습니다.")
             else:
                 st.info("Google Maps를 사용하려면 API 키가 필요합니다.")
                 return
