@@ -339,7 +339,8 @@ def init_session_state():
                 "map_arrive_at_destination": "{distance:.0f}m 직진 후 목적지 도착",
                 "map_other_transport_modes": "다른 이동 수단",
                 "map_end_navigation": "내비게이션 종료",
-                "course_ai_recommendation_title": "ai추천 코스"
+                "course_ai_recommendation_title": "ai추천 코스",
+                "course_ai_recommendation_description": "ai추천 코스 설명"
             },
             "영어": {
                 "app_title": "Seoul Tourism App",
