@@ -1170,79 +1170,82 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         </div>
         <div id="map"></div>
         <div class="route-details" id="directions-panel"></div>
-    
+        <div><strong>총 거리:</strong> <span id="total"></span></div>
+
         <script>
             function initMap() {{
-              const map = new google.maps.Map(document.getElementById("map"), {{
-                zoom: 4,
-                center: {{ lat: -24.345, lng: 134.46 }}, // Australia.
+                const map = new google.maps.Map(document.getElementById("map"), {{
+                    zoom: 13,
+                    center: {{ lat: 37.5665, lng: 126.9780 }},
                 }});
-              const directionsService = new google.maps.DirectionsService();
-              const directionsRenderer = new google.maps.DirectionsRenderer({{
-                draggable: true,
-                map,
-                panel: document.getElementById("panel"),
-              }});
-            
-              directionsRenderer.addListener("directions_changed", () => {{
-                const directions = directionsRenderer.getDirections();
-            
-                if (directions) {{
-                  computeTotalDistance(directions);
-                }}
-              }});
-              displayRoute(
-                "Perth, WA",
-                "Sydney, NSW",
-                directionsService,
-                directionsRenderer,
-              );
+
+                const directionsService = new google.maps.DirectionsService();
+                const directionsRenderer = new google.maps.DirectionsRenderer({{
+                    draggable: false,
+                    map,
+                    panel: document.getElementById("directions-panel"),
+                }});
+
+                directionsRenderer.addListener("directions_changed", () => {{
+                    const directions = directionsRenderer.getDirections();
+                    if (directions) {{
+                        computeTotalDistance(directions);
+                    }}
+                }});
+
+                displayRoute(
+                    {{ lat: 37.5796, lng: 126.9770 }},  // 서울역
+                    {{ lat: 37.5778, lng: 127.0856 }},  // 건대입구
+                    directionsService,
+                    directionsRenderer
+                );
             }}
-            
+
             function displayRoute(origin, destination, service, display) {{
-              service
-                .route({{
-                  origin: origin,
-                  destination: destination,
-                  waypoints: [
-                    {{ location: "Adelaide, SA" }},
-                    {{ location: "Broken Hill, NSW" }},
-                  ],
-                  travelMode: google.maps.TravelMode.DRIVING,
-                  avoidTolls: true,
-                }})
-                .then((result) => {{
-                  display.setDirections(result);
-                }})
-                .catch((e) => {{
-                  alert("Could not display directions due to: " + e);
-                }});
+                service
+                    .route({{
+                        origin: origin,
+                        destination: destination,
+                        waypoints: [
+                            {{ location: {{ lat: 37.5714, lng: 126.9768 }} }}, // 광화문
+                            {{ location: {{ lat: 37.5665, lng: 127.0090 }} }}, // DDP
+                        ],
+                        travelMode: google.maps.TravelMode.TRANSIT,
+                        provideRouteAlternatives: false,
+                    }})
+                    .then((result) => {{
+                        display.setDirections(result);
+                    }})
+                    .catch((e) => {{
+                        alert("경로를 표시할 수 없습니다: " + e);
+                    }});
             }}
-            
+
             function computeTotalDistance(result) {{
-              let total = 0;
-              const myroute = result.routes[0];
-            
-              if (!myroute) {{
-                return;
-              }}
-            
-              for (let i = 0; i < myroute.legs.length; i++) {{
-                total += myroute.legs[i].distance.value;
-              }}
-            
-              total = total / 1000;
-              document.getElementById("total").innerHTML = total + " km";
+                let total = 0;
+                const myroute = result.routes[0];
+
+                if (!myroute) {{
+                    return;
+                }}
+
+                for (let i = 0; i < myroute.legs.length; i++) {{
+                    total += myroute.legs[i].distance.value;
+                }}
+
+                total = total / 1000;
+                document.getElementById("total").innerHTML = total.toFixed(2) + " km";
             }}
-            
+
             window.initMap = initMap;
         </script>
-        
-        <!-- Google Maps JavaScript API 로드 -->
+
+        <!-- Google Maps JavaScript API -->
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSDLDyZseqxDhWl1StYnORBrKN1Kv9Ns&callback=initMap&libraries=places" async defer></script>
     </body>
     </html>
     """
+
     
     return html
     
