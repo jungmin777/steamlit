@@ -1172,63 +1172,70 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <div class="route-details" id="directions-panel"></div>
     
         <script>
-            // 지도 초기화 함수
             function initMap() {
-                const origin = { lat: 37.5796, lng: 126.9770 };
-                const destination = { lat: 37.5778, lng: 127.0856 };
-                
-                // 지도 생성
-                const map = new google.maps.Map(document.getElementById('map'), {
-                    zoom: 12,
-                    center: {
-                        lat: (origin.lat + destination.lat) / 2,
-                        lng: (origin.lng + destination.lng) / 2
-                    }
-                });
-                
-                // 출발지와 도착지 마커 생성
-                new google.maps.Marker({
-                    position: origin,
-                    map: map,
-                    title: '출발지',
-                    label: 'A'
-                });
-                
-                new google.maps.Marker({
-                    position: destination,
-                    map: map,
-                    title: '도착지',
-                    label: 'B'
-                });
-                
-                // DirectionsService와 DirectionsRenderer 객체 생성
-                const directionsService = new google.maps.DirectionsService();
-                const directionsRenderer = new google.maps.DirectionsRenderer({
-                    map: map,
-                    panel: document.getElementById('directions-panel')
-                });
-                
-                // 경로 요청 옵션 설정
-                const request = {
-                    origin: origin,
-                    destination: destination,
-                    travelMode: google.maps.TravelMode.TRANSIT,
-                    transitOptions: {
-                        modes: [google.maps.TransitMode.SUBWAY, google.maps.TransitMode.BUS]
-                    },
-                    provideRouteAlternatives: true
-                };
-                
-                // 경로 요청
-                directionsService.route(request, function(response, status) {
-                    if (status === 'OK') {
-                        // 경로 그리기
-                        directionsRenderer.setDirections(response);
-                    } else {
-                        window.alert('경로를 가져오는데 실패했습니다: ' + status);
-                    }
+              const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 4,
+                center: { lat: -24.345, lng: 134.46 }, // Australia.
+              });
+              const directionsService = new google.maps.DirectionsService();
+              const directionsRenderer = new google.maps.DirectionsRenderer({
+                draggable: true,
+                map,
+                panel: document.getElementById("panel"),
+              });
+            
+              directionsRenderer.addListener("directions_changed", () => {
+                const directions = directionsRenderer.getDirections();
+            
+                if (directions) {
+                  computeTotalDistance(directions);
+                }
+              });
+              displayRoute(
+                "Perth, WA",
+                "Sydney, NSW",
+                directionsService,
+                directionsRenderer,
+              );
+            }
+            
+            function displayRoute(origin, destination, service, display) {
+              service
+                .route({
+                  origin: origin,
+                  destination: destination,
+                  waypoints: [
+                    { location: "Adelaide, SA" },
+                    { location: "Broken Hill, NSW" },
+                  ],
+                  travelMode: google.maps.TravelMode.DRIVING,
+                  avoidTolls: true,
+                })
+                .then((result) => {
+                  display.setDirections(result);
+                })
+                .catch((e) => {
+                  alert("Could not display directions due to: " + e);
                 });
             }
+            
+            function computeTotalDistance(result) {
+              let total = 0;
+              const myroute = result.routes[0];
+            
+              if (!myroute) {
+                return;
+              }
+            
+              for (let i = 0; i < myroute.legs.length; i++) {
+                total += myroute.legs[i].distance.value;
+              }
+            
+              total = total / 1000;
+              document.getElementById("total").innerHTML = total + " km";
+            }
+            
+            window.initMap = initMap;
         </script>
         
         <!-- Google Maps JavaScript API 로드 -->
