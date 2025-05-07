@@ -1987,6 +1987,178 @@ def show_map_page():
 def show_course_page():
     """개선된 관광 코스 추천 페이지"""
     page_header("서울 관광 코스 짜주기")
+
+     
+                    
+                    
+    # Google Maps API 키 설정
+    api_key = st.secrets["google_maps_api_key"]
+    
+    # 방문할 장소들 - 예시 (사용자 입력으로 대체 가능)
+    waypoints_input = st.text_area(
+        "방문할 장소들을 입력하세요 (한 줄에 하나씩)",
+        "강남역\n코엑스\n잠실역"
+    )
+    waypoints = [wp.strip() for wp in waypoints_input.split('\n') if wp.strip()]
+    
+    if st.button("경로 보기"):
+        # 지도 표시
+        st.components.v1.html(
+            f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>다중 경유지 경로</title>
+                <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+                <style>
+                    #map {{
+                        height: 600px;
+                        width: 100%;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div id="map"></div>
+    
+                <script>
+                    let map;
+                    let directionsService;
+                    let directionsRenderer;
+                    let infoWindow;
+                    let currentPosition;
+    
+                    function initMap() {{
+                        // 지도 초기화
+                        map = new google.maps.Map(document.getElementById("map"), {{
+                            zoom: 14,
+                            center: {{ lat: 37.5665, lng: 126.9780 }}, // 서울 기본 좌표
+                        }});
+    
+                        directionsService = new google.maps.DirectionsService();
+                        directionsRenderer = new google.maps.DirectionsRenderer({{
+                            map: map,
+                            suppressMarkers: false, // 마커 표시
+                        }});
+    
+                        infoWindow = new google.maps.InfoWindow();
+    
+                        // 현재 위치 가져오기
+                        if (navigator.geolocation) {{
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {{
+                                    currentPosition = {{
+                                        lat: position.coords.latitude,
+                                        lng: position.coords.longitude,
+                                    }};
+                                    
+                                    // 현재 위치에 마커 표시
+                                    new google.maps.Marker({{
+                                        position: currentPosition,
+                                        map: map,
+                                        title: "현재 위치",
+                                        icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                                    }});
+    
+                                    // 현재 위치를 기준으로 지도 중심 설정
+                                    map.setCenter(currentPosition);
+                                    
+                                    // 경로 계산 시작
+                                    calculateAndDisplayRoute();
+                                },
+                                () => {{
+                                    // 위치 정보를 가져올 수 없는 경우
+                                    handleLocationError(true, infoWindow, map.getCenter());
+                                }}
+                            );
+                        }} else {{
+                            // 브라우저가 위치 정보를 지원하지 않는 경우
+                            handleLocationError(false, infoWindow, map.getCenter());
+                        }}
+                    }}
+    
+                    function calculateAndDisplayRoute() {{
+                        // 경유지 목록 가져오기
+                        const waypoints = {waypoints};
+                        
+                        if (waypoints.length < 1) {{
+                            return;
+                        }}
+    
+                        // 경유지를 DirectionsService API 형식으로 변환
+                        const waypointsForRoute = waypoints.slice(1, -1).map(waypoint => ({{
+                            location: waypoint,
+                            stopover: true
+                        }}));
+    
+                        // 출발지는 현재 위치, 목적지는 마지막 장소
+                        const request = {{
+                            origin: currentPosition,  // 현재 위치
+                            destination: waypoints[waypoints.length - 1],  // 마지막 장소
+                            waypoints: waypointsForRoute,  // 중간 경유지
+                            optimizeWaypoints: false,  // 입력 순서대로 경유
+                            travelMode: google.maps.TravelMode.DRIVING,  // 이동 수단
+                        }};
+    
+                        // 경로 계산 요청
+                        directionsService.route(request, (result, status) => {{
+                            if (status === "OK") {{
+                                // 경로 표시
+                                directionsRenderer.setDirections(result);
+                                
+                                // 경로 정보 표시
+                                displayRouteInfo(result);
+                            }} else {{
+                                window.alert("경로를 가져오는데 실패했습니다: " + status);
+                            }}
+                        }});
+                    }}
+    
+                    function displayRouteInfo(result) {{
+                        const route = result.routes[0];
+                        let totalDistance = 0;
+                        let totalDuration = 0;
+    
+                        // 각 구간별 거리와 시간 계산
+                        for (let i = 0; i < route.legs.length; i++) {{
+                            totalDistance += route.legs[i].distance.value;
+                            totalDuration += route.legs[i].duration.value;
+                        }}
+    
+                        // 총 거리와 예상 시간 표시
+                        const infoDiv = document.createElement('div');
+                        infoDiv.innerHTML = `
+                            <div style="background-color: white; padding: 10px; margin: 10px; border-radius: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+                                <h3>경로 정보</h3>
+                                <p>총 거리: ${{(totalDistance / 1000).toFixed(2)}} km</p>
+                                <p>예상 소요 시간: ${{Math.floor(totalDuration / 60)}} 분</p>
+                            </div>
+                        `;
+                        
+                        // 컨트롤로 지도에 추가
+                        map.controls[google.maps.ControlPosition.TOP_LEFT].push(infoDiv);
+                    }}
+    
+                    function handleLocationError(browserHasGeolocation, infoWindow, pos) {{
+                        // 위치 오류 처리
+                        infoWindow.setPosition(pos);
+                        infoWindow.setContent(
+                            browserHasGeolocation
+                                ? "위치 정보 권한을 허용해주세요."
+                                : "브라우저가 위치 서비스를 지원하지 않습니다."
+                        );
+                        infoWindow.open(map);
+                    }}
+                </script>
+                <script
+                    src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&v=weekly"
+                    defer
+                ></script>
+            </body>
+            </html>
+            """.replace("{waypoints}", str(waypoints)),
+            height=600,
+        )
+
     
     # 뒤로가기 버튼
     if st.button("← 메뉴로 돌아가기"):
@@ -2167,181 +2339,6 @@ def show_course_page():
                             }
                             map_markers.append(marker)
                 else:
-                    
-                    
-                    
-                    
-                    
-                    # Google Maps API 키 설정
-                    api_key = st.secrets["google_maps_api_key"]
-                    
-                    # 방문할 장소들 - 예시 (사용자 입력으로 대체 가능)
-                    waypoints_input = st.text_area(
-                        "방문할 장소들을 입력하세요 (한 줄에 하나씩)",
-                        "강남역\n코엑스\n잠실역"
-                    )
-                    waypoints = [wp.strip() for wp in waypoints_input.split('\n') if wp.strip()]
-                    
-                    if st.button("경로 보기"):
-                        # 지도 표시
-                        st.components.v1.html(
-                            f"""
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <title>다중 경유지 경로</title>
-                                <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-                                <style>
-                                    #map {{
-                                        height: 600px;
-                                        width: 100%;
-                                    }}
-                                </style>
-                            </head>
-                            <body>
-                                <div id="map"></div>
-                    
-                                <script>
-                                    let map;
-                                    let directionsService;
-                                    let directionsRenderer;
-                                    let infoWindow;
-                                    let currentPosition;
-                    
-                                    function initMap() {{
-                                        // 지도 초기화
-                                        map = new google.maps.Map(document.getElementById("map"), {{
-                                            zoom: 14,
-                                            center: {{ lat: 37.5665, lng: 126.9780 }}, // 서울 기본 좌표
-                                        }});
-                    
-                                        directionsService = new google.maps.DirectionsService();
-                                        directionsRenderer = new google.maps.DirectionsRenderer({{
-                                            map: map,
-                                            suppressMarkers: false, // 마커 표시
-                                        }});
-                    
-                                        infoWindow = new google.maps.InfoWindow();
-                    
-                                        // 현재 위치 가져오기
-                                        if (navigator.geolocation) {{
-                                            navigator.geolocation.getCurrentPosition(
-                                                (position) => {{
-                                                    currentPosition = {{
-                                                        lat: position.coords.latitude,
-                                                        lng: position.coords.longitude,
-                                                    }};
-                                                    
-                                                    // 현재 위치에 마커 표시
-                                                    new google.maps.Marker({{
-                                                        position: currentPosition,
-                                                        map: map,
-                                                        title: "현재 위치",
-                                                        icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-                                                    }});
-                    
-                                                    // 현재 위치를 기준으로 지도 중심 설정
-                                                    map.setCenter(currentPosition);
-                                                    
-                                                    // 경로 계산 시작
-                                                    calculateAndDisplayRoute();
-                                                },
-                                                () => {{
-                                                    // 위치 정보를 가져올 수 없는 경우
-                                                    handleLocationError(true, infoWindow, map.getCenter());
-                                                }}
-                                            );
-                                        }} else {{
-                                            // 브라우저가 위치 정보를 지원하지 않는 경우
-                                            handleLocationError(false, infoWindow, map.getCenter());
-                                        }}
-                                    }}
-                    
-                                    function calculateAndDisplayRoute() {{
-                                        // 경유지 목록 가져오기
-                                        const waypoints = {waypoints};
-                                        
-                                        if (waypoints.length < 1) {{
-                                            return;
-                                        }}
-                    
-                                        // 경유지를 DirectionsService API 형식으로 변환
-                                        const waypointsForRoute = waypoints.slice(1, -1).map(waypoint => ({{
-                                            location: waypoint,
-                                            stopover: true
-                                        }}));
-                    
-                                        // 출발지는 현재 위치, 목적지는 마지막 장소
-                                        const request = {{
-                                            origin: currentPosition,  // 현재 위치
-                                            destination: waypoints[waypoints.length - 1],  // 마지막 장소
-                                            waypoints: waypointsForRoute,  // 중간 경유지
-                                            optimizeWaypoints: false,  // 입력 순서대로 경유
-                                            travelMode: google.maps.TravelMode.DRIVING,  // 이동 수단
-                                        }};
-                    
-                                        // 경로 계산 요청
-                                        directionsService.route(request, (result, status) => {{
-                                            if (status === "OK") {{
-                                                // 경로 표시
-                                                directionsRenderer.setDirections(result);
-                                                
-                                                // 경로 정보 표시
-                                                displayRouteInfo(result);
-                                            }} else {{
-                                                window.alert("경로를 가져오는데 실패했습니다: " + status);
-                                            }}
-                                        }});
-                                    }}
-                    
-                                    function displayRouteInfo(result) {{
-                                        const route = result.routes[0];
-                                        let totalDistance = 0;
-                                        let totalDuration = 0;
-                    
-                                        // 각 구간별 거리와 시간 계산
-                                        for (let i = 0; i < route.legs.length; i++) {{
-                                            totalDistance += route.legs[i].distance.value;
-                                            totalDuration += route.legs[i].duration.value;
-                                        }}
-                    
-                                        // 총 거리와 예상 시간 표시
-                                        const infoDiv = document.createElement('div');
-                                        infoDiv.innerHTML = `
-                                            <div style="background-color: white; padding: 10px; margin: 10px; border-radius: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
-                                                <h3>경로 정보</h3>
-                                                <p>총 거리: ${{(totalDistance / 1000).toFixed(2)}} km</p>
-                                                <p>예상 소요 시간: ${{Math.floor(totalDuration / 60)}} 분</p>
-                                            </div>
-                                        `;
-                                        
-                                        // 컨트롤로 지도에 추가
-                                        map.controls[google.maps.ControlPosition.TOP_LEFT].push(infoDiv);
-                                    }}
-                    
-                                    function handleLocationError(browserHasGeolocation, infoWindow, pos) {{
-                                        // 위치 오류 처리
-                                        infoWindow.setPosition(pos);
-                                        infoWindow.setContent(
-                                            browserHasGeolocation
-                                                ? "위치 정보 권한을 허용해주세요."
-                                                : "브라우저가 위치 서비스를 지원하지 않습니다."
-                                        );
-                                        infoWindow.open(map);
-                                    }}
-                                </script>
-                                <script
-                                    src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&v=weekly"
-                                    defer
-                                ></script>
-                            </body>
-                            </html>
-                            """.replace("{waypoints}", str(waypoints)),
-                            height=600,
-                        )
-
-
-                    
                     # 기본 코스 - 좌표 데이터가 없어 지도 표시 불가
                     st.warning("코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다.")
                 
