@@ -1210,7 +1210,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                             {{ location: {{ lat: 37.5714, lng: 126.9768 }} }}, // 광화문
                             {{ location: {{ lat: 37.5665, lng: 127.0090 }} }}, // DDP
                         ],
-                        travelMode: google.maps.TravelMode.TRANSIT,
+                        travelMode: google.maps.TravelMode.DRIVING,
                         provideRouteAlternatives: false,
                     }})
                     .then((result) => {{
