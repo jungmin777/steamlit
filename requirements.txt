@@ -7,4 +7,4 @@ geopy
 openpyxl
 pillow
 googlemaps
-google-maps-routeoptimization
+google
