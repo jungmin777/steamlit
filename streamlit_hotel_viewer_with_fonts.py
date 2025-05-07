@@ -279,7 +279,8 @@ def init_session_state():
                 "join_success": "✅ 회원가입 완료!",
                 "user_exists": "⚠️ 이미 존재하는 아이디입니다.",
                 "new_id": "새 아이디",
-                "new_pw": "새 비밀번호"
+                "new_pw": "새 비밀번호",
+                "welcome_msg": "👋 {username}님, 환영합니다!"
             },
             "영어": {
                 "app_title": "Seoul Tourism App",
