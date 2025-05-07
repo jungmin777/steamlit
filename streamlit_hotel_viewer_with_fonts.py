@@ -5,40 +5,28 @@ import pandas as pd
 # Streamlit secrets에서 API 키를 가져옵니다.
 gmaps_api_key = st.secrets["google_maps_api_key"]
 st.warning(gmaps_api_key)
-
 # Google Maps 클라이언트를 초기화합니다.
 gmaps = googlemaps.Client(key=gmaps_api_key)
 st.success(gmaps)
-
 # 위도, 경도 정보를 사용하여 장소 3곳을 정의합니다.
 locations = [
-    {"lat": 37.5665, "lng": 126.9780},  # 서울시청
-    {"lat": 37.5172, "lng": 127.0473},  # 코엑스
-    {"lat": 37.4979, "lng": 127.0276},  # 강남역
+    {"lat": 37.5665, "lng": 126.9780},  # 서울시청 (장소 1)
+    {"lat": 37.5172, "lng": 127.0473},  # 코엑스 (장소 2)
+    {"lat": 37.4979, "lng": 127.0276},  # 강남역 (장소 3)
 ]
 
-# 출발지 (임시 서울 중심부 위도, 경도)
-origin_lat = 37.55
-origin_lng = 126.98
-origin = f"{origin_lat},{origin_lng}"
-
-# 경유지 (원하는 방문 순서대로)
-waypoints = [f"{loc['lat']},{loc['lng']}" for loc in locations]
-
-# 첫 번째 장소를 목적지로 설정하고, 나머지 장소를 경유지로 설정
-destination = waypoints[0]
-intermediate_waypoints = waypoints[1:]
+# 출발지는 사용자 위치로 가정합니다.
+origin = "서울, 대한민국"  # 사용자의 현재 위치를 동적으로 가져올 수 있다면 더 좋습니다.
 
 # Directions API를 호출하여 경로를 계산합니다.
 directions_result = gmaps.directions(
     origin,
-    destination,
-    waypoints=intermediate_waypoints,
-    optimize_waypoints=False,  # 순서 최적화 비활성화
-    mode="driving",
+    locations[0],  # 첫 번째 장소 (서울시청)을 목적지로 설정
+    waypoints=[f"{loc['lat']},{loc['lng']}" for loc in locations[1:]],  # 나머지 장소들을 경유지로 설정 (코엑스, 강남역)
+    optimize_waypoints=False,  # 경유지 순서 최적화 비활성화
+    mode="driving",  # 이동 수단 설정 (운전)
 )
 st.warning(directions_result)
-
 if directions_result:
     # 경로 정보를 추출합니다.
     route = directions_result[0]
@@ -73,8 +61,10 @@ if directions_result:
             st.write(f"- {locations[i]}")
     else:
         st.write("## 경유지 순서:")
-        for loc in locations:
-            st.write(f"- {loc}")
+        # 수정된 부분: locations 리스트의 순서대로 출력
+        st.write(f"- {locations[0]}")  # 서울시청
+        st.write(f"- {locations[1]}")  # 코엑스
+        st.write(f"- {locations[2]}")  # 강남역
 
 else:
     st.error("경로를 찾을 수 없습니다.")
