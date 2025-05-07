@@ -6,3 +6,4 @@ streamlit-js-eval
 geopy
 openpyxl
 pillow
+googlemaps
