@@ -1135,7 +1135,6 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     
     # 전체 HTML 코드 생성
     html = f"""
-    
     <!DOCTYPE html>
     <html lang="ko">
     <head>
@@ -1175,7 +1174,6 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <script>
             // 지도 초기화 함수
             function initMap() {
-                
                 const origin = { lat: 37.5796, lng: 126.9770 };
                 const destination = { lat: 37.5778, lng: 127.0856 };
                 
