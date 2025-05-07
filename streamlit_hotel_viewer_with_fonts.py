@@ -1172,7 +1172,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <div class="route-details" id="directions-panel"></div>
     
         <script>
-            function initMap() {
+            function initMap() {{
               const map = new google.maps.Map(document.getElementById("map"), {{
                 zoom: 4,
                 center: {{ lat: -24.345, lng: 134.46 }}, // Australia.
@@ -1197,43 +1197,43 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 directionsService,
                 directionsRenderer,
               );
-            }
+            }}
             
-            function displayRoute(origin, destination, service, display) {
+            function displayRoute(origin, destination, service, display) {{
               service
-                .route({
+                .route({{
                   origin: origin,
                   destination: destination,
                   waypoints: [
-                    { location: "Adelaide, SA" },
-                    { location: "Broken Hill, NSW" },
+                    {{ location: "Adelaide, SA" }},
+                    {{ location: "Broken Hill, NSW" }},
                   ],
                   travelMode: google.maps.TravelMode.DRIVING,
                   avoidTolls: true,
-                })
+                }})
                 .then((result) => {
                   display.setDirections(result);
                 })
                 .catch((e) => {
                   alert("Could not display directions due to: " + e);
                 });
-            }
+            }}
             
-            function computeTotalDistance(result) {
+            function computeTotalDistance(result) {{
               let total = 0;
               const myroute = result.routes[0];
             
               if (!myroute) {
                 return;
-              }
+              }}
             
-              for (let i = 0; i < myroute.legs.length; i++) {
+              for (let i = 0; i < myroute.legs.length; i++) {{
                 total += myroute.legs[i].distance.value;
-              }
+              }}
             
               total = total / 1000;
               document.getElementById("total").innerHTML = total + " km";
-            }
+            }}
             
             window.initMap = initMap;
         </script>
