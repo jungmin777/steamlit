@@ -1703,7 +1703,7 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
     elif "활동적인" in travel_styles:
         course_type = "액티브 서울 코스"
     else:
-        course_type = "서울 필수 여행 코스"
+        course_type = "서울 힐링 여행 코스"
     
     # 추천 장소 이름 목록 생성
     recommended_places = []
