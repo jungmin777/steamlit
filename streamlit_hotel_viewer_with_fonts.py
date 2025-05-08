@@ -1142,24 +1142,24 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Google Maps 경로 시각화</title>
         <style>
-            #map {{
+            #map {{{{
                 height: 500px;
                 width: 100%;
-            }}
-            body {{
+            }}}}
+            body {{{{
                 font-family: Arial, sans-serif;
                 margin: 0;
                 padding: 20px;
-            }}
-            .info-panel {{
+            }}}}
+            .info-panel {{{{
                 margin-bottom: 20px;
                 padding: 15px;
                 background-color: #f5f5f5;
                 border-radius: 5px;
-            }}
-            .route-details {{
+            }}}}
+            .route-details {{{{
                 margin-top: 20px;
-            }}
+            }}}}
         </style>
     </head>
     <body>
@@ -1173,69 +1173,68 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <div><strong>총 거리:</strong> <span id="total"></span></div>
 
         <script>
-            function initMap() {{
-                const map = new google.maps.Map(document.getElementById("map"), {{
+            function initMap() {{{{
+                const map = new google.maps.Map(document.getElementById("map"), {{{{
                     zoom: 13,
-                    center: {{ lat: 37.5665, lng: 126.9780 }},
-                }});
+                    center: {{{{ lat: 37.5665, lng: 126.9780 }}}},
+                }}}});
 
                 const directionsService = new google.maps.DirectionsService();
-                const directionsRenderer = new google.maps.DirectionsRenderer({{
+                const directionsRenderer = new google.maps.DirectionsRenderer({{{{
                     draggable: false,
                     map,
                     panel: document.getElementById("directions-panel"),
-                }});
+                }}}});
 
-                directionsRenderer.addListener("directions_changed", () => {{
+                directionsRenderer.addListener("directions_changed", () => {{{{
                     const directions = directionsRenderer.getDirections();
-                    if (directions) {{
+                    if (directions) {{{{
                         computeTotalDistance(directions);
-                    }}
-                }});
+                    }}}}
+                }}}});
 
                 displayRoute(
-                    {{ lat: 37.5796, lng: 126.9770 }},  // 서울역
-                    {{ lat: 37.5778, lng: 127.0856 }},  // 건대입구
+                    {{{{ lat: 37.5796, lng: 126.9770 }}}},  // 서울역
+                    {{{{ lat: 37.5778, lng: 127.0856 }}}},  // 건대입구
                     directionsService,
                     directionsRenderer
                 );
-            }}
+            }}}}
 
-            function displayRoute(origin, destination, service, display) {{
+            function displayRoute(origin, destination, service, display) {{{{
                 service
-                    .route({{
+                    .route({{{{
                         origin: origin,
                         destination: destination,
-                        waypoints: [
-                            {{ location: {{ lat: 37.5714, lng: 126.9768 }} }}, // 광화문
-                            {{ location: {{ lat: 37.5665, lng: 127.0090 }} }}, // DDP
-                        ],
-                        travelMode: google.maps.TravelMode.DRIVING,
-                        provideRouteAlternatives: false,
-                    }})
-                    .then((result) => {{
+                        travelMode: google.maps.TravelMode.TRANSIT,
+                        transitOptions: {{{{
+                            modes: [google.maps.TransitMode.SUBWAY, google.maps.TransitMode.BUS]
+                        }}}},
+                        provideRouteAlternatives: true,
+                    }}}})
+                    .then((result) => {{{{
                         display.setDirections(result);
-                    }})
-                    .catch((e) => {{
+                    }}}})
+                    .catch((e) => {{{{
                         alert("경로를 표시할 수 없습니다: " + e);
-                    }});
-            }}
+                    }}}});
+            }}}}
 
-            function computeTotalDistance(result) {{
+            function computeTotalDistance(result) {{{{
                 let total = 0;
                 const myroute = result.routes[0];
 
-                if (!myroute) {{
+                if (!myroute) {{{{
                     return;
-                }}
+                }}}}
 
-                for (let i = 0; i < myroute.legs.length; i++) {{
+                for (let i = 0; i < myroute.legs.length; i++) {{{{
                     total += myroute.legs[i].distance.value;
-                }}
+                }}}}
 
                 total = total / 1000;
                 document.getElementById("total").innerHTML = total.toFixed(2) + " km";
-            }}
+            }}}}
 
             window.initMap = initMap;
         </script>
@@ -1245,7 +1244,6 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     </body>
     </html>
     """
-
     
     return html
     
