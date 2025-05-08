@@ -360,7 +360,31 @@ def init_session_state():
                 "visits_count": "{count}회",
                 "places_count": "{count}곳",
                 "xp_points": "{xp} XP",
-                "no_map_visits": "지도에 표시할 방문 기록이 없습니다."
+                "no_map_visits": "지도에 표시할 방문 기록이 없습니다.",
+                "travel_info_input": "여행 정보 입력",
+                "travel_style_active": "활동적인",
+                "travel_style_relaxation": "휴양",
+                "travel_style_food": "맛집",
+                "travel_style_shopping": "쇼핑",
+                "travel_style_history_culture": "역사/문화",
+                "travel_style_nature": "자연",
+                "generate_course_button": "코스 생성하기",
+                "select_travel_style_warning": "최소 하나 이상의 여행 스타일을 선택해주세요.",
+                "generating_course_spinner": "최적의 관광 코스를 생성 중입니다...",
+                "course_generation_complete": "코스 생성 완료!",
+                "recommended_course_title": "추천 코스",
+                "insufficient_recommendations": "추천 장소가 부족합니다.",
+                "morning_time_slot": "오전 (09:00-12:00)",
+                "afternoon_time_slot": "오후 (13:00-16:00)",
+                "evening_time_slot": "저녁 (16:00-19:00)",
+                "category_label": "분류: {category}",
+                "location_label": "위치: {address}",
+                "default_spots": ["경복궁", "남산서울타워", "명동"],
+                "tourist_spot": "관광지",
+                "course_map_title": "🗺️ 코스 지도",
+                "map_display_error": "코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다.",
+                "save_course_button": "이 코스 저장하기",
+                "course_saved_success": "코스가 저장되었습니다!"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -1026,7 +1050,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정"""
     if markers is None:
         markers = []
-    
+    st.warning(markers[1])
     # 카테고리별 마커 그룹화
     categories = {}
     for marker in markers:
@@ -2471,7 +2495,7 @@ def show_course_page():
     # 여행 정보 입력 섹션
 
     st.markdown("---")
-    st.subheader("여행 정보 입력")
+    st.subheader(current_lang_texts["travel_info_input"])
     
     col1, col2 = st.columns(2)
     
@@ -2508,13 +2532,13 @@ def show_course_page():
     
     # 코스 생성 버튼
     st.markdown("---")
-    generate_course = st.button("코스 생성하기", type="primary", use_container_width=True)
+    generate_course = st.button(current_lang_texts["generate_course_button"], type="primary", use_container_width=True)
     
     if generate_course:
         if not selected_styles:
-            st.warning("최소 하나 이상의 여행 스타일을 선택해주세요.")
+            st.warning(current_lang_texts["select_travel_style_warning"])
         else:
-            with st.spinner("최적의 관광 코스를 생성 중입니다..."):
+            with st.spinner(current_lang_texts["generating_course_spinner"]):
                 # 코스 추천 실행
                 recommended_places, course_type, daily_courses = recommend_courses(
                     st.session_state.all_markers if hasattr(st.session_state, 'all_markers') else [],
@@ -2523,10 +2547,10 @@ def show_course_page():
                     include_children
                 )
                 
-                st.success("코스 생성 완료!")
+                st.success(current_lang_texts["course_generation_complete"])
                 
                 # 코스 표시
-                st.markdown("## 추천 코스")
+                st.markdown(f"## {current_lang_texts['recommended_course_title']}")
                 st.markdown(f"**{course_type}** - {delta}일 일정")
                 
                 # 일별 코스 표시
@@ -2536,11 +2560,15 @@ def show_course_page():
                         st.markdown(f"### Day {day_idx + 1}")
                         
                         if not day_course:
-                            st.info("추천 장소가 부족합니다.")
+                            st.info(current_lang_texts["insufficient_recommendations"])
                             continue
                         
                         # 시간대별 장소 표시
-                        time_slots = ["오전 (09:00-12:00)", "오후 (13:00-16:00)", "저녁 (16:00-19:00)"]
+                        time_slots = [
+                            current_lang_texts["morning_time_slot"],
+                            current_lang_texts["afternoon_time_slot"],
+                            current_lang_texts["evening_time_slot"]
+                        ]
                         timeline = st.columns(len(day_course))
                         
                         for i, place in enumerate(day_course):
@@ -2548,12 +2576,12 @@ def show_course_page():
                                 time_idx = min(i, len(time_slots) - 1)
                                 st.markdown(f"**{time_slots[time_idx]}**")
                                 st.markdown(f"**{place['title']}**")
-                                st.caption(f"분류: {place['category']}")
+                                st.caption(f"{current_lang_texts['category_label'].format(category=place['category'])}")
                                 
                                 # 간단한 설명 추가
                                 info_text = ""
                                 if 'address' in place and place['address']:
-                                    info_text += f"위치: {place['address']}"
+                                    info_text += current_lang_texts["location_label"].format(address=place['address'])
                                     if len(place['address']) > 20:
                                         info_text = info_text[:20] + "..."
                                 st.caption(info_text)
