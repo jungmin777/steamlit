@@ -1209,10 +1209,6 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         const directionsRenderer = new google.maps.DirectionsRenderer();
         directionsRenderer.setMap(map);
 
-        # const onChangeHandler = function (){
-        #     calculateAndDisplayRoute(directionService, directionsRenderer);
-        # };
-
         function calculateAndDisplayRoute(directionsService, directionsRenderer) {{
           directionsService
             .route({{
