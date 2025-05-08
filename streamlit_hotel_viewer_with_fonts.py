@@ -1050,8 +1050,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정"""
     if markers is None:
         markers = []
-    st.warning(markers[0])
-    st.success(markers[2])
+    
     # 카테고리별 마커 그룹화
     categories = {}
     for marker in markers:
@@ -1062,6 +1061,16 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     
     # 범례 HTML
     legend_items = []
+    CATEGORY_COLORS = {
+        "관광 명소": "red",
+        "숙박": "blue",
+        "음식점": "yellow",
+        "쇼핑": "green",
+        "교통": "purple",
+        "문화": "orange",
+        "기타": "pink"
+    }
+    
     for category, color in CATEGORY_COLORS.items():
         # 해당 카테고리의 마커가 있는 경우만 표시
         if any(m.get('category') == category for m in markers):
@@ -1193,7 +1202,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     
     # 내비게이션 JavaScript 코드 - 수정됨
     directions_js = ""
-    if navigation_mode and start_location and end_location and transport_mode:
+    if navigation_mode and transport_mode:
         directions_js = f"""
         // 전역 변수 선언
         var directionsService;
@@ -1213,6 +1222,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 hideRouteList: false,
                 suppressMarkers: false,
                 preserveViewport: false,
+                panel: document.getElementById("directions-panel"),
                 polylineOptions: {{
                     strokeColor: '#2196F3',
                     strokeOpacity: 0.8,
@@ -1229,9 +1239,22 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         
         // 경로 계산 및 표시 함수
         function calculateRoute() {{
-            // 출발지와 목적지 설정
-            var start = {{ lat: {start_location['lat']}, lng: {start_location['lng']} }};
-            var end = {{ lat: {end_location['lat']}, lng: {end_location['lng']} }};
+            console.log('경로 계산 시작...');
+            
+            // 출발지와 목적지 설정 - markers[0]과 markers[1] 사용
+            var start, end;
+            
+            if (markers.length >= 2) {{
+                // markers 배열에서 마커 사용
+                start = {{ lat: markers[0].position.lat(), lng: markers[0].position.lng() }};
+                end = {{ lat: markers[1].position.lat(), lng: markers[1].position.lng() }};
+                console.log('마커에서 가져온 위치 - 출발:', start, '도착:', end);
+            }} else {{
+                // start_location과 end_location 사용
+                start = {{ lat: {start_location['lat']}, lng: {start_location['lng']} }};
+                end = {{ lat: {end_location['lat']}, lng: {end_location['lng']} }};
+                console.log('제공된 위치 사용 - 출발:', start, '도착:', end);
+            }}
             
             // 이동 수단에 따른 travelMode 설정
             var travelMode;
@@ -1248,18 +1271,25 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                     break;
             }}
             
+            console.log('이동 수단:', '{transport_mode.lower()}');
+            
             // 경로 요청
             directionsService.route(
                 {{
                     origin: start,
                     destination: end,
                     travelMode: travelMode,
+                    transitOptions: travelMode === google.maps.TravelMode.TRANSIT ? {{
+                        modes: [google.maps.TransitMode.SUBWAY, google.maps.TransitMode.BUS]
+                    }} : undefined,
                     optimizeWaypoints: true,
                     avoidHighways: false,
-                    avoidTolls: false
+                    avoidTolls: false,
+                    provideRouteAlternatives: true
                 }},
                 function(response, status) {{
                     if (status === 'OK') {{
+                        console.log('경로 계산 성공');
                         // 경로 표시
                         directionsRenderer.setDirections(response);
                         
@@ -1316,7 +1346,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         }});
         """
     
-    # 전체 HTML 코드 생성
+    # HTML 템플릿
     html = f"""
     <!DOCTYPE html>
     <html>
