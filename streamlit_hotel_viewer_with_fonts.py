@@ -1343,6 +1343,46 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             .route-details {{
                 margin-top: 20px;
             }}
+            .direction-step {{
+                margin: 10px 0;
+                padding: 5px;
+                border-bottom: 1px solid #ddd;
+            }}
+            .filter-button {{
+                margin: 0 5px 10px 0;
+                padding: 5px 10px;
+                background-color: #f0f0f0;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                cursor: pointer;
+            }}
+            .filter-button.active {{
+                background-color: #4285F4;
+                color: white;
+                border-color: #2a56c6;
+            }}
+            .legend {{
+                background: white;
+                padding: 10px;
+                margin: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                position: absolute;
+                bottom: 30px;
+                right: 10px;
+                z-index: 1000;
+                max-width: 200px;
+            }}
+            .legend-item {{
+                margin: 5px 0;
+                display: flex;
+                align-items: center;
+            }}
+            .legend-item img {{
+                margin-right: 5px;
+                width: 20px;
+                height: 20px;
+            }}
         </style>
     </head>
     <body>
@@ -1351,29 +1391,54 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             <p><strong>출발지:</strong> <span id="origin-info"></span></p>
             <p><strong>도착지:</strong> <span id="destination-info"></span></p>
         </div>
+        <div id="filter-controls"></div>
         <div id="map"></div>
         <div class="route-details" id="directions-panel"></div>
         <div><strong>총 거리:</strong> <span id="total"></span></div>
 
-        <!-- Google Maps JavaScript API를 먼저 로드 -->
+        <!-- Google Maps JavaScript API와 MarkerClusterer 라이브러리 로드 -->
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSDLDyZseqxDhWl1StYnORBrKN1Kv9Ns&libraries=places" async defer></script>
+        <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
         
         <script>
-            // markers 배열 참조 (외부에서 정의된 것으로 가정)
-            // window.initMap 함수는 markers 배열에 접근할 수 있어야 함
+            // 마커, 카테고리, 정보창을 저장할 전역 배열
+            var markers = [];
+            var markerCategories = [];
+            var infoWindows = [];
+            var currentMarker = null;
+            var directionsService;
+            var directionsRenderer;
+            
+            // 모든 정보창 닫기
+            function closeAllInfoWindows() {{
+                for (var i = 0; i < infoWindows.length; i++) {{
+                    infoWindows[i].close();
+                }}
+            }}
             
             // 전역 함수로 선언
             window.initMap = function() {{
                 const map = new google.maps.Map(document.getElementById("map"), {{
                     zoom: 13,
                     center: {{ lat: 37.5665, lng: 126.9780 }},
+                    mapTypeControl: true,
+                    fullscreenControl: true,
+                    streetViewControl: true,
+                    zoomControl: true
                 }});
-
-                const directionsService = new google.maps.DirectionsService();
-                const directionsRenderer = new google.maps.DirectionsRenderer({{
-                    draggable: false,
-                    map,
+                
+                // Direction Service 및 Renderer 초기화
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer({{
+                    draggable: true,
+                    map: map,
                     panel: document.getElementById("directions-panel"),
+                    suppressMarkers: false,
+                    polylineOptions: {{
+                        strokeColor: '#2196F3',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 6
+                    }}
                 }});
 
                 directionsRenderer.addListener("directions_changed", () => {{
@@ -1384,23 +1449,49 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 }});
                 
                 // markers 배열에서 출발지와 도착지 정보 가져오기
-                const origin = {{ lat: markers[0].lat, lng: markers[0].lng }};  // 서울역
-                const destination = {{ lat: markers[3].lat, lng: markers[3].lng }};  // 건대입구
+                const origin = {{ lat: markers[0].lat, lng: markers[0].lng }};
+                const destination = {{ lat: markers[1].lat, lng: markers[1].lng }};
                 
                 // 출발지와 도착지 정보 표시
-                document.getElementById("origin-info").textContent = `좌표 (${{markers[0].lat}}, ${{markers[0].lng}}) - 서울역 부근`;
-                document.getElementById("destination-info").textContent = `좌표 (${{markers[3].lat}}, ${{markers[3].lng}}) - 건대입구역 부근`;
+                document.getElementById("origin-info").textContent = `좌표 (${{markers[0].lat}}, ${{markers[0].lng}}) - ${{markers[0].title || "출발지"}}`;
+                document.getElementById("destination-info").textContent = `좌표 (${{markers[1].lat}}, ${{markers[1].lng}}) - ${{markers[1].title || "도착지"}}`;
 
-                displayRoute(
-                    origin,
-                    destination,
-                    directionsService,
-                    directionsRenderer
-                );
+                // 각 마커 생성 코드는 여기에 들어갑니다 (외부 markers 배열 참조)
+                {markers_js}
+                
+                // 마커 클러스터링 적용
+                {clustering_js}
+                
+                // 경로 계산 및 표시
+                calculateAndDisplayRoute(origin, destination);
             }};
+            
+            // 필터링 함수 - 카테고리별 마커 표시/숨김
+            function filterMarkers(category) {{
+                for (var i = 0; i < markers.length; i++) {{
+                    var shouldShow = category === 'all' || markerCategories[i] === category;
+                    markers[i].setVisible(shouldShow);
+                }}
+                
+                // 필터 버튼 활성화 상태 업데이트
+                document.querySelectorAll('.filter-button').forEach(function(btn) {{
+                    btn.classList.remove('active');
+                }});
+                
+                // 카테고리 ID 안전하게 변환
+                var safeCategory = category.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+                var filterButtonId = 'filter-' + (category === 'all' ? 'all' : safeCategory);
+                
+                var filterButton = document.getElementById(filterButtonId);
+                if (filterButton) {{
+                    filterButton.classList.add('active');
+                }} else {{
+                    document.getElementById('filter-all').classList.add('active');
+                }}
+            }}
 
-            function displayRoute(origin, destination, service, display) {{
-                service
+            function calculateAndDisplayRoute(origin, destination) {{
+                directionsService
                     .route({{
                         origin: origin,
                         destination: destination,
@@ -1411,10 +1502,33 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                         provideRouteAlternatives: true,
                     }})
                     .then((result) => {{
-                        display.setDirections(result);
+                        directionsRenderer.setDirections(result);
+                        computeTotalDistance(result);
+                        
+                        // 경로 정보 추출 및 표시
+                        var route = result.routes[0];
+                        var leg = route.legs[0];
+                        
+                        // 경로 정보를 부모 창에 전달 (있는 경우)
+                        if (window.parent && window.parent.postMessage) {{
+                            window.parent.postMessage({{
+                                'type': 'directions_success',
+                                'distance': leg.distance.text,
+                                'duration': leg.duration.text
+                            }}, '*');
+                        }}
                     }})
                     .catch((e) => {{
+                        console.error("경로를 표시할 수 없습니다: " + e);
                         alert("경로를 표시할 수 없습니다: " + e);
+                        
+                        // 오류 정보를 부모 창에 전달 (있는 경우)
+                        if (window.parent && window.parent.postMessage) {{
+                            window.parent.postMessage({{
+                                'type': 'directions_error',
+                                'error': e.message || String(e)
+                            }}, '*');
+                        }}
                     }});
             }}
 
