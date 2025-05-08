@@ -1207,6 +1207,28 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         // 전역 변수 선언
         const directionsService = new google.maps.DirectionsService();
         const directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+
+        # const onChangeHandler = function (){
+        #     calculateAndDisplayRoute(directionService, directionsRenderer);
+        # };
+
+        function calculateAndDisplayRoute(directionsService, directionsRenderer) {{
+          directionsService
+            .route({{
+              origin: {{
+                query: {{ lat: {markers[0]['lat']}, lng: {markers[0]['lng']}}}
+              }},
+              destination: {{
+                query: {{ lat: {markers[1]['lat']}, lng: {markers[1]['lng']}}}
+              }},
+              travelMode: google.maps.TravelMode.DRIVING,
+            }})
+            .then((response) => {{
+              directionsRenderer.setDirections(response);
+            }})
+            .catch((e) => window.alert("Directions request failed due to " + status));
+        }}
         
         """
     
