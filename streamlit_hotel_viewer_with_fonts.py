@@ -1436,36 +1436,9 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 // 필터링 함수
                 {filter_js}
                 
-                
-    """
-    if navigation_mode:
-        html += """
-            // 내비게이션 코드
+                // 내비게이션 코드
                 {directions_js}
                 
-                // 지도 클릭 이벤트
-                map.addListener('click', function(event) {{
-                    closeAllInfoWindows();
-                    if (currentMarker) currentMarker.setAnimation(null);
-                    
-                    window.parent.postMessage({{
-                        'type': 'map_click',
-                        'lat': event.latLng.lat(),
-                        'lng': event.latLng.lng()
-                    }}, '*');
-                }});
-                
-                console.log('지도 초기화 완료');
-            }}
-        </script>
-        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.9/dist/index.min.js"></script>
-        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=places,directions&v=weekly&language={language}" async defer></script>
-    </body>
-    </html>
-    """
-
-    else:
-        html += """
                 // 지도 클릭 이벤트
                 map.addListener('click', function(event) {{
                     closeAllInfoWindows();
