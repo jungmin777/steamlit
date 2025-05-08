@@ -1205,40 +1205,38 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     if navigation_mode and transport_mode:
         directions_js = f"""
         // 전역 변수 선언
-        // 전역 변수 선언
         const directionsService = new google.maps.DirectionsService();
-        const directionsRenderer = new google.maps.DirectionsRenderer({
+        const directionsRenderer = new google.maps.DirectionsRenderer({{
           panel: document.getElementById('directions-panel') // 경로 안내를 directions-panel에 표시
-        });
+        }});
         directionsRenderer.setMap(map);
         
-        function calculateAndDisplayRoute() {
+        function calculateAndDisplayRoute() {{
           // 교통 수단 설정 (기본값: DRIVING)
-          const travelMode = '${transport_mode}' || 'DRIVING';
+          const travelMode = '{transport_mode}' || 'DRIVING';
           
           directionsService
-            .route({
-              origin: { lat: ${markers[0]['lat']}, lng: ${markers[0]['lng']} },
-              destination: { lat: ${markers[1]['lat']}, lng: ${markers[1]['lng']} },
+            .route({{
+              origin: {{ lat: {markers[0]['lat']}, lng: {markers[0]['lng']} }},
+              destination: {{ lat: {markers[1]['lat']}, lng: {markers[1]['lng']} }},
               travelMode: google.maps.TravelMode[travelMode.toUpperCase()],
-            })
-            .then((response) => {
+            }})
+            .then((response) => {{
               directionsRenderer.setDirections(response);
-            })
-            .catch((e) => {
+            }})
+            .catch((e) => {{
               window.alert("경로 안내를 가져오는데 실패했습니다: " + e);
-            });
-        }
+            }});
+        }}
         
         // 지도 로딩 후 자동으로 경로 계산 실행
         calculateAndDisplayRoute();
         
         // 교통 수단 변경 시 경로 재계산을 위한 이벤트 리스너 예시
-        document.addEventListener('transportModeChanged', function(e) {
+        document.addEventListener('transportModeChanged', function(e) {{
           transport_mode = e.detail.mode;
           calculateAndDisplayRoute();
-        });
-        
+        }});
         """
     
     # HTML 템플릿
