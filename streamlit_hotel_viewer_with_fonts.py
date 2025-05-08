@@ -261,7 +261,6 @@ def init_session_state():
         st.session_state.language = "한국어"
         st.session_state.texts = {
             "한국어": {
-                # 기존 코드에서 추출한 항목들
                 "app_title": "서울 관광앱",
                 "login_tab": "로그인",
                 "join_tab": "회원가입",
@@ -342,8 +341,6 @@ def init_session_state():
                 "map_end_navigation": "내비게이션 종료",
                 "course_ai_recommendation_title": "AI 추천 코스",
                 "course_ai_recommendation_description": "AI 추천 코스 설명",
-                
-                # 첫번째 코드에서 추출한 추가 항목들
                 "history_page_title": "나의 관광 이력",
                 "level_text": "레벨 {level}",
                 "total_xp_text": "총 경험치: {xp} XP",
@@ -2890,7 +2887,7 @@ def show_course_page():
 def show_history_page():
     """관광 이력 페이지 표시"""
     # 현재 언어에 맞는 텍스트 가져오기
-    current_lang_texts = texts[st.session_state.language]
+    current_lang_texts = st.session_state.texts[st.session_state.language]
     
     page_header(current_lang_texts["history_page_title"])
     
