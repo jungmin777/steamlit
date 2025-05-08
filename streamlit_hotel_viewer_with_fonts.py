@@ -1172,8 +1172,12 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <div class="route-details" id="directions-panel"></div>
         <div><strong>총 거리:</strong> <span id="total"></span></div>
 
+        <!-- Google Maps JavaScript API를 먼저 로드 -->
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSDLDyZseqxDhWl1StYnORBrKN1Kv9Ns&libraries=places" async defer></script>
+        
         <script>
-            function initMap() {{{{
+            // 전역 함수로 선언
+            window.initMap = function() {{{{
                 const map = new google.maps.Map(document.getElementById("map"), {{{{
                     zoom: 13,
                     center: {{{{ lat: 37.5665, lng: 126.9780 }}}},
@@ -1199,7 +1203,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                     directionsService,
                     directionsRenderer
                 );
-            }}}}
+            }};
 
             function displayRoute(origin, destination, service, display) {{{{
                 service
@@ -1236,11 +1240,21 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 document.getElementById("total").innerHTML = total.toFixed(2) + " km";
             }}}}
 
-            window.initMap = initMap;
+            // 페이지 로드 완료 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {{{{
+                // Google Maps API가 이미 로드된 경우 initMap 함수 실행
+                if (window.google && window.google.maps) {{{{
+                    initMap();
+                }}}} else {{{{
+                    // 그렇지 않으면 콜백으로 추가
+                    const script = document.createElement('script');
+                    script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSDLDyZseqxDhWl1StYnORBrKN1Kv9Ns&libraries=places&callback=initMap";
+                    script.async = true;
+                    script.defer = true;
+                    document.head.appendChild(script);
+                }}}}
+            }});
         </script>
-
-        <!-- Google Maps JavaScript API -->
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSDLDyZseqxDhWl1StYnORBrKN1Kv9Ns&callback=initMap&libraries=places" async defer></script>
     </body>
     </html>
     """
