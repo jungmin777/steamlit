@@ -1826,7 +1826,7 @@ def show_menu_page():
     current_lang_texts = st.session_state.texts[st.session_state.language]
     
     page_header(current_lang_texts["app_title"])
-    st.markdown(f"### 👋 {current_lang_texts['welcome_msg'].format(username=st.session_state.username)}")
+    st.markdown(f"###  {current_lang_texts['welcome_msg'].format(username=st.session_state.username)}")
     
     # 사용자 레벨 및 경험치 정보 표시
     lang = "ko"
