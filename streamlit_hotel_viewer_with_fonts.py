@@ -1487,10 +1487,10 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
                     st.text(f"{i+1}. {marker.get('title', '무제')} - 좌표: ({marker['lat']}, {marker['lng']})")
             return False
 
-def display_visits(visits):
+def display_visits(visits, current_lang_texts):
     """방문 기록 표시 함수"""
     if not visits:
-        st.info("방문 기록이 없습니다.")
+        st.info(current_lang_texts["no_visit_history"])
         return
     
     for i, visit in enumerate(visits):
@@ -1499,7 +1499,7 @@ def display_visits(visits):
             
             with col1:
                 st.markdown(f"**{visit['place_name']}**")
-                st.caption(f"방문일: {visit['date']}")
+                st.caption(f"{current_lang_texts['visit_date']}: {visit['date']}")
             
             with col2:
                 st.markdown(f"+{visit.get('xp_gained', 0)} XP")
@@ -1509,7 +1509,8 @@ def display_visits(visits):
                 if 'rating' in visit and visit['rating']:
                     st.markdown("⭐" * int(visit['rating']))
                 else:
-                    if st.button("평가", key=f"rate_{i}"):
+                    # texts 딕셔너리에서 평가 버튼 텍스트 가져오기
+                    if st.button(current_lang_texts["rate_button"], key=f"rate_{i}"):
                         # 평가 기능 구현 (실제로는 팝업이나 별도 UI가 필요)
                         st.session_state.rating_place = visit['place_name']
                         st.session_state.rating_index = i
@@ -2888,10 +2889,13 @@ def show_course_page():
 
 def show_history_page():
     """관광 이력 페이지 표시"""
-    page_header("나의 관광 이력")
+    # 현재 언어에 맞는 텍스트 가져오기
+    current_lang_texts = texts[st.session_state.language]
+    
+    page_header(current_lang_texts["history_page_title"])
     
     # 뒤로가기 버튼
-    if st.button("← 메뉴로 돌아가기"):
+    if st.button(current_lang_texts["map_back_to_menu"]):
         change_page("menu")
         st.rerun()
     
@@ -2901,6 +2905,7 @@ def show_history_page():
     user_xp = st.session_state.user_xp.get(username, 0)
     user_level = calculate_level(user_xp)
     xp_percentage = calculate_xp_percentage(user_xp)
+    remaining_xp = XP_PER_LEVEL - (user_xp % XP_PER_LEVEL)
     
     col1, col2, col3 = st.columns([1, 3, 1])
     
@@ -2912,9 +2917,9 @@ def show_history_page():
             st.info("이미지를 찾을 수 없습니다: asset/SeoulTripView.png")
     
     with col2:
-        st.markdown(f"## 레벨 {user_level}")
+        st.markdown(f"## {current_lang_texts['level_text'].format(level=user_level)}")
         st.progress(xp_percentage / 100)
-        st.markdown(f"**총 경험치: {user_xp} XP** (다음 레벨까지 {XP_PER_LEVEL - (user_xp % XP_PER_LEVEL)} XP)")
+        st.markdown(f"**{current_lang_texts['total_xp_text'].format(xp=user_xp)}** ({current_lang_texts['next_level_xp_text'].format(remaining_xp=remaining_xp)})")
     
     with col3:
         st.write("")  # 빈 공간
@@ -2932,46 +2937,50 @@ def show_history_page():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("총 방문 횟수", f"{total_visits}회")
+            st.metric(current_lang_texts["total_visits_metric"], current_lang_texts["visits_count"].format(count=total_visits))
         
         with col2:
-            st.metric("방문한 장소 수", f"{unique_places}곳")
+            st.metric(current_lang_texts["visited_places_metric"], current_lang_texts["places_count"].format(count=unique_places))
         
         with col3:
-            st.metric("획득한 경험치", f"{total_xp} XP")
+            st.metric(current_lang_texts["earned_xp_metric"], current_lang_texts["xp_points"].format(xp=total_xp))
         
         # 방문 기록 목록 표시
         st.markdown("---")
-        st.subheader("📝 방문 기록")
+        st.subheader(current_lang_texts["visit_history_tab"])
         
         # 정렬 옵션
-        tab1, tab2, tab3 = st.tabs(["전체", "최근순", "경험치순"])
+        tab1, tab2, tab3 = st.tabs([
+            current_lang_texts["all_tab"], 
+            current_lang_texts["recent_tab"], 
+            current_lang_texts["xp_tab"]
+        ])
         
         with tab1:
-            display_visits(visits)
+            display_visits(visits, current_lang_texts)
         
         with tab2:
             recent_visits = sorted(visits, key=lambda x: x['timestamp'], reverse=True)
-            display_visits(recent_visits)
+            display_visits(recent_visits, current_lang_texts)
         
         with tab3:
             xp_visits = sorted(visits, key=lambda x: x.get('xp_gained', 0), reverse=True)
-            display_visits(xp_visits)
+            display_visits(xp_visits, current_lang_texts)
         
         # 방문한 장소를 지도에 표시
         st.markdown("---")
-        st.subheader("🗺️ 방문 지도")
+        st.subheader(current_lang_texts["visit_map_title"])
         
         # API 키 확인
         api_key = st.session_state.google_maps_api_key
         if not api_key or api_key == "YOUR_GOOGLE_MAPS_API_KEY":
-            st.error("Google Maps API 키가 설정되지 않았습니다.")
-            api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
+            st.error(current_lang_texts["map_api_key_not_set"])
+            api_key = st.text_input(current_lang_texts["map_enter_api_key"], type="password")
             if api_key:
                 st.session_state.google_maps_api_key = api_key
-                #st.success("API 키가 설정되었습니다.")
+                #st.success(current_lang_texts["map_api_key_set_success"])
             else:
-                st.info("Google Maps를 사용하려면 API 키가 필요합니다.")
+                st.info(current_lang_texts["map_api_key_required_info"])
                 return
         
         # 방문 장소 마커 생성
@@ -2982,8 +2991,8 @@ def show_history_page():
                 'lng': visit["longitude"],
                 'title': visit["place_name"],
                 'color': 'purple',  # 방문한 장소는 보라색으로 표시
-                'info': f"방문일: {visit['date']}<br>획득 XP: +{visit.get('xp_gained', 0)}",
-                'category': '방문한 장소'
+                'info': f"{current_lang_texts['visit_date']}: {visit['date']}<br>{current_lang_texts['map_xp_earned']}: +{visit.get('xp_gained', 0)}",
+                'category': current_lang_texts["map_visit_history"]
             }
             visit_markers.append(marker)
         
@@ -3003,12 +3012,12 @@ def show_history_page():
                 language=st.session_state.language
             )
         else:
-            st.info("지도에 표시할 방문 기록이 없습니다.")
+            st.info(current_lang_texts["no_map_visits"])
     else:
-        st.info("아직 방문 기록이 없습니다. 지도에서 장소를 방문하면 여기에 기록됩니다.")
+        st.info(current_lang_texts["no_visit_history"])
         
         # 예시 데이터 생성 버튼
-        if st.button("예시 데이터 생성"):
+        if st.button(current_lang_texts["generate_sample_data"]):
             # 샘플 방문 데이터
             sample_visits = [
                 {
@@ -3048,7 +3057,7 @@ def show_history_page():
                 st.session_state.user_xp[username] = 0
             st.session_state.user_xp[username] += total_xp
             
-            st.success(f"예시 데이터가 생성되었습니다! +{total_xp} XP 획득!")
+            st.success(current_lang_texts["sample_data_success"].format(total_xp=total_xp))
             st.rerun()
 
 #################################################
