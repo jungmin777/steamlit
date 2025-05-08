@@ -1050,7 +1050,8 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정"""
     if markers is None:
         markers = []
-    st.warning(markers)
+    st.warning(markers[0])
+    st.success(markers[2])
     # 카테고리별 마커 그룹화
     categories = {}
     for marker in markers:
