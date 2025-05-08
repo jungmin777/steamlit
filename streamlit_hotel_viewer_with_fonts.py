@@ -1348,8 +1348,8 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     <body>
         <h1>서울 대중교통 경로</h1>
         <div class="info-panel">
-            <p><strong>출발지:</strong> 좌표 (37.5796, 126.9770) - 서울역 부근</p>
-            <p><strong>도착지:</strong> 좌표 (37.5778, 127.0856) - 건대입구역 부근</p>
+            <p><strong>출발지:</strong> <span id="origin-info"></span></p>
+            <p><strong>도착지:</strong> <span id="destination-info"></span></p>
         </div>
         <div id="map"></div>
         <div class="route-details" id="directions-panel"></div>
@@ -1359,6 +1359,9 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSDLDyZseqxDhWl1StYnORBrKN1Kv9Ns&libraries=places" async defer></script>
         
         <script>
+            // markers 배열 참조 (외부에서 정의된 것으로 가정)
+            // window.initMap 함수는 markers 배열에 접근할 수 있어야 함
+            
             // 전역 함수로 선언
             window.initMap = function() {{
                 const map = new google.maps.Map(document.getElementById("map"), {{
@@ -1379,10 +1382,18 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                         computeTotalDistance(directions);
                     }}
                 }});
+                
+                // markers 배열에서 출발지와 도착지 정보 가져오기
+                const origin = {{ lat: markers[0].lat, lng: markers[0].lng }};  // 서울역
+                const destination = {{ lat: markers[3].lat, lng: markers[3].lng }};  // 건대입구
+                
+                // 출발지와 도착지 정보 표시
+                document.getElementById("origin-info").textContent = `좌표 (${{markers[0].lat}}, ${{markers[0].lng}}) - 서울역 부근`;
+                document.getElementById("destination-info").textContent = `좌표 (${{markers[3].lat}}, ${{markers[3].lng}}) - 건대입구역 부근`;
 
                 displayRoute(
-                    {{ lat: 37.5796, lng: 126.9770 }},  // 서울역
-                    {{ lat: 37.5778, lng: 127.0856 }},  // 건대입구
+                    origin,
+                    destination,
                     directionsService,
                     directionsRenderer
                 );
