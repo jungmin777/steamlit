@@ -1205,145 +1205,9 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     if navigation_mode and transport_mode:
         directions_js = f"""
         // 전역 변수 선언
-        var directionsService;
-        var directionsRenderer;
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer();
         
-        // 내비게이션 초기화 함수
-        function initDirections() {{
-            console.log('내비게이션 초기화 중...');
-            
-            // Direction Service 생성
-            directionsService = new google.maps.DirectionsService();
-            
-            // Direction Renderer 생성 및 설정
-            directionsRenderer = new google.maps.DirectionsRenderer({{
-                map: map,
-                draggable: true,
-                hideRouteList: false,
-                suppressMarkers: false,
-                preserveViewport: false,
-                panel: document.getElementById("directions-panel"),
-                polylineOptions: {{
-                    strokeColor: '#2196F3',
-                    strokeOpacity: 0.8,
-                    strokeWeight: 6
-                }}
-            }});
-            
-            // 렌더러를 지도에 명시적으로 연결
-            directionsRenderer.setMap(map);
-            
-            // 지도가 완전히 로드된 후 경로 계산 실행
-            setTimeout(calculateRoute, 500);
-        }}
-        
-        // 경로 계산 및 표시 함수
-        function calculateRoute() {{
-            console.log('경로 계산 시작...');
-            
-            // 출발지와 목적지 설정 - markers[0]과 markers[1] 사용
-            var start, end;
-            
-            if (markers.length >= 2) {{
-                // markers 배열에서 마커 사용
-                start = {{ lat: markers[0].position.lat(), lng: markers[0].position.lng() }};
-                end = {{ lat: markers[1].position.lat(), lng: markers[1].position.lng() }};
-                console.log('마커에서 가져온 위치 - 출발:', start, '도착:', end);
-            }} else {{
-                // start_location과 end_location 사용
-                start = {{ lat: {start_location['lat']}, lng: {start_location['lng']} }};
-                end = {{ lat: {end_location['lat']}, lng: {end_location['lng']} }};
-                console.log('제공된 위치 사용 - 출발:', start, '도착:', end);
-            }}
-            
-            // 이동 수단에 따른 travelMode 설정
-            var travelMode;
-            switch('{transport_mode.lower()}') {{
-                case 'walking':
-                    travelMode = google.maps.TravelMode.WALKING;
-                    break;
-                case 'transit':
-                    travelMode = google.maps.TravelMode.TRANSIT;
-                    break;
-                case 'driving':
-                default:
-                    travelMode = google.maps.TravelMode.DRIVING;
-                    break;
-            }}
-            
-            console.log('이동 수단:', '{transport_mode.lower()}');
-            
-            // 경로 요청
-            directionsService.route(
-                {{
-                    origin: start,
-                    destination: end,
-                    travelMode: travelMode,
-                    transitOptions: travelMode === google.maps.TravelMode.TRANSIT ? {{
-                        modes: [google.maps.TransitMode.SUBWAY, google.maps.TransitMode.BUS]
-                    }} : undefined,
-                    optimizeWaypoints: true,
-                    avoidHighways: false,
-                    avoidTolls: false,
-                    provideRouteAlternatives: true
-                }},
-                function(response, status) {{
-                    if (status === 'OK') {{
-                        console.log('경로 계산 성공');
-                        // 경로 표시
-                        directionsRenderer.setDirections(response);
-                        
-                        // 경로 정보 추출
-                        var route = response.routes[0];
-                        var leg = route.legs[0];
-                        
-                        // 경로 정보 패널 표시
-                        var panel = document.getElementById('directions-panel');
-                        if (panel) {{
-                            panel.innerHTML = '<div style="font-weight:bold; margin-bottom:10px;">' +
-                                '총 거리: ' + leg.distance.text + ', ' +
-                                '소요 시간: ' + leg.duration.text + '</div>';
-                            
-                            // 상세 경로 안내 추가
-                            for (var i = 0; i < leg.steps.length; i++) {{
-                                var step = leg.steps[i];
-                                var stepDiv = document.createElement('div');
-                                stepDiv.className = 'direction-step';
-                                stepDiv.innerHTML = (i+1) + '. ' + step.instructions;
-                                panel.appendChild(stepDiv);
-                            }}
-                        }}
-                        
-                        // 경로 정보를 부모 창에 전달
-                        window.parent.postMessage({{
-                            'type': 'directions_success',
-                            'distance': leg.distance.text,
-                            'duration': leg.duration.text
-                        }}, '*');
-                    }} else {{
-                        // 오류 처리
-                        console.error('경로 계산 오류: ' + status);
-                        var panel = document.getElementById('directions-panel');
-                        if (panel) {{
-                            panel.innerHTML = '<div style="color:red; padding:10px;">' +
-                                '경로를 찾을 수 없습니다. (오류: ' + status + ')<br>' +
-                                'Google Directions API가 활성화되어 있는지 확인하세요.</div>';
-                        }}
-                        
-                        // 오류 정보를 부모 창에 전달
-                        window.parent.postMessage({{
-                            'type': 'directions_error',
-                            'error': status
-                        }}, '*');
-                    }}
-                }}
-            );
-        }}
-        
-        // 지도 로드 완료 이벤트에 내비게이션 초기화 연결
-        google.maps.event.addListenerOnce(map, 'idle', function() {{
-            initDirections();
-        }});
         """
     
     # HTML 템플릿
@@ -1355,7 +1219,104 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            /* (CSS는 그대로 유지됨, 생략 가능) */
+            #map {{
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }}
+            html, body {{
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                font-family: 'Noto Sans KR', Arial, sans-serif;
+            }}
+            .map-controls {{
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 5;
+                background-color: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                max-width: 90%;
+                overflow-x: auto;
+                white-space: nowrap;
+            }}
+            .filter-button {{
+                margin: 5px;
+                padding: 5px 10px;
+                background-color: #f8f9fa;
+                border: 1px solid #dadce0;
+                border-radius: 4px;
+                cursor: pointer;
+            }}
+            .filter-button:hover {{
+                background-color: #e8eaed;
+            }}
+            .filter-button.active {{
+                background-color: #1976D2;
+                color: white;
+            }}
+            #legend {{
+                font-family: 'Noto Sans KR', Arial, sans-serif;
+                background-color: white;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                bottom: 25px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                font-size: 12px;
+                padding: 10px;
+                position: absolute;
+                right: 10px;
+                z-index: 5;
+            }}
+            .legend-item {{
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+            }}
+            .legend-item img {{
+                width: 20px;
+                height: 20px;
+                margin-right: 5px;
+            }}
+            .custom-control {{
+                background-color: #fff;
+                border: 0;
+                border-radius: 2px;
+                box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+                margin: 10px;
+                padding: 0 0.5em;
+                font: 400 18px Roboto, Arial, sans-serif;
+                overflow: hidden;
+                height: 40px;
+                cursor: pointer;
+            }}
+            /* 내비게이션 패널 스타일 */
+            #directions-panel {{
+                width: 300px;
+                max-width: 90%;
+                background-color: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                z-index: 5;
+                max-height: 400px;
+                overflow-y: auto;
+                font-size: 12px;
+            }}
+            .direction-step {{
+                padding: 8px 5px;
+                border-bottom: 1px solid #eee;
+            }}
+            .direction-step:last-child {{
+                border-bottom: none;
+            }}
         </style>
     </head>
     <body>
@@ -1374,13 +1335,10 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         </div>
         
         <!-- 내비게이션 패널 -->
-        {'''<div id="directions-panel">
-            <input id="start" placeholder="출발지 입력" style="width: 90%; margin-bottom: 5px;">
-            <input id="end" placeholder="도착지 입력" style="width: 90%;">
-        </div>''' if navigation_mode else ''}
+        {'''<div id="directions-panel"></div>''' if navigation_mode else ''}
         
         <script>
-            // 공통 디버깅 로깅
+            // 디버깅용 로그 설정
             console.log = function() {{
                 var args = Array.prototype.slice.call(arguments);
                 var message = args.join(' ');
@@ -1391,110 +1349,138 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 if (window.originalConsoleLog) window.originalConsoleLog.apply(console, arguments);
             }};
             if (!window.originalConsoleLog) window.originalConsoleLog = console.log;
-    
-            // 지도 초기화
+        
+            // 지도 및 마커 변수
+            var map;
+            var markers = [];
+            var markerCategories = [];
+            var infoWindows = [];
+            var currentMarker = null;
+            
+            // 모든 정보창 닫기
+            function closeAllInfoWindows() {{
+                for (var i = 0; i < infoWindows.length; i++) {{
+                    infoWindows[i].close();
+                }}
+            }}
+            
             function initMap() {{
-                {"".join([
-                    """
-                    const directionsService = new google.maps.DirectionsService();
-                    const directionsRenderer = new google.maps.DirectionsRenderer();
-                    const map = new google.maps.Map(document.getElementById("map"), {
-                        zoom: 13,
-                        center: { lat: %s, lng: %s },
-                        fullscreenControl: true,
-                        mapTypeControl: true,
-                        streetViewControl: true,
-                        zoomControl: true,
-                        gestureHandling: 'greedy'
-                    });
-    
-                    directionsRenderer.setMap(map);
-                    directionsRenderer.setPanel(document.getElementById("directions-panel"));
-    
-                    const onChangeHandler = function () {
-                        calculateAndDisplayRoute(directionsService, directionsRenderer);
-                    };
-    
-                    document.getElementById("start").addEventListener("change", onChangeHandler);
-                    document.getElementById("end").addEventListener("change", onChangeHandler);
-                    """ % (center_lat, center_lng)
-                ]) if navigation_mode else markers_js + clustering_js + filter_js + directions_js + f"""
-                    map = new google.maps.Map(document.getElementById('map'), {{
-                        center: {{ lat: {center_lat}, lng: {center_lng} }},
-                        zoom: {zoom},
-                        fullscreenControl: true,
-                        mapTypeControl: true,
-                        streetViewControl: true,
-                        zoomControl: true,
-                        mapTypeId: 'roadmap',
-                        gestureHandling: 'greedy'
-                    }});
-    
-                    const locationButton = document.createElement("button");
-                    locationButton.textContent = "📍 내 위치";
-                    locationButton.classList.add("custom-control");
-                    locationButton.addEventListener("click", () => {{
-                        if (navigator.geolocation) {{
-                            navigator.geolocation.getCurrentPosition(
-                                (position) => {{
-                                    const pos = {{
-                                        lat: position.coords.latitude,
-                                        lng: position.coords.longitude,
-                                    }};
-                                    window.parent.postMessage({{
-                                        'type': 'current_location',
-                                        'lat': pos.lat,
-                                        'lng': pos.lng
-                                    }}, '*');
-                                    map.setCenter(pos);
-                                    map.setZoom(15);
-                                    new google.maps.Marker({{
-                                        position: pos,
-                                        map: map,
-                                        title: '내 위치',
-                                        icon: {{
-                                            path: google.maps.SymbolPath.CIRCLE,
-                                            fillColor: '#4285F4',
-                                            fillOpacity: 1,
-                                            strokeColor: '#FFFFFF',
-                                            strokeWeight: 2,
-                                            scale: 8
-                                        }}
-                                    }});
-                                }},
-                                () => {{ alert("위치 정보를 가져오는데 실패했습니다."); }}
-                            );
-                        }} else {{
-                            alert("이 브라우저에서는 위치 정보 기능을 지원하지 않습니다.");
-                        }}
-                    }});
-                    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
-                    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(document.getElementById('legend'));
-    
-                    map.addListener('click', function(event) {{
-                        closeAllInfoWindows();
-                        if (currentMarker) currentMarker.setAnimation(null);
-                        window.parent.postMessage({{
-                            'type': 'map_click',
-                            'lat': event.latLng.lat(),
-                            'lng': event.latLng.lng()
-                        }}, '*');
-                    }});
-                """}
+                // 지도 생성
+                map = new google.maps.Map(document.getElementById('map'), {{
+                    center: {{ lat: {center_lat}, lng: {center_lng} }},
+                    zoom: {zoom},
+                    fullscreenControl: true,
+                    mapTypeControl: true,
+                    streetViewControl: true,
+                    zoomControl: true,
+                    mapTypeId: 'roadmap',
+                    gestureHandling: 'greedy'
+                }});
+                
+                // 현재 위치 버튼 추가
+                const locationButton = document.createElement("button");
+                locationButton.textContent = "📍 내 위치";
+                locationButton.classList.add("custom-control");
+                locationButton.addEventListener("click", () => {{
+                    if (navigator.geolocation) {{
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {{
+                                const pos = {{
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                }};
+                                
+                                window.parent.postMessage({{
+                                    'type': 'current_location',
+                                    'lat': pos.lat,
+                                    'lng': pos.lng
+                                }}, '*');
+                                
+                                map.setCenter(pos);
+                                map.setZoom(15);
+                                
+                                new google.maps.Marker({{
+                                    position: pos,
+                                    map: map,
+                                    title: '내 위치',
+                                    icon: {{
+                                        path: google.maps.SymbolPath.CIRCLE,
+                                        fillColor: '#4285F4',
+                                        fillOpacity: 1,
+                                        strokeColor: '#FFFFFF',
+                                        strokeWeight: 2,
+                                        scale: 8
+                                    }}
+                                }});
+                            }},
+                            () => {{ alert("위치 정보를 가져오는데 실패했습니다."); }}
+                        );
+                    }} else {{
+                        alert("이 브라우저에서는 위치 정보 기능을 지원하지 않습니다.");
+                    }}
+                }});
+                
+                map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
+                
+                // 범례를 지도에 추가
+                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+                    document.getElementById('legend')
+                );
+                
+                // 마커 추가
+                {markers_js}
+                
+                // 마커 클러스터링
+                {clustering_js}
+                
+                // 필터링 함수
+                {filter_js}
+                
+                
+    """
+    if navigation_mode:
+        html += """
+            // 내비게이션 코드
+                {directions_js}
+                
+                // 지도 클릭 이벤트
+                map.addListener('click', function(event) {{
+                    closeAllInfoWindows();
+                    if (currentMarker) currentMarker.setAnimation(null);
+                    
+                    window.parent.postMessage({{
+                        'type': 'map_click',
+                        'lat': event.latLng.lat(),
+                        'lng': event.latLng.lng()
+                    }}, '*');
+                }});
+                
                 console.log('지도 초기화 완료');
             }}
-    
-            {"function calculateAndDisplayRoute(directionsService, directionsRenderer) {\n"
-             "    directionsService.route({\n"
-             "        origin: { query: document.getElementById('start').value },\n"
-             "        destination: { query: document.getElementById('end').value },\n"
-             "        travelMode: google.maps.TravelMode.DRIVING,\n"
-             "    }).then((response) => {\n"
-             "        directionsRenderer.setDirections(response);\n"
-             "    }).catch((e) => window.alert(\"Directions request failed: \" + e));\n"
-             "}" if navigation_mode else ''}
         </script>
-        
+        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.9/dist/index.min.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=places,directions&v=weekly&language={language}" async defer></script>
+    </body>
+    </html>
+    """
+
+    else:
+        html += """
+                // 지도 클릭 이벤트
+                map.addListener('click', function(event) {{
+                    closeAllInfoWindows();
+                    if (currentMarker) currentMarker.setAnimation(null);
+                    
+                    window.parent.postMessage({{
+                        'type': 'map_click',
+                        'lat': event.latLng.lat(),
+                        'lng': event.latLng.lng()
+                    }}, '*');
+                }});
+                
+                console.log('지도 초기화 완료');
+            }}
+        </script>
         <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.9/dist/index.min.js"></script>
         <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=places,directions&v=weekly&language={language}" async defer></script>
     </body>
