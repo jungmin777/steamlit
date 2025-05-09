@@ -35,7 +35,35 @@ CATEGORY_COLORS = {
     "기타": "gray"
 }
 
-# 파일명과 카테고리 매핑
+# 언어별 카테고리 정의
+CATEGORIES_TRANSLATION = {
+    "한국어": {
+        "체육시설": "체육시설",
+        "관광기념품": "관광기념품",
+        "한국음식점": "한국음식점",
+        "미술관/전시": "미술관/전시",
+        "종로구 관광지": "종로구 관광지",
+        "기타": "기타"
+    },
+    "영어": {
+        "체육시설": "Sports Facilities",
+        "관광기념품": "Tourism Souvenirs",
+        "한국음식점": "Korean Restaurants",
+        "미술관/전시": "Museums/Exhibitions",
+        "종로구 관광지": "Jongno-gu Tourist Spots",
+        "기타": "Others"
+    },
+    "중국어": {
+        "체육시설": "体育设施",
+        "관광기념품": "旅游纪念品",
+        "한국음식점": "韩国餐厅",
+        "미술관/전시": "美术馆/展览",
+        "종로구 관광지": "钟路区旅游景点",
+        "기타": "其他"
+    }
+}
+
+# 파일 분류용 카테고리 매핑 (기존 FILE_CATEGORIES는 그대로 유지)
 FILE_CATEGORIES = {
     "체육시설": ["체육시설", "공연행사"],
     "관광기념품": ["관광기념품", "외국인전용"],
@@ -2322,18 +2350,37 @@ def show_map_page():
                 else:
                     st.info(current_lang_texts.get("map_no_search_results").format(search_term=search_term))
 
-            # 카테고리별 통계
+            # 카테고리별 통계 - 언어별 처리 개선
             if st.session_state.all_markers:
                 st.subheader(current_lang_texts.get("map_places_by_category"))
+                
+                # 현재 언어에 해당하는 카테고리 번역 가져오기
+                current_lang = st.session_state.language
+                categories_translation = CATEGORIES_TRANSLATION.get(current_lang, CATEGORIES_TRANSLATION["한국어"])
+                
+                # 카테고리별 카운트
                 categories = {}
                 for m in st.session_state.all_markers:
-                    cat = m.get('category', current_lang_texts.get('map_other_category'))
-                    if cat not in categories:
-                        categories[cat] = 0
-                    categories[cat] += 1
+                    # 원본 카테고리 이름 가져오기
+                    raw_cat = m.get('category', '기타')
+                    
+                    # 번역된 카테고리 이름 찾기
+                    if raw_cat in categories_translation:
+                        translated_cat = categories_translation[raw_cat]
+                    else:
+                        # 기타 카테고리로 분류
+                        translated_cat = categories_translation.get('기타', 'Others')
+                    
+                    if translated_cat not in categories:
+                        categories[translated_cat] = 0
+                    categories[translated_cat] += 1
 
+                # 번역된 카테고리 이름으로 출력
                 for cat, count in categories.items():
-                    st.markdown(f"- **{cat}**: {count}개")
+                    # current_lang에 맞게 '개' 번역
+                    count_suffix = "개" if current_lang == "한국어" else \
+                                  "places" if current_lang == "영어" else "处"
+                    st.markdown(f"- **{cat}**: {count}{count_suffix}")
     else:
         # 내비게이션 모드 UI
         destination = st.session_state.navigation_destination
