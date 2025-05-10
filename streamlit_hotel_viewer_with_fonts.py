@@ -417,7 +417,8 @@ def init_session_state():
                 "travel_date_end": "여행 종료일",
                 "travel_people_count": "여행 인원",
                 "travel_with_children": "아이 동반",
-                "travel_style": "여행 스타일"
+                "travel_style": "여행 스타일",
+                "travel_days_total": "총 {days}일 일정"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -548,7 +549,8 @@ def init_session_state():
                 "travel_date_end": "旅行结束日期",
                 "travel_people_count": "旅行人数",
                 "travel_with_children": "携带儿童",
-                "travel_style": "旅行风格"
+                "travel_style": "旅行风格",
+                "travel_days_total": "共{days}天行程"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -679,7 +681,8 @@ def init_session_state():
                 "travel_date_end": "Travel End Date",
                 "travel_people_count": "Number of Travelers",
                 "travel_with_children": "Traveling with Children",
-                "travel_style": "Travel Style"
+                "travel_style": "Travel Style",
+                "travel_days_total": "Total {days} day itinerary"
             }
         }
     if 'clicked_location' not in st.session_state:
