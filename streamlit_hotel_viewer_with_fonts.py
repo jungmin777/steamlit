@@ -412,7 +412,12 @@ def init_session_state():
                 "course_map_title": "🗺️ 코스 지도",
                 "map_display_error": "코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다.",
                 "save_course_button": "이 코스 저장하기",
-                "course_saved_success": "코스가 저장되었습니다!"
+                "course_saved_success": "코스가 저장되었습니다!",
+                "travel_date_start": "여행 시작일",
+                "travel_date_end": "여행 종료일",
+                "travel_people_count": "여행 인원",
+                "travel_with_children": "아이 동반",
+                "travel_style": "여행 스타일"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -539,7 +544,6 @@ def init_session_state():
                 "map_display_error": "由于路线地点缺少坐标信息，无法在地图上显示。",
                 "save_course_button": "保存此路线",
                 "course_saved_success": "路线已保存！",
-                "travel_info_input": "旅行信息输入",
                 "travel_date_start": "旅行开始日期",
                 "travel_date_end": "旅行结束日期",
                 "travel_people_count": "旅行人数",
@@ -1939,7 +1943,12 @@ def show_login_page():
                 "course_map_title": "🗺️ 코스 지도",
                 "map_display_error": "코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다.",
                 "save_course_button": "이 코스 저장하기",
-                "course_saved_success": "코스가 저장되었습니다!"
+                "course_saved_success": "코스가 저장되었습니다!",
+                "travel_date_start": "여행 시작일",
+                "travel_date_end": "여행 종료일",
+                "travel_people_count": "여행 인원",
+                "travel_with_children": "아이 동반",
+                "travel_style": "여행 스타일"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
