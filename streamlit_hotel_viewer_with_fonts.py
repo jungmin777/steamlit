@@ -541,10 +541,10 @@ def init_session_state():
                 "course_saved_success": "路线已保存！",
                 "travel_info_input": "旅行信息输入",
                 "travel_date_start": "旅行开始日期",
-                "travel_date_end": 旅行结束日期",
-                "travel_people_count": 旅行人数",
-                "travel_with_children": 携带儿童",
-                "travel_style": 旅行风格"
+                "travel_date_end": "旅行结束日期",
+                "travel_people_count": "旅行人数",
+                "travel_with_children": "携带儿童",
+                "travel_style": "旅行风格"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -2068,10 +2068,10 @@ def show_login_page():
                 "course_saved_success": "路线已保存！",
                 "travel_info_input": "旅行信息输入",
                 "travel_date_start": "旅行开始日期",
-                "travel_date_end": 旅行结束日期",
-                "travel_people_count": 旅行人数",
-                "travel_with_children": 携带儿童",
-                "travel_style": 旅行风格"
+                "travel_date_end": "旅行结束日期",
+                "travel_people_count": "旅行人数",
+                "travel_with_children": "携带儿童",
+                "travel_style": "旅行风格"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
