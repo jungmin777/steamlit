@@ -539,7 +539,12 @@ def init_session_state():
                 "map_display_error": "由于路线地点缺少坐标信息，无法在地图上显示。",
                 "save_course_button": "保存此路线",
                 "course_saved_success": "路线已保存！",
-                "travel_info_input": "旅行信息输入"
+                "travel_info_input": "旅行信息输入",
+                "travel_date_start": "旅行开始日期",
+                "travel_date_end": 旅行结束日期",
+                "travel_people_count": 旅行人数",
+                "travel_with_children": 携带儿童",
+                "travel_style": 旅行风格"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -665,7 +670,12 @@ def init_session_state():
                 "course_map_title": "🗺️ Course Map",
                 "map_display_error": "Cannot display on map due to missing coordinate information for course locations.",
                 "save_course_button": "Save This Course",
-                "course_saved_success": "Course has been saved!"
+                "course_saved_success": "Course has been saved!",
+                "travel_date_start": "Travel Start Date",
+                "travel_date_end": "Travel End Date",
+                "travel_people_count": "Number of Travelers",
+                "travel_with_children": "Traveling with Children",
+                "travel_style": "Travel Style"
             }
         }
     if 'clicked_location' not in st.session_state:
@@ -2056,7 +2066,12 @@ def show_login_page():
                 "map_display_error": "由于路线地点缺少坐标信息，无法在地图上显示。",
                 "save_course_button": "保存此路线",
                 "course_saved_success": "路线已保存！",
-                "travel_info_input": "旅行信息输入"
+                "travel_info_input": "旅行信息输入",
+                "travel_date_start": "旅行开始日期",
+                "travel_date_end": 旅行结束日期",
+                "travel_people_count": 旅行人数",
+                "travel_with_children": 携带儿童",
+                "travel_style": 旅行风格"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -2182,7 +2197,12 @@ def show_login_page():
                 "course_map_title": "🗺️ Course Map",
                 "map_display_error": "Cannot display on map due to missing coordinate information for course locations.",
                 "save_course_button": "Save This Course",
-                "course_saved_success": "Course has been saved!"
+                "course_saved_success": "Course has been saved!",
+                "travel_date_start": "Travel Start Date",
+                "travel_date_end": "Travel End Date",
+                "travel_people_count": "Number of Travelers",
+                "travel_with_children": "Traveling with Children",
+                "travel_style": "Travel Style"
             }
         }
     
