@@ -1786,7 +1786,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 
                 // 모든 마커가 로드된 후 일별 경로 생성 및 표시
                 // 약간의 지연을 두어 모든 마커가 로드되었는지 확인
-                setTimeout(function() {
+                setTimeout(function() {{
                     console.log('경로 생성 시작... 마커 개수: ' + markers.length);
                     dailyRouteLines = createDailyRoutes();
                     
@@ -1795,7 +1795,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                     
                     // 토글 버튼 활성화
                     document.getElementById('toggle-routes').classList.add('active');
-                }, 1000);
+                }}, 1000);
             }}
         </script>
         <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.9/dist/index.min.js"></script>
