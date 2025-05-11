@@ -1656,7 +1656,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             function createRouteLegend() {{
                 var routeColors = ['#FF5722', '#2196F3', '#4CAF50', '#9C27B0', '#FFC107', '#795548', '#3F51B5', '#E91E63'];
                 var legendContainer = document.getElementById('route-legend-items');
-                var dailyRoutes = {};
+                var dailyRoutes = {{}};
                 
                 // 마커 제목에서 일자 정보 추출해 그룹화
                 for (var i = 0; i < markers.length; i++) {{
