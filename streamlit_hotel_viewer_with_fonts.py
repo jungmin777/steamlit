@@ -1267,65 +1267,83 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         
         markers_js += curr_marker_js
     
-    # 일별 경로 연결을 위한 경로 그룹화
-    # 'Day X' 형식으로 제목에서 일자 추출해서 그룹화
+    # 직접적인 방식으로 일별 경로 연결을 구현
     route_groups_js = """
-        // 일별 경로 연결을 위한 그룹화
+        // 일별 경로 연결을 위한 함수
         function createDailyRoutes() {
-            // 'Day X'로 시작하는 마커 제목을 기준으로 일자별 그룹화
+            // 마커의 위도/경도와 제목 정보를 수집
+            var markersInfo = [];
             var dailyRoutes = {};
             var routeColors = ['#FF5722', '#2196F3', '#4CAF50', '#9C27B0', '#FFC107', '#795548', '#3F51B5', '#E91E63'];
+            var dayRouteLines = [];
             
-            // 모든 마커를 순회하면서 일자별로 그룹화
+            // 먼저 모든 마커 정보 수집
             for (var i = 0; i < markers.length; i++) {
+                var position = markers[i].getPosition();
                 var title = markers[i].getTitle();
-                var dayMatch = title.match(/Day (\\d+)/);
+                markersInfo.push({
+                    index: i,
+                    title: title,
+                    lat: position.lat(),
+                    lng: position.lng()
+                });
+            }
+            
+            // 일자별로 마커 그룹화
+            for (var i = 0; i < markersInfo.length; i++) {
+                var info = markersInfo[i];
+                var dayMatch = info.title.match(/Day (\\d+)/);
                 
                 if (dayMatch) {
                     var day = dayMatch[1];
                     if (!dailyRoutes[day]) {
                         dailyRoutes[day] = [];
                     }
-                    
-                    // 마커의 위치 정보를 저장
-                    dailyRoutes[day].push({
-                        position: markers[i].getPosition(),
-                        marker: markers[i]
-                    });
+                    dailyRoutes[day].push(info);
                 }
             }
             
+            console.log('일자별 마커 그룹화 완료');
+            console.log('그룹 수: ' + Object.keys(dailyRoutes).length);
+            
             // 각 일자별로 경로 그리기
-            var dayRouteLines = [];
             var routeIndex = 0;
             
             for (var day in dailyRoutes) {
-                if (dailyRoutes.hasOwnProperty(day) && dailyRoutes[day].length > 1) {
-                    var dayLocations = dailyRoutes[day];
-                    var routePath = [];
+                if (dailyRoutes.hasOwnProperty(day)) {
+                    var locations = dailyRoutes[day];
                     
-                    // 경로 색상 (순환)
-                    var routeColor = routeColors[routeIndex % routeColors.length];
-                    routeIndex++;
-                    
-                    // 위치 순서로 정렬 (마커 생성 순서가 시간순이라고 가정)
-                    for (var i = 0; i < dayLocations.length; i++) {
-                        routePath.push(dayLocations[i].position);
+                    // 최소 2개 이상의 위치가 있어야 선을 그릴 수 있음
+                    if (locations.length >= 2) {
+                        var routeColor = routeColors[routeIndex % routeColors.length];
+                        routeIndex++;
+                        
+                        // 경로를 위한 좌표 배열 생성
+                        var coordinates = [];
+                        for (var i = 0; i < locations.length; i++) {
+                            coordinates.push({
+                                lat: locations[i].lat, 
+                                lng: locations[i].lng
+                            });
+                        }
+                        
+                        // Polyline 생성
+                        var polyline = new google.maps.Polyline({
+                            path: coordinates,
+                            geodesic: true,
+                            strokeColor: routeColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 4
+                        });
+                        
+                        // 지도에 표시
+                        polyline.setMap(map);
+                        dayRouteLines.push(polyline);
+                        
+                        console.log('Day ' + day + ' 경로 생성 완료 (' + locations.length + '개 지점)');
+                    } else {
+                        console.log('Day ' + day + ': 경로 생성을 위한 충분한 지점이 없음');
                     }
-                    
-                    // polyline 생성하여 지도에 표시
-                    var dayRoute = new google.maps.Polyline({
-                        path: routePath,
-                        geodesic: true,
-                        strokeColor: routeColor,
-                        strokeOpacity: 0.8,
-                        strokeWeight: 3
-                    });
-                    
-                    dayRoute.setMap(map);
-                    dayRouteLines.push(dayRoute);
-                    
-                    console.log('경로 생성 완료: Day ' + day);
                 }
             }
             
@@ -1638,7 +1656,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             function createRouteLegend() {{
                 var routeColors = ['#FF5722', '#2196F3', '#4CAF50', '#9C27B0', '#FFC107', '#795548', '#3F51B5', '#E91E63'];
                 var legendContainer = document.getElementById('route-legend-items');
-                var dailyRoutes = {{}};
+                var dailyRoutes = {};
                 
                 // 마커 제목에서 일자 정보 추출해 그룹화
                 for (var i = 0; i < markers.length; i++) {{
@@ -1764,16 +1782,20 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                     }}, '*');
                 }});
                 
-                // 일별 경로 생성 및 표시
-                dailyRouteLines = createDailyRoutes();
-                
-                // 경로 범례 생성
-                createRouteLegend();
-                
-                // 토글 버튼 활성화
-                document.getElementById('toggle-routes').classList.add('active');
-                
                 console.log('지도 초기화 완료');
+                
+                // 모든 마커가 로드된 후 일별 경로 생성 및 표시
+                // 약간의 지연을 두어 모든 마커가 로드되었는지 확인
+                setTimeout(function() {
+                    console.log('경로 생성 시작... 마커 개수: ' + markers.length);
+                    dailyRouteLines = createDailyRoutes();
+                    
+                    // 경로 범례 생성
+                    createRouteLegend();
+                    
+                    // 토글 버튼 활성화
+                    document.getElementById('toggle-routes').classList.add('active');
+                }, 1000);
             }}
         </script>
         <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.9/dist/index.min.js"></script>
