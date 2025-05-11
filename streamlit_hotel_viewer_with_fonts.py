@@ -126,6 +126,34 @@ EXCEL_FILES = [
     "서울시립미술관 전시정보 한국어영어중국어 1.xlsx"
 ]
 
+# 다국어 -> 공통 키 매핑 (예시로 한국어, 영어, 중국어 처리)
+REVERSE_STYLE_MAP = {
+    "활동적인": "travel_style_active",
+    "휴양": "travel_style_relaxation",
+    "맛집": "travel_style_food",
+    "쇼핑": "travel_style_shopping",
+    "역사/문화": "travel_style_history_culture",
+    "자연": "travel_style_nature",
+
+    "Active": "travel_style_active",
+    "Relaxation": "travel_style_relaxation",
+    "Food": "travel_style_food",
+    "Shopping": "travel_style_shopping",
+    "History/Culture": "travel_style_history_culture",
+    "Nature": "travel_style_nature",
+
+    "活动型": "travel_style_active",
+    "休闲型": "travel_style_relaxation",
+    "美食型": "travel_style_food",
+    "购物型": "travel_style_shopping",
+    "历史/文化型": "travel_style_history_culture",
+    "自然型": "travel_style_nature"
+}
+
+# 공통 키로 변환
+normalized_styles = [REVERSE_STYLE_MAP.get(style, style) for style in travel_styles]
+
+
 #################################################
 # 유틸리티 함수
 #################################################
@@ -2008,20 +2036,36 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
         daily_courses.append(daily_course)
     
     # 코스 이름 결정
-    if "역사/문화" in travel_styles:
+    # if "역사/문화" in travel_styles:
+    #     course_type = current_lang_texts["course_history_culture"]
+    # elif "쇼핑" in travel_styles and "맛집" in travel_styles:
+    #     course_type = current_lang_texts["course_shopping_food"]
+    # elif "쇼핑" in travel_styles:
+    #     course_type = current_lang_texts["course_shopping"]
+    # elif "맛집" in travel_styles:
+    #     course_type = current_lang_texts["course_food"]
+    # elif "자연" in travel_styles:
+    #     course_type = current_lang_texts["course_nature"]
+    # elif "활동적인" in travel_styles:
+    #     course_type = current_lang_texts["course_active"]
+    # else:
+    #     course_type = current_lang_texts["course_healing"]
+
+    if "travel_style_history_culture" in normalized_styles:
         course_type = current_lang_texts["course_history_culture"]
-    elif "쇼핑" in travel_styles and "맛집" in travel_styles:
+    elif "travel_style_shopping" in normalized_styles and "travel_style_food" in normalized_styles:
         course_type = current_lang_texts["course_shopping_food"]
-    elif "쇼핑" in travel_styles:
+    elif "travel_style_shopping" in normalized_styles:
         course_type = current_lang_texts["course_shopping"]
-    elif "맛집" in travel_styles:
+    elif "travel_style_food" in normalized_styles:
         course_type = current_lang_texts["course_food"]
-    elif "자연" in travel_styles:
+    elif "travel_style_nature" in normalized_styles:
         course_type = current_lang_texts["course_nature"]
-    elif "활동적인" in travel_styles:
+    elif "travel_style_active" in normalized_styles:
         course_type = current_lang_texts["course_active"]
     else:
         course_type = current_lang_texts["course_healing"]
+
     
     # 추천 장소 이름 목록 생성
     recommended_places = []
