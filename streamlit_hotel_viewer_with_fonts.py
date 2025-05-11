@@ -2986,76 +2986,45 @@ def show_course_page():
                         st.session_state.google_maps_api_key = api_key
                 
                 # 코스 마커 생성
-                # show_course_page 함수 내의 map_markers 생성 부분 수정
-
-                # 코스 마커 생성
                 map_markers = []
                 
                 if daily_courses:
                     # 실제 데이터 기반 코스
-                    # 시간대별 색상 및 일자별 경로 구성을 위한 코드 추가
-                    time_slots_texts = [ # 현재 언어에 맞는 시간대 텍스트
-                        current_lang_texts["morning_time_slot"],
-                        current_lang_texts["afternoon_time_slot"],
-                        current_lang_texts["evening_time_slot"]
-                    ]
                     for day_idx, day_course in enumerate(daily_courses):
-                         for time_idx, place in enumerate(day_course):
-                            # 시간대별 마커 색상 (예시, 필요시 CATEGORY_COLORS와 연동)
-                            # 현재는 장소의 카테고리 색상을 따르도록 하거나, 일관된 색상 사용 가능
-                            # 여기서는 place에 color가 이미 있다고 가정하거나, CATEGORY_COLORS 사용
-                            color = CATEGORY_COLORS.get(place['category'], "gray") # place 딕셔너리에 'category'가 있다고 가정
-
-                            # title에 Day 정보가 이미 포함되어 있으므로, day 키를 명시적으로 추가
-                            marker_title = f"Day {day_idx+1} - {place['title']}"
-                            # info에 들어갈 시간대 정보
-                            current_time_slot_text = time_slots_texts[time_idx % len(time_slots_texts)]
-
+                        for time_idx, place in enumerate(day_course):
+                            # 시간대별 색상 구분
+                            colors = ["blue", "green", "purple"]
+                            color = colors[time_idx % len(colors)]
+                            
                             marker = {
                                 'lat': place['lat'],
                                 'lng': place['lng'],
-                                'title': marker_title,
-                                'info': f"Day {day_idx+1} {current_time_slot_text}<br>{place.get('info', '')}", # place에 info가 있을 수 있음
-                                'category': place['category'], # place에 category가 있다고 가정
-                                'color': color,
-                                'day': day_idx + 1  # 명시적인 'day' 정보 추가
+                                'title': f"Day {day_idx+1} - {place['title']}",
+                                'info': f"Day {day_idx+1} {time_slots[time_idx]}<br>{place.get('info', '')}",
+                                'category': place['category'],
+                                'color': color
                             }
                             map_markers.append(marker)
                 else:
                     # 기본 코스 - 좌표 데이터가 없어 지도 표시 불가
                     st.warning(current_lang_texts["map_display_error"])
-
-                # 지도의 중심 좌표 계산
+                
+                # 지도 표시
                 if map_markers:
-                    center_lat = sum(marker['lat'] for marker in map_markers) / len(map_markers)
-                    center_lng = sum(marker['lng'] for marker in map_markers) / len(map_markers)
-                    zoom_level = 12 # 경로가 있을 경우 좀 더 넓게
-                else:
-                    center_lat = DEFAULT_LOCATION[0]
-                    center_lng = DEFAULT_LOCATION[1]
-                    zoom_level = 13 # 경로 없을 시 기본 줌
-
-                # create_Maps_html 함수에 route_points 와 start_location 전달
-                # show_google_map 함수가 create_Maps_html을 호출하므로, show_google_map에 전달
-                # start_location은 사용자의 현재 위치 또는 코스의 시작점으로 할 수 있습니다.
-                # 여기서는 사용자의 현재 위치를 사용합니다.
-                start_point_for_route = None
-                if map_markers: # 코스가 있다면 코스의 첫번째 지점을 시작점으로 사용할 수도 있습니다.
-                    # start_point_for_route = [map_markers[0]['lat'], map_markers[0]['lng']]
-                    pass # 현재는 get_location_position()을 사용
-
-                # `show_google_map` 호출 시 `route_points` 와 `start_location` 인자 사용
-                show_google_map(
-                    api_key=api_key,
-                    center_lat=center_lat,
-                    center_lng=center_lng,
-                    markers=map_markers, # 모든 마커 (코스 장소 포함)
-                    zoom=zoom_level,
-                    height=500,
-                    language=st.session_state.language,
-                    route_points=map_markers, # 경로를 그릴 마커들
-                    start_location=get_location_position() # 경로 시작 지점 (사용자 현재 위치)
-                )
+                    # 지도 중심 좌표 계산 (마커들의 평균)
+                    center_lat = sum(m['lat'] for m in map_markers) / len(map_markers)
+                    center_lng = sum(m['lng'] for m in map_markers) / len(map_markers)
+                    
+                    # 지도 표시
+                    show_google_map(
+                        api_key=api_key,
+                        center_lat=center_lat,
+                        center_lng=center_lng,
+                        markers=map_markers,
+                        zoom=12,
+                        height=500,
+                        language=st.session_state.language
+                    )
                 
                 # 일정 저장 버튼
                 if st.button(current_lang_texts["save_course_button"], use_container_width=True):
