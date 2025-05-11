@@ -1166,7 +1166,8 @@ def build_info_html(row, name, address, category):
     return info
     
 def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko", 
-                           navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
+                           navigation_mode=False, start_location=None, end_location=None, transport_mode=None,
+                           route_points=None):
     """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정, 일별 경로 연결선 추가"""
     if markers is None:
         markers = []
@@ -1272,90 +1273,74 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         
         markers_js += curr_marker_js
     
-    # 직접적인 방식으로 일별 경로 연결을 구현
-    route_groups_js = """
-        // 일별 경로 연결을 위한 함수
-        function createDailyRoutes() {
-            // 마커의 위도/경도와 제목 정보를 수집
-            var markersInfo = [];
-            var dailyRoutes = {};
-            var routeColors = ['#FF5722', '#2196F3', '#4CAF50', '#9C27B0', '#FFC107', '#795548', '#3F51B5', '#E91E63'];
-            var dayRouteLines = [];
+    # 경로 표시 JavaScript 코드
+    route_js = ""
+    if route_points and start_location:
+        # 경로 좌표 배열 생성 (출발 위치 포함)
+        coordinates = [
+            {'lat': start_location[0], 'lng': start_location[1]}
+        ]
+        coordinates.extend([
+            {'lat': point['lat'], 'lng': point['lng']} for point in route_points
+        ])
+        
+        # 일자별로 경로를 나누어 저장할 객체
+        daily_routes = {}
+        for point in route_points:
+            day = point['day']
+            if day not in daily_routes:
+                daily_routes[day] = []
+            daily_routes[day].append({'lat': point['lat'], 'lng': point['lng']});
+        
+        # 경로 표시 색상
+        route_colors = ['blue', 'green', 'purple', 'orange', 'brown'];
+        
+        route_js = f"""
+            var routeCoordinates = {json.dumps(coordinates)};
+            var routeColors = {json.dumps(route_colors)};
+            var dailyRoutes = {json.dumps(daily_routes)};
             
-            // 먼저 모든 마커 정보 수집
-            for (var i = 0; i < markers.length; i++) {
-                var position = markers[i].getPosition();
-                var title = markers[i].getTitle();
-                markersInfo.push({
-                    index: i,
-                    title: title,
-                    lat: position.lat(),
-                    lng: position.lng()
-                });
-            }
+            var path = new google.maps.Polyline({{
+                path: routeCoordinates,
+                geodesic: true,
+                strokeColor: '#808080',
+                strokeOpacity: 0.5,
+                strokeWeight: 3,
+                map: map
+            }});
             
-            // 일자별로 마커 그룹화
-            for (var i = 0; i < markersInfo.length; i++) {
-                var info = markersInfo[i];
-                var dayMatch = info.title.match(/Day (\\d+)/);
-                
-                if (dayMatch) {
-                    var day = dayMatch[1];
-                    if (!dailyRoutes[day]) {
-                        dailyRoutes[day] = [];
-                    }
-                    dailyRoutes[day].push(info);
-                }
-            }
+            // 출발지 마커
+            new google.maps.Marker({{
+                position: {{ lat: {start_location[0]}, lng: {start_location[1]} }},
+                map: map,
+                title: '출발지',
+                icon: {{
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: 'blue',
+                    fillOpacity: 1,
+                    strokeColor: 'white',
+                    strokeWeight: 2,
+                    scale: 8
+                }}
+            }});
             
-            console.log('일자별 마커 그룹화 완료');
-            console.log('그룹 수: ' + Object.keys(dailyRoutes).length);
+            var dayIndex = 0;
+            for (var day in dailyRoutes) {{
+                if (dailyRoutes.hasOwnProperty(day)) {{
+                    var polyline = new google.maps.Polyline({{
+                        path: dailyRoutes[day],
+                        geodesic: true,
+                        strokeColor: routeColors[dayIndex % routeColors.length],
+                        strokeOpacity: 0.9,
+                        strokeWeight: 5,
+                        map: map
+                    }});
+                    dayIndex++;
+                }}
+            }}
             
-            // 각 일자별로 경로 그리기
-            var routeIndex = 0;
-            
-            for (var day in dailyRoutes) {
-                if (dailyRoutes.hasOwnProperty(day)) {
-                    var locations = dailyRoutes[day];
-                    
-                    // 최소 2개 이상의 위치가 있어야 선을 그릴 수 있음
-                    if (locations.length >= 2) {
-                        var routeColor = routeColors[routeIndex % routeColors.length];
-                        routeIndex++;
-                        
-                        // 경로를 위한 좌표 배열 생성
-                        var coordinates = [];
-                        for (var i = 0; i < locations.length; i++) {
-                            coordinates.push({
-                                lat: locations[i].lat, 
-                                lng: locations[i].lng
-                            });
-                        }
-                        
-                        // Polyline 생성
-                        var polyline = new google.maps.Polyline({
-                            path: coordinates,
-                            geodesic: true,
-                            strokeColor: routeColor,
-                            strokeOpacity: 0.8,
-                            strokeWeight: 4
-                        });
-                        
-                        // 지도에 표시
-                        polyline.setMap(map);
-                        dayRouteLines.push(polyline);
-                        
-                        console.log('Day ' + day + ' 경로 생성 완료 (' + locations.length + '개 지점)');
-                    } else {
-                        console.log('Day ' + day + ': 경로 생성을 위한 충분한 지점이 없음');
-                    }
-                }
-            }
-            
-            return dayRouteLines;
-        }
-    """
-    
+        """
+
     # 필터링 함수
     filter_js = """
         function filterMarkers(category) {
@@ -1363,16 +1348,16 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 var shouldShow = category === 'all' || markerCategories[i] === category;
                 markers[i].setVisible(shouldShow);
             }
-            
+
             // 필터 버튼 활성화 상태 업데이트
             document.querySelectorAll('.filter-button').forEach(function(btn) {
                 btn.classList.remove('active');
             });
-            
+
             // 카테고리 ID 안전하게 변환
             var safeCategory = category.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
             var filterButtonId = 'filter-' + (category === 'all' ? 'all' : safeCategory);
-            
+
             var filterButton = document.getElementById(filterButtonId);
             if (filterButton) {
                 filterButton.classList.add('active');
@@ -1396,17 +1381,14 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             });
         }
     """
-    
+
     # 필터 버튼 HTML 생성
     filter_buttons = '<button id="filter-all" class="filter-button active" onclick="filterMarkers(\'all\')">전체 보기</button>'
     for cat in categories.keys():
         safe_id = cat.replace(' ', '-').replace('/', '-').replace('(', '').replace(')', '')
         safe_id = ''.join(c for c in safe_id if c.isalnum() or c in '-_').lower()
         filter_buttons += f' <button id="filter-{safe_id}" class="filter-button" onclick="filterMarkers(\'{cat}\')">{cat}</button>'
-    
-    # 경로 표시 토글 버튼 추가
-    filter_buttons += ' <button id="toggle-routes" class="filter-button" onclick="toggleRoutes()">경로 표시/숨김</button>'
-    
+
     # 내비게이션 JavaScript 코드 - 수정됨
     directions_js = ""
     if navigation_mode and transport_mode:
@@ -1445,7 +1427,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
           calculateAndDisplayRoute();
         }});
         """
-    
+
     # HTML 템플릿
     html = f"""
     <!DOCTYPE html>
@@ -1584,25 +1566,21 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     <body>
         <div id="map"></div>
         
-        <!-- 카테고리 필터 -->
         <div class="map-controls" id="category-filter">
             <div style="margin-bottom: 8px; font-weight: bold;">카테고리 필터</div>
             {filter_buttons}
         </div>
         
-        <!-- 지도 범례 -->
         <div id="legend">
             <div style="font-weight: bold; margin-bottom: 8px;">지도 범례</div>
             {legend_html}
         </div>
         
-        <!-- 경로 범례 (동적 생성) -->
         <div id="route-legend" style="display: none;">
             <div style="font-weight: bold; margin-bottom: 8px;">일별 경로</div>
             <div id="route-legend-items"></div>
         </div>
         
-        <!-- 내비게이션 패널 -->
         {'''<div id="directions-panel"></div>''' if navigation_mode else ''}
         
         <script>
@@ -1696,7 +1674,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 // 범례 표시
                 document.getElementById('route-legend').style.display = 'block';
             }}
-            
+
             function initMap() {{
                 // 지도 생성
                 map = new google.maps.Map(document.getElementById('map'), {{
@@ -1766,6 +1744,9 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 // 마커 클러스터링
                 {clustering_js}
                 
+                // 경로 표시
+                {route_js}
+                
                 // 일별 경로 생성 함수
                 {route_groups_js}
                 
@@ -1811,6 +1792,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
 
     
     return html
+
     
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
                    navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
@@ -3190,7 +3172,7 @@ def show_course_page():
                 if daily_courses:
                     # 실제 데이터 기반 코스
                     for day_idx, day_course in enumerate(daily_courses):
-                        for time_idx, place in enumerate(day_course):
+                         for time_idx, place in enumerate(day_course):
                             # 시간대별 색상 구분
                             colors = ["blue", "green", "purple"]
                             color = colors[time_idx % len(colors)]
@@ -3208,22 +3190,26 @@ def show_course_page():
                     # 기본 코스 - 좌표 데이터가 없어 지도 표시 불가
                     st.warning(current_lang_texts["map_display_error"])
                 
-                # 지도 표시
+                # 지도의 중심 좌표 계산
                 if map_markers:
-                    # 지도 중심 좌표 계산 (마커들의 평균)
-                    center_lat = sum(m['lat'] for m in map_markers) / len(map_markers)
-                    center_lng = sum(m['lng'] for m in map_markers) / len(map_markers)
+                    center_lat = sum(marker['lat'] for marker in map_markers) / len(map_markers)
+                    center_lng = sum(marker['lng'] for marker in map_markers) / len(map_markers)
+                else:
+                    center_lat = DEFAULT_LOCATION[0]
+                    center_lng = DEFAULT_LOCATION[1]
                     
-                    # 지도 표시
-                    show_google_map(
-                        api_key=api_key,
-                        center_lat=center_lat,
-                        center_lng=center_lng,
-                        markers=map_markers,
-                        zoom=12,
-                        height=500,
-                        language=st.session_state.language
-                    )
+                #show_google_map 호출에 route_points인자 추가
+                show_google_map(
+                    api_key=api_key,
+                    center_lat=center_lat,
+                    center_lng=center_lng,
+                    markers=map_markers,
+                    zoom=12,
+                    height=500,
+                    language=st.session_state.language,
+                    route_points=map_markers, # 경로를 그릴 좌표 리스트
+                    start_location=get_location_position() # 출발 지점
+                )
                 
                 # 일정 저장 버튼
                 if st.button(current_lang_texts["save_course_button"], use_container_width=True):
@@ -3252,8 +3238,6 @@ def show_course_page():
                     save_session_data()  # 세션 데이터 저장
                     
                     st.success(current_lang_texts["course_saved_success"])
-    
-
 
 
 def show_history_page():
