@@ -1165,7 +1165,7 @@ def build_info_html(row, name, address, category):
     info += "</div>"
     return info
     
-def create_Maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko",
+def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko",
                            navigation_mode=False, start_location=None, end_location=None, transport_mode=None,
                            route_points=None):
     """Google Maps HTML 생성 - 내비게이션 기능 및 일별 경로 연결선 기능 개선"""
