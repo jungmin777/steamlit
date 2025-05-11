@@ -1165,7 +1165,452 @@ def build_info_html(row, name, address, category):
     info += "</div>"
     return info
     
-    # 참고: Markcom/@googlemaps/markerclusterer..."> 태그는 없어도 됩니다.
+def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko", 
+                           navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
+    """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정"""
+    if markers is None:
+        markers = []
+    
+    # 카테고리별 마커 그룹화
+    categories = {}
+    for marker in markers:
+        category = marker.get('category', '기타')
+        if category not in categories:
+            categories[category] = []
+        categories[category].append(marker)
+    
+    # 범례 HTML
+    legend_items = []
+    CATEGORY_COLORS = {
+        "관광 명소": "red",
+        "숙박": "blue",
+        "음식점": "yellow",
+        "쇼핑": "green",
+        "교통": "purple",
+        "문화": "orange",
+        "기타": "pink"
+    }
+    
+    for category, color in CATEGORY_COLORS.items():
+        # 해당 카테고리의 마커가 있는 경우만 표시
+        if any(m.get('category') == category for m in markers):
+            count = sum(1 for m in markers if m.get('category') == category)
+            legend_html_item = f'<div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/{color}-dot.png" alt="{category}"> {category} ({count})</div>'
+            legend_items.append(legend_html_item)
+    
+    legend_html = "".join(legend_items)
+    
+    # 마커 JavaScript 코드 생성
+    markers_js = ""
+    for i, marker in enumerate(markers):
+        color = marker.get('color', 'red')
+        title = marker.get('title', '').replace("'", "\\\'").replace('"', '\\\"')
+        info = marker.get('info', '').replace("'", "\\\'").replace('"', '\\\"')
+        category = marker.get('category', '').replace("'", "\\\'").replace('"', '\\\"')
+        
+        # 마커 아이콘 URL
+        icon_url = f"https://maps.google.com/mapfiles/ms/icons/{color}-dot.png"
+        
+        # 정보창 HTML 내용
+        info_content = f"""
+            <div style="padding: 10px; max-width: 300px;">
+                <h3 style="margin-top: 0; color: #1976D2;">{title}</h3>
+                <p><strong>분류:</strong> {category}</p>
+                <div>{info}</div>
+            </div>
+        """.replace("'", "\\\\'").replace("\n", "")
+        
+        # 마커 생성 코드
+        marker_js_template = """
+            var marker{0} = new google.maps.Marker({{
+                position: {{ lat: {1}, lng: {2} }},
+                map: map,
+                title: '{3}',
+                icon: '{4}',
+                animation: google.maps.Animation.DROP
+            }});
+            
+            markers.push(marker{0});
+            markerCategories.push('{5}');
+            
+            var infowindow{0} = new google.maps.InfoWindow({{
+                content: '{6}'
+            }});
+            
+            marker{0}.addListener('click', function() {{
+                closeAllInfoWindows();
+                infowindow{0}.open(map, marker{0});
+                
+                // 마커 바운스 애니메이션
+                if (currentMarker) currentMarker.setAnimation(null);
+                marker{0}.setAnimation(google.maps.Animation.BOUNCE);
+                currentMarker = marker{0};
+                
+                // 애니메이션 종료
+                setTimeout(function() {{
+                    marker{0}.setAnimation(null);
+                }}, 1500);
+                
+                // 부모 창에 마커 클릭 이벤트 전달
+                window.parent.postMessage({{
+                    'type': 'marker_click',
+                    'id': {0},
+                    'title': '{3}',
+                    'lat': {1},
+                    'lng': {2},
+                    'category': '{5}'
+                }}, '*');
+            }});
+            
+            infoWindows.push(infowindow{0});
+        """
+        
+        # format 메서드로 동적 값 채우기
+        curr_marker_js = marker_js_template.format(
+            i, marker['lat'], marker['lng'], title, icon_url, category, info_content
+        )
+        
+        markers_js += curr_marker_js
+    
+    # 필터링 함수
+    filter_js = """
+        function filterMarkers(category) {
+            for (var i = 0; i < markers.length; i++) {
+                var shouldShow = category === 'all' || markerCategories[i] === category;
+                markers[i].setVisible(shouldShow);
+            }
+            
+            // 필터 버튼 활성화 상태 업데이트
+            document.querySelectorAll('.filter-button').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            
+            // 카테고리 ID 안전하게 변환
+            var safeCategory = category.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            var filterButtonId = 'filter-' + (category === 'all' ? 'all' : safeCategory);
+            
+            var filterButton = document.getElementById(filterButtonId);
+            if (filterButton) {
+                filterButton.classList.add('active');
+            } else {
+                document.getElementById('filter-all').classList.add('active');
+            }
+        }
+    """
+    
+    # 마커 클러스터링 코드
+    clustering_js = """
+        // 마커 클러스터링
+        if (typeof markerClusterer !== 'undefined' && markers.length > 0) {
+            new markerClusterer.MarkerClusterer({
+                map: map,
+                markers: markers,
+                algorithm: new markerClusterer.SuperClusterAlgorithm({
+                    maxZoom: 15,
+                    radius: 50
+                })
+            });
+        }
+    """
+    
+    # 필터 버튼 HTML 생성
+    filter_buttons = '<button id="filter-all" class="filter-button active" onclick="filterMarkers(\'all\')">전체 보기</button>'
+    for cat in categories.keys():
+        safe_id = cat.replace(' ', '-').replace('/', '-').replace('(', '').replace(')', '')
+        safe_id = ''.join(c for c in safe_id if c.isalnum() or c in '-_').lower()
+        filter_buttons += f' <button id="filter-{safe_id}" class="filter-button" onclick="filterMarkers(\'{cat}\')">{cat}</button>'
+    
+    # 내비게이션 JavaScript 코드 - 수정됨
+    directions_js = ""
+    if navigation_mode and transport_mode:
+        directions_js = f"""
+        // 전역 변수 선언
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer({{
+          panel: document.getElementById('directions-panel') // 경로 안내를 directions-panel에 표시
+        }});
+        directionsRenderer.setMap(map);
+        
+        function calculateAndDisplayRoute() {{
+          // 교통 수단 설정 (기본값: DRIVING)
+          const travelMode = '{transport_mode}' || 'DRIVING';
+          
+          directionsService
+            .route({{
+              origin: {{ lat: {markers[0]['lat']}, lng: {markers[0]['lng']} }},
+              destination: {{ lat: {markers[1]['lat']}, lng: {markers[1]['lng']} }},
+              travelMode: google.maps.TravelMode[travelMode.toUpperCase()],
+            }})
+            .then((response) => {{
+              directionsRenderer.setDirections(response);
+            }})
+            .catch((e) => {{
+              window.alert("경로 안내를 가져오는데 실패했습니다: " + e);
+            }});
+        }}
+        
+        // 지도 로딩 후 자동으로 경로 계산 실행
+        calculateAndDisplayRoute();
+        
+        // 교통 수단 변경 시 경로 재계산을 위한 이벤트 리스너 예시
+        document.addEventListener('transportModeChanged', function(e) {{
+          transport_mode = e.detail.mode;
+          calculateAndDisplayRoute();
+        }});
+        """
+    
+    # HTML 템플릿
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>서울 관광 지도</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            #map {{
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }}
+            html, body {{
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                font-family: 'Noto Sans KR', Arial, sans-serif;
+            }}
+            .map-controls {{
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                z-index: 5;
+                background-color: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                max-width: 90%;
+                overflow-x: auto;
+                white-space: nowrap;
+            }}
+            .filter-button {{
+                margin: 5px;
+                padding: 5px 10px;
+                background-color: #f8f9fa;
+                border: 1px solid #dadce0;
+                border-radius: 4px;
+                cursor: pointer;
+            }}
+            .filter-button:hover {{
+                background-color: #e8eaed;
+            }}
+            .filter-button.active {{
+                background-color: #1976D2;
+                color: white;
+            }}
+            #legend {{
+                font-family: 'Noto Sans KR', Arial, sans-serif;
+                background-color: white;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                bottom: 25px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                font-size: 12px;
+                padding: 10px;
+                position: absolute;
+                right: 10px;
+                z-index: 5;
+            }}
+            .legend-item {{
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+            }}
+            .legend-item img {{
+                width: 20px;
+                height: 20px;
+                margin-right: 5px;
+            }}
+            .custom-control {{
+                background-color: #fff;
+                border: 0;
+                border-radius: 2px;
+                box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+                margin: 10px;
+                padding: 0 0.5em;
+                font: 400 18px Roboto, Arial, sans-serif;
+                overflow: hidden;
+                height: 40px;
+                cursor: pointer;
+            }}
+            /* 내비게이션 패널 스타일 */
+            #directions-panel {{
+                width: 300px;
+                max-width: 90%;
+                background-color: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                z-index: 5;
+                max-height: 400px;
+                overflow-y: auto;
+                font-size: 12px;
+            }}
+            .direction-step {{
+                padding: 8px 5px;
+                border-bottom: 1px solid #eee;
+            }}
+            .direction-step:last-child {{
+                border-bottom: none;
+            }}
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        
+        <!-- 카테고리 필터 -->
+        <div class="map-controls" id="category-filter">
+            <div style="margin-bottom: 8px; font-weight: bold;">카테고리 필터</div>
+            {filter_buttons}
+        </div>
+        
+        <!-- 지도 범례 -->
+        <div id="legend">
+            <div style="font-weight: bold; margin-bottom: 8px;">지도 범례</div>
+            {legend_html}
+        </div>
+        
+        <!-- 내비게이션 패널 -->
+        {'''<div id="directions-panel"></div>''' if navigation_mode else ''}
+        
+        <script>
+            // 디버깅용 로그 설정
+            console.log = function() {{
+                var args = Array.prototype.slice.call(arguments);
+                var message = args.join(' ');
+                window.parent.postMessage({{
+                    'type': 'debug_log',
+                    'message': message
+                }}, '*');
+                if (window.originalConsoleLog) window.originalConsoleLog.apply(console, arguments);
+            }};
+            if (!window.originalConsoleLog) window.originalConsoleLog = console.log;
+        
+            // 지도 및 마커 변수
+            var map;
+            var markers = [];
+            var markerCategories = [];
+            var infoWindows = [];
+            var currentMarker = null;
+            
+            // 모든 정보창 닫기
+            function closeAllInfoWindows() {{
+                for (var i = 0; i < infoWindows.length; i++) {{
+                    infoWindows[i].close();
+                }}
+            }}
+            
+            function initMap() {{
+                // 지도 생성
+                map = new google.maps.Map(document.getElementById('map'), {{
+                    center: {{ lat: {center_lat}, lng: {center_lng} }},
+                    zoom: {zoom},
+                    fullscreenControl: true,
+                    mapTypeControl: true,
+                    streetViewControl: true,
+                    zoomControl: true,
+                    mapTypeId: 'roadmap',
+                    gestureHandling: 'greedy'
+                }});
+                
+                // 현재 위치 버튼 추가
+                const locationButton = document.createElement("button");
+                locationButton.textContent = "📍 내 위치";
+                locationButton.classList.add("custom-control");
+                locationButton.addEventListener("click", () => {{
+                    if (navigator.geolocation) {{
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {{
+                                const pos = {{
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                }};
+                                
+                                window.parent.postMessage({{
+                                    'type': 'current_location',
+                                    'lat': pos.lat,
+                                    'lng': pos.lng
+                                }}, '*');
+                                
+                                map.setCenter(pos);
+                                map.setZoom(15);
+                                
+                                new google.maps.Marker({{
+                                    position: pos,
+                                    map: map,
+                                    title: '내 위치',
+                                    icon: {{
+                                        path: google.maps.SymbolPath.CIRCLE,
+                                        fillColor: '#4285F4',
+                                        fillOpacity: 1,
+                                        strokeColor: '#FFFFFF',
+                                        strokeWeight: 2,
+                                        scale: 8
+                                    }}
+                                }});
+                            }},
+                            () => {{ alert("위치 정보를 가져오는데 실패했습니다."); }}
+                        );
+                    }} else {{
+                        alert("이 브라우저에서는 위치 정보 기능을 지원하지 않습니다.");
+                    }}
+                }});
+                
+                map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
+                
+                // 범례를 지도에 추가
+                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+                    document.getElementById('legend')
+                );
+                
+                // 마커 추가
+                {markers_js}
+                
+                // 마커 클러스터링
+                {clustering_js}
+                
+                // 필터링 함수
+                {filter_js}
+                
+                // 내비게이션 코드
+                {directions_js}
+                
+                // 지도 클릭 이벤트
+                map.addListener('click', function(event) {{
+                    closeAllInfoWindows();
+                    if (currentMarker) currentMarker.setAnimation(null);
+                    
+                    window.parent.postMessage({{
+                        'type': 'map_click',
+                        'lat': event.latLng.lat(),
+                        'lng': event.latLng.lng()
+                    }}, '*');
+                }});
+                
+                console.log('지도 초기화 완료');
+            }}
+        </script>
+        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.9/dist/index.min.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=places,directions&v=weekly&language={language}" async defer></script>
+    </body>
+    </html>
+    """
+
+    
+    return html
 
     
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
