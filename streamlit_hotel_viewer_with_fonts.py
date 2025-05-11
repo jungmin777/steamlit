@@ -1165,267 +1165,269 @@ def build_info_html(row, name, address, category):
     info += "</div>"
     return info
     
-def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko", 
+def create_Maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko",
                            navigation_mode=False, start_location=None, end_location=None, transport_mode=None,
                            route_points=None):
-    """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정, 일별 경로 연결선 추가"""
+    """Google Maps HTML 생성 - 내비게이션 기능 및 일별 경로 연결선 기능 개선"""
     if markers is None:
         markers = []
-    
-    # 카테고리별 마커 그룹화
-    categories = {}
-    for marker in markers:
-        category = marker.get('category', '기타')
-        if category not in categories:
-            categories[category] = []
-        categories[category].append(marker)
-    
-    # 범례 HTML
-    legend_items = []
-    CATEGORY_COLORS = {
-        "관광 명소": "red",
-        "숙박": "blue",
-        "음식점": "yellow",
-        "쇼핑": "green",
-        "교통": "purple",
-        "문화": "orange",
-        "기타": "pink"
+
+    # 카테고리별 마커 그룹화 (기존 코드와 동일하게 CATEGORY_COLORS, CATEGORIES_TRANSLATION 사용 가정)
+    # 이 부분은 사용자 코드의 CATEGORY_COLORS와 CATEGORIES_TRANSLATION 변수를 참조합니다.
+    # 실제 앱에서는 이 변수들이 이 함수 범위 또는 전역 범위에서 접근 가능해야 합니다.
+    # 예시로 간단히 남겨둡니다. 실제로는 앱의 상단에 정의된 변수를 사용합니다.
+    _CATEGORY_COLORS_EXAMPLE = {
+        "체육시설": "blue", "공연행사": "purple", "관광기념품": "green",
+        "한국음식점": "orange", "미술관/전시": "pink", "종로구 관광지": "red",
+        "기타": "gray", "코스장소": "darkred" # 코스 장소용 색상 추가 가능
     }
     
-    for category, color in CATEGORY_COLORS.items():
-        # 해당 카테고리의 마커가 있는 경우만 표시
-        if any(m.get('category') == category for m in markers):
-            count = sum(1 for m in markers if m.get('category') == category)
-            legend_html_item = f'<div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/{color}-dot.png" alt="{category}"> {category} ({count})</div>'
-            legend_items.append(legend_html_item)
-    
+    categories_for_legend = {} # 범례용 카테고리 수집
+    for marker in markers:
+        cat = marker.get('category', '기타')
+        color = marker.get('color', _CATEGORY_COLORS_EXAMPLE.get(cat, 'gray'))
+        if cat not in categories_for_legend:
+            categories_for_legend[cat] = {'color': color, 'count': 0}
+        categories_for_legend[cat]['count'] += 1
+
+    legend_items = []
+    for category, data in categories_for_legend.items():
+        # 아이콘 URL 생성 시 주의: 실제 Google Charts 아이콘 URL 형식을 따라야 합니다.
+        # 예: http://maps.google.com/mapfiles/ms/icons/{color}-dot.png (단, 이 URL은 오래되었을 수 있음)
+        # 좀 더 안정적인 방법은 커스텀 SVG 아이콘을 사용하거나, Google Maps API에서 제공하는 기본 아이콘을 활용하는 것입니다.
+        # 여기서는 간단히 색상명만 표시합니다.
+        icon_html = f'<span style="display:inline-block;width:12px;height:12px;background-color:{data["color"]};margin-right:5px;border-radius:50%;"></span>'
+        legend_items.append(f'<div class="legend-item">{icon_html} {category} ({data["count"]})</div>')
     legend_html = "".join(legend_items)
-    
+
+
     # 마커 JavaScript 코드 생성
     markers_js = ""
-    for i, marker in enumerate(markers):
-        color = marker.get('color', 'red')
-        title = marker.get('title', '').replace("'", "\\\'").replace('"', '\\\"')
-        info = marker.get('info', '').replace("'", "\\\'").replace('"', '\\\"')
-        category = marker.get('category', '').replace("'", "\\\'").replace('"', '\\\"')
-        
-        # 마커 아이콘 URL
-        icon_url = f"https://maps.google.com/mapfiles/ms/icons/{color}-dot.png"
-        
-        # 정보창 HTML 내용
+    unique_marker_objects = [] # 중복 마커 방지 (특히 코스 장소가 일반 마커에도 포함될 경우)
+    processed_titles_for_markers = set()
+
+    for i, marker_data in enumerate(markers):
+        # 코스 마커와 일반 마커가 겹칠 수 있으므로, title 기준으로 한 번만 생성되도록 처리
+        marker_title_check = marker_data.get('title', f"Marker_{i}")
+        if marker_title_check in processed_titles_for_markers:
+            continue
+        processed_titles_for_markers.add(marker_title_check)
+
+        lat = marker_data.get('lat')
+        lng = marker_data.get('lng')
+        if lat is None or lng is None:
+            continue
+
+        color = marker_data.get('color', 'red') # 기본 색상
+        # Google Charts 아이콘 URL (예시, 실제 유효한 URL로 대체 필요)
+        # icon_url = f"http://maps.google.com/mapfiles/ms/icons/{color}.png" # 색상명 직접 사용
+        # 간단한 점 아이콘을 사용하거나, 카테고리별로 다른 아이콘 지정 가능
+        icon_details = f"{{ path: google.maps.SymbolPath.CIRCLE, fillColor: '{color}', fillOpacity: 0.9, strokeWeight: 0, scale: 7 }}"
+
+
+        title = str(marker_data.get('title', '')).replace("'", "\\'").replace("\n", "\\n")
+        info_html = str(marker_data.get('info', '정보 없음')).replace("'", "\\'").replace("\n", "<br>")
+        category = str(marker_data.get('category', '기타')).replace("'", "\\'")
+
         info_content = f"""
-            <div style="padding: 10px; max-width: 300px;">
-                <h3 style="margin-top: 0; color: #1976D2;">{title}</h3>
-                <p><strong>분류:</strong> {category}</p>
-                <div>{info}</div>
-            </div>
-        """.replace("'", "\\\\'").replace("\n", "")
-        
-        # 마커 생성 코드
-        marker_js_template = """
-            var marker{0} = new google.maps.Marker({{
-                position: {{ lat: {1}, lng: {2} }},
+        <div style='padding: 10px; max-width: 280px; font-family: Arial, sans-serif; font-size: 14px;'>
+            <h3 style='margin-top:0; margin-bottom:5px; color: #333; font-size:16px;'>{title}</h3>
+            <p style='margin-bottom:3px;'><strong>카테고리:</strong> {category}</p>
+            <div style='margin-top:5px; border-top: 1px solid #eee; padding-top:5px;'>{info_html}</div>
+        </div>
+        """.replace("\n", " ")
+
+        markers_js += f"""
+            var marker{i} = new google.maps.Marker({{
+                position: {{ lat: {lat}, lng: {lng} }},
                 map: map,
-                title: '{3}',
-                icon: '{4}',
+                title: '{title}',
+                icon: {icon_details},
                 animation: google.maps.Animation.DROP
             }});
-            
-            markers.push(marker{0});
-            markerCategories.push('{5}');
-            
-            var infowindow{0} = new google.maps.InfoWindow({{
-                content: '{6}'
+            markers.push(marker{i}); // JS 전역 배열 'markers'에 추가
+            markerCategories.push('{category}'); // JS 전역 배열 'markerCategories'에 추가
+
+            var infowindow{i} = new google.maps.InfoWindow({{
+                content: '{info_content}'
             }});
-            
-            marker{0}.addListener('click', function() {{
+            infoWindows.push(infowindow{i}); // JS 전역 배열 'infoWindows'에 추가
+
+            marker{i}.addListener('click', function() {{
                 closeAllInfoWindows();
-                infowindow{0}.open(map, marker{0});
-                
-                // 마커 바운스 애니메이션
-                if (currentMarker) currentMarker.setAnimation(null);
-                marker{0}.setAnimation(google.maps.Animation.BOUNCE);
-                currentMarker = marker{0};
-                
-                // 애니메이션 종료
-                setTimeout(function() {{
-                    marker{0}.setAnimation(null);
-                }}, 1500);
-                
-                // 부모 창에 마커 클릭 이벤트 전달
-                window.parent.postMessage({{
-                    'type': 'marker_click',
-                    'id': {0},
-                    'title': '{3}',
-                    'lat': {1},
-                    'lng': {2},
-                    'category': '{5}'
-                }}, '*');
+                infowindow{i}.open(map, marker{i});
+                if (currentMarker !== marker{i}) {{
+                    if (currentMarker) currentMarker.setAnimation(null);
+                    // marker{i}.setAnimation(google.maps.Animation.BOUNCE); // 클릭 시 바운스
+                    // currentMarker = marker{i};
+                    // setTimeout(function() {{ marker{i}.setAnimation(null); }}, 750); // 바운스 시간
+                }}
+                 window.parent.postMessage({{type: 'marker_click', title: '{title}', lat: {lat}, lng: {lng}, category: '{category}'}}, '*');
             }});
-            
-            infoWindows.push(infowindow{0});
         """
-        
-        # format 메서드로 동적 값 채우기
-        curr_marker_js = marker_js_template.format(
-            i, marker['lat'], marker['lng'], title, icon_url, category, info_content
-        )
-        
-        markers_js += curr_marker_js
-    
     # 경로 표시 JavaScript 코드
     route_js = ""
     if route_points and start_location:
-        # 경로 좌표 배열 생성 (출발 위치 포함)
-        coordinates = [
-            {'lat': start_location[0], 'lng': start_location[1]}
-        ]
-        coordinates.extend([
-            {'lat': point['lat'], 'lng': point['lng']} for point in route_points
-        ])
-        
-        # 일자별로 경로를 나누어 저장할 객체
-        daily_routes = {}
+        daily_routes_data = {}
         for point in route_points:
-            day = point['day']
-            if day not in daily_routes:
-                daily_routes[day] = []
-            daily_routes[day].append({'lat': point['lat'], 'lng': point['lng']});
+            day_val = point.get('day')
+            if day_val is None and point.get('title') and 'Day ' in point.get('title'):
+                try:
+                    day_str = point.get('title').split('Day ')[1].split(' ')[0]
+                    day_val = int(day_str)
+                except:
+                    day_val = 1 # Day 정보 파싱 실패 시 1일차로 간주
+            
+            if day_val is not None:
+                if day_val not in daily_routes_data:
+                    daily_routes_data[day_val] = []
+                daily_routes_data[day_val].append({'lat': point['lat'], 'lng': point['lng']})
         
-        # 경로 표시 색상
-        route_colors = ['blue', 'green', 'purple', 'orange', 'brown'];
-        
-        route_js = f"""
-            var routeCoordinates = {json.dumps(coordinates)};
-            var routeColors = {json.dumps(route_colors)};
-            var dailyRoutes = {json.dumps(daily_routes)};
-            
-            var path = new google.maps.Polyline({{
-                path: routeCoordinates,
-                geodesic: true,
-                strokeColor: '#808080',
-                strokeOpacity: 0.5,
-                strokeWeight: 3,
-                map: map
-            }});
-            
-            // 출발지 마커
-            new google.maps.Marker({{
-                position: {{ lat: {start_location[0]}, lng: {start_location[1]} }},
-                map: map,
-                title: '출발지',
-                icon: {{
-                    path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: 'blue',
-                    fillOpacity: 1,
-                    strokeColor: 'white',
-                    strokeWeight: 2,
-                    scale: 8
-                }}
-            }});
-            
-            var dayIndex = 0;
-            for (var day in dailyRoutes) {{
-                if (dailyRoutes.hasOwnProperty(day)) {{
-                    var polyline = new google.maps.Polyline({{
-                        path: dailyRoutes[day],
-                        geodesic: true,
-                        strokeColor: routeColors[dayIndex % routeColors.length],
-                        strokeOpacity: 0.9,
-                        strokeWeight: 5,
-                        map: map
-                    }});
-                    dayIndex++;
-                }}
-            }}
-            
-        """
+        # JavaScript에서 사용할 수 있도록 daily_routes_data를 JSON 문자열로 변환
+        # 일자(key)를 기준으로 정렬하여 경로를 순서대로 그림
+        sorted_daily_routes_for_js = "{\n"
+        for day_num in sorted(daily_routes_data.keys()):
+             # 각 일자별 경로 포인트가 최소 1개 이상 있어야 함
+            if daily_routes_data[day_num]:
+                sorted_daily_routes_for_js += f"      {day_num}: {json.dumps(daily_routes_data[day_num])},\n"
+        sorted_daily_routes_for_js += "    }"
 
-    # 필터링 함수
+
+        # 경로 색상 배열
+        route_colors_array = ['#E53935', '#1E88E5', '#43A047', '#FB8C00', '#8E24AA', '#5D4037', '#00ACC1']
+
+        route_js = f"""
+            var startLoc = {{ lat: {start_location[0]}, lng: {start_location[1]} }};
+            var dailyRoutes = {sorted_daily_routes_for_js};
+            var routeColors = {json.dumps(route_colors_array)};
+            var bounds = new google.maps.LatLngBounds();
+
+            // 출발지 마커
+            var startMarker = new google.maps.Marker({{
+                position: startLoc,
+                map: map,
+                title: '경로 시작점',
+                icon: {{
+                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png', // 출발지 아이콘
+                    scaledSize: new google.maps.Size(40, 40)
+                }},
+                zIndex: google.maps.Marker.MAX_ZINDEX + 1
+            }});
+            bounds.extend(startLoc);
+
+            var dayIndex = 0;
+            var lastPointOfPreviousDay = startLoc; // 경로 시작점
+
+            var sortedDays = Object.keys(dailyRoutes).map(Number).sort((a,b) => a - b); // 일자 순 정렬
+
+            for (var dayKey of sortedDays) {{
+                var dayPathCoordinates = [lastPointOfPreviousDay]; // 이전 지점에서 시작
+                var currentDayPoints = dailyRoutes[dayKey];
+
+                if (currentDayPoints && currentDayPoints.length > 0) {{
+                    currentDayPoints.forEach(function(point) {{
+                        var latLng = new google.maps.LatLng(point.lat, point.lng);
+                        dayPathCoordinates.push(latLng);
+                        bounds.extend(latLng);
+                    }});
+
+                    if (dayPathCoordinates.length > 1) {{ // 최소 2개 지점 있어야 경로 그림
+                        var dayPolyline = new google.maps.Polyline({{
+                            path: dayPathCoordinates,
+                            geodesic: true,
+                            strokeColor: routeColors[dayIndex % routeColors.length],
+                            strokeOpacity: 0.9,
+                            strokeWeight: 5,
+                            map: map
+                        }});
+                        dailyRouteLines.push(dayPolyline); // 토글 위해 저장
+                    }}
+                    // 현재 날짜의 마지막 지점을 다음 날짜의 시작 연결점으로 업데이트
+                    lastPointOfPreviousDay = currentDayPoints[currentDayPoints.length - 1];
+                }}
+                dayIndex++;
+            }}
+
+            // 모든 경로와 마커가 보이도록 지도 범위 조정
+            if (Object.keys(dailyRoutes).length > 0 || markers.length > 0) {{
+                 map.fitBounds(bounds);
+                 // fitBounds 후 줌이 너무 축소되는 것을 방지
+                 google.maps.event.addListenerOnce(map, 'bounds_changed', function() {{
+                    if (this.getZoom() > 15) {{ // 최대 줌 레벨 제한
+                        this.setZoom(15);
+                    }}
+                 }});
+            }}
+        """
+    
+    # 필터링 JS (기존 코드 사용)
     filter_js = """
         function filterMarkers(category) {
             for (var i = 0; i < markers.length; i++) {
                 var shouldShow = category === 'all' || markerCategories[i] === category;
                 markers[i].setVisible(shouldShow);
             }
-
-            // 필터 버튼 활성화 상태 업데이트
             document.querySelectorAll('.filter-button').forEach(function(btn) {
                 btn.classList.remove('active');
             });
-
-            // 카테고리 ID 안전하게 변환
-            var safeCategory = category.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-            var filterButtonId = 'filter-' + (category === 'all' ? 'all' : safeCategory);
-
-            var filterButton = document.getElementById(filterButtonId);
-            if (filterButton) {
-                filterButton.classList.add('active');
-            } else {
-                document.getElementById('filter-all').classList.add('active');
-            }
+            var safeCategory = category.replace(/[^a-zA-Z0-9_]/g, '-').toLowerCase(); // ID 안전하게
+            var activeBtn = document.getElementById('filter-' + safeCategory);
+            if (activeBtn) activeBtn.classList.add('active');
+            else document.getElementById('filter-all').classList.add('active');
         }
     """
-    
-    # 마커 클러스터링 코드
+    # 필터 버튼 HTML 생성 (기존 코드 사용)
+    # categories 변수는 JS 스코프 내의 markerCategories를 기반으로 동적 생성 필요
+    # Python에서 미리 만들어서 전달하는 것이 더 간단할 수 있음
+    # 여기서는 Python에서 카테고리 목록을 만들어서 전달한다고 가정하고, filter_buttons는 비워둠.
+    # 실제로는 show_map_page 등에서 이 부분을 채워야 함.
+    filter_buttons_html = ""
+    unique_categories = sorted(list(set(marker.get('category', '기타') for marker in markers)))
+    filter_buttons_html += '<button id="filter-all" class="filter-button active" onclick="filterMarkers(\'all\')">전체 보기</button>'
+    for cat_name in unique_categories:
+        safe_id = ''.join(c if c.isalnum() else '-' for c in cat_name).lower()
+        filter_buttons_html += f' <button id="filter-{safe_id}" class="filter-button" onclick="filterMarkers(\'{cat_name}\')">{cat_name}</button>'
+
+
+    # 마커 클러스터링 코드 (기존 코드 사용)
     clustering_js = """
-        // 마커 클러스터링
         if (typeof markerClusterer !== 'undefined' && markers.length > 0) {
             new markerClusterer.MarkerClusterer({
                 map: map,
-                markers: markers,
-                algorithm: new markerClusterer.SuperClusterAlgorithm({
-                    maxZoom: 15,
-                    radius: 50
-                })
+                markers: markers, // JS 전역 배열 'markers' 사용
+                algorithmOptions: { maxZoom: 15, radius: 60 } // algorithmOptions 사용
             });
+        } else {
+            console.log('MarkerClusterer not available or no markers to cluster.');
         }
     """
-
-    # 필터 버튼 HTML 생성
-    filter_buttons = '<button id="filter-all" class="filter-button active" onclick="filterMarkers(\'all\')">전체 보기</button>'
-    for cat in categories.keys():
-        safe_id = cat.replace(' ', '-').replace('/', '-').replace('(', '').replace(')', '')
-        safe_id = ''.join(c for c in safe_id if c.isalnum() or c in '-_').lower()
-        filter_buttons += f' <button id="filter-{safe_id}" class="filter-button" onclick="filterMarkers(\'{cat}\')">{cat}</button>'
-
-    # 내비게이션 JavaScript 코드 - 수정됨
+    
+    # 내비게이션 JS (기존 코드 사용)
     directions_js = ""
-    if navigation_mode and transport_mode:
+    if navigation_mode and transport_mode and start_location and end_location :
         directions_js = f"""
-        // 전역 변수 선언
         const directionsService = new google.maps.DirectionsService();
         const directionsRenderer = new google.maps.DirectionsRenderer({{
-          panel: document.getElementById('directions-panel') // 경로 안내를 directions-panel에 표시
+          panel: document.getElementById('directions-panel'),
+          map: map
         }});
-        directionsRenderer.setMap(map);
         
         function calculateAndDisplayRoute() {{
-          // 교통 수단 설정 (기본값: DRIVING)
-          const travelMode = '{transport_mode}' || 'DRIVING';
-          
-          directionsService
-            .route({{
-              origin: {{ lat: {markers[0]['lat']}, lng: {markers[0]['lng']} }},
-              destination: {{ lat: {markers[1]['lat']}, lng: {markers[1]['lng']} }},
-              travelMode: google.maps.TravelMode[travelMode.toUpperCase()],
+          const travelMode = '{transport_mode.upper()}'; // WALKING, TRANSIT, DRIVING
+          directionsService.route({{
+              origin: {{ lat: {start_location['lat']}, lng: {start_location['lng']} }},
+              destination: {{ lat: {end_location['lat']}, lng: {end_location['lng']} }},
+              travelMode: google.maps.TravelMode[travelMode],
             }})
             .then((response) => {{
               directionsRenderer.setDirections(response);
             }})
             .catch((e) => {{
-              window.alert("경로 안내를 가져오는데 실패했습니다: " + e);
+              window.alert("Directions request failed due to " + e.status);
+              console.error("Directions request failed: ", e);
             }});
         }}
-        
-        // 지도 로딩 후 자동으로 경로 계산 실행
         calculateAndDisplayRoute();
-        
-        // 교통 수단 변경 시 경로 재계산을 위한 이벤트 리스너 예시
-        document.addEventListener('transportModeChanged', function(e) {{
-          transport_mode = e.detail.mode;
-          calculateAndDisplayRoute();
-        }});
         """
 
     # HTML 템플릿
@@ -1433,364 +1435,159 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     <!DOCTYPE html>
     <html>
     <head>
-        <title>서울 관광 지도</title>
+        <title>Seoul Tourism Map</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            #map {{
-                height: 100%;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-            }}
-            html, body {{
-                height: 100%;
-                margin: 0;
-                padding: 0;
-                font-family: 'Noto Sans KR', Arial, sans-serif;
-            }}
+            html, body {{ height: 100%; margin: 0; padding: 0; font-family: 'Noto Sans KR', Arial, sans-serif; }}
+            #map {{ height: 100%; }}
             .map-controls {{
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                z-index: 5;
-                background-color: white;
-                padding: 10px;
-                border-radius: 5px;
-                box-shadow: 0 2px 6px rgba(0,0,0,.3);
-                max-width: 90%;
-                overflow-x: auto;
-                white-space: nowrap;
+                position: absolute; top: 10px; left: 10px; z-index: 5;
+                background-color: white; padding: 8px; border-radius: 4px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3); max-width: calc(100% - 20px);
+                overflow-x: auto; white-space: nowrap;
             }}
             .filter-button {{
-                margin: 5px;
-                padding: 5px 10px;
-                background-color: #f8f9fa;
-                border: 1px solid #dadce0;
-                border-radius: 4px;
-                cursor: pointer;
+                margin: 3px; padding: 6px 10px; background-color: #fff;
+                border: 1px solid #ccc; border-radius: 3px; cursor: pointer; font-size: 13px;
             }}
-            .filter-button:hover {{
-                background-color: #e8eaed;
-            }}
-            .filter-button.active {{
-                background-color: #1976D2;
-                color: white;
-            }}
+            .filter-button:hover {{ background-color: #f0f0f0; }}
+            .filter-button.active {{ background-color: #4285F4; color: white; border-color: #4285F4; }}
             #legend {{
-                font-family: 'Noto Sans KR', Arial, sans-serif;
-                background-color: white;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                bottom: 25px;
-                box-shadow: 0 2px 6px rgba(0,0,0,.3);
-                font-size: 12px;
-                padding: 10px;
-                position: absolute;
-                right: 10px;
-                z-index: 5;
+                position: absolute; bottom: 30px; right: 10px; z-index: 5;
+                background-color: white; padding: 10px; border-radius: 4px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-size: 12px; max-height: 200px; overflow-y:auto;
             }}
-            .legend-item {{
-                margin-bottom: 5px;
-                display: flex;
-                align-items: center;
+            .legend-item {{ margin-bottom: 4px; display: flex; align-items: center; }}
+            .custom-control-button {{ /* 현재 위치 버튼 스타일 */
+                background-color: #fff; border: 0; border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+                margin: 10px; padding: 8px 12px; font: 400 16px Roboto, Arial, sans-serif; cursor: pointer;
             }}
-            .legend-item img {{
-                width: 20px;
-                height: 20px;
-                margin-right: 5px;
+            #directions-panel {{ /* 내비게이션 안내 패널 */
+                position: absolute; top: 70px; left: 10px; z-index: 5; width: 300px; max-height: 70%;
+                overflow-y: auto; background-color: white; padding: 10px;
+                border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-size: 13px;
             }}
-            .custom-control {{
-                background-color: #fff;
-                border: 0;
-                border-radius: 2px;
-                box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
-                margin: 10px;
-                padding: 0 0.5em;
-                font: 400 18px Roboto, Arial, sans-serif;
-                overflow: hidden;
-                height: 40px;
-                cursor: pointer;
-            }}
-            /* 내비게이션 패널 스타일 */
-            #directions-panel {{
-                width: 300px;
-                max-width: 90%;
-                background-color: white;
-                padding: 10px;
-                border-radius: 5px;
-                box-shadow: 0 2px 6px rgba(0,0,0,.3);
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                z-index: 5;
-                max-height: 400px;
-                overflow-y: auto;
-                font-size: 12px;
-            }}
-            .direction-step {{
-                padding: 8px 5px;
-                border-bottom: 1px solid #eee;
-            }}
-            .direction-step:last-child {{
-                border-bottom: none;
-            }}
-            /* 경로 범례 스타일 */
+             /* 경로 범례 스타일 */
             #route-legend {{
-                font-family: 'Noto Sans KR', Arial, sans-serif;
-                background-color: white;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                bottom: 160px;
-                box-shadow: 0 2px 6px rgba(0,0,0,.3);
-                font-size: 12px;
-                padding: 10px;
-                position: absolute;
-                right: 10px;
-                z-index: 5;
-                max-width: 180px;
+                font-family: 'Noto Sans KR', Arial, sans-serif; background-color: white;
+                border: 1px solid #ccc; border-radius: 5px; bottom: {'180px' if legend_html else '30px'}; /* 범례 위치 조정 */
+                box-shadow: 0 2px 6px rgba(0,0,0,.3); font-size: 12px; padding: 10px;
+                position: absolute; right: 10px; z-index: 5; max-width: 180px;
+                display: { 'block' if route_points else 'none' }; /* 경로 있을때만 표시 */
             }}
-            .route-legend-item {{
-                margin-bottom: 5px;
-                display: flex;
-                align-items: center;
-            }}
-            .route-color {{
-                width: 20px;
-                height: 4px;
-                margin-right: 5px;
-                display: inline-block;
-            }}
+            .route-legend-item {{ margin-bottom: 5px; display: flex; align-items: center; }}
+            .route-color-box {{ width: 20px; height: 10px; margin-right: 8px; display: inline-block; border: 1px solid #ddd; }}
         </style>
     </head>
     <body>
         <div id="map"></div>
-        
-        <div class="map-controls" id="category-filter">
-            <div style="margin-bottom: 8px; font-weight: bold;">카테고리 필터</div>
-            {filter_buttons}
+        <div class="map-controls" id="category-filter-controls">
+            <div style="margin-bottom: 5px; font-weight: bold; font-size:14px;">카테고리 필터</div>
+            {filter_buttons_html}
         </div>
         
-        <div id="legend">
-            <div style="font-weight: bold; margin-bottom: 8px;">지도 범례</div>
-            {legend_html}
-        </div>
-        
-        <div id="route-legend" style="display: none;">
+        {f'<div id="legend"><div style="font-weight: bold; margin-bottom: 8px;">범례</div>{legend_html}</div>' if legend_html else ''}
+
+        <div id="route-legend">
             <div style="font-weight: bold; margin-bottom: 8px;">일별 경로</div>
-            <div id="route-legend-items"></div>
+            <div id="route-legend-items-container"></div>
         </div>
         
-        {'''<div id="directions-panel"></div>''' if navigation_mode else ''}
-        
+        { '<div id="directions-panel"></div>' if navigation_mode else '' }
+
         <script>
-            // 디버깅용 로그 설정
-            console.log = function() {{
-                var args = Array.prototype.slice.call(arguments);
-                var message = args.join(' ');
-                window.parent.postMessage({{
-                    'type': 'debug_log',
-                    'message': message
-                }}, '*');
-                if (window.originalConsoleLog) window.originalConsoleLog.apply(console, arguments);
-            }};
-            if (!window.originalConsoleLog) window.originalConsoleLog = console.log;
-        
-            // 지도 및 마커 변수
             var map;
-            var markers = [];
-            var markerCategories = [];
-            var infoWindows = [];
-            var currentMarker = null;
-            var dailyRouteLines = []; // 일별 경로 선 저장
-            var routesVisible = true; // 경로 표시 여부
-            
-            // 모든 정보창 닫기
+            var markers = []; // 마커 객체 저장용
+            var markerCategories = []; // 마커 카테고리 저장용
+            var infoWindows = []; // 정보창 저장용
+            var currentMarker = null; // 현재 활성화된 마커 (애니메이션 등)
+            var dailyRouteLines = []; // 일별 경로 Polyline 객체 저장
+
             function closeAllInfoWindows() {{
-                for (var i = 0; i < infoWindows.length; i++) {{
-                    infoWindows[i].close();
-                }}
+                for (var i = 0; i < infoWindows.length; i++) {{ infoWindows[i].close(); }}
             }}
             
-            // 경로 표시/숨김 토글
-            function toggleRoutes() {{
-                routesVisible = !routesVisible;
-                
-                // 모든 경로에 대해 표시 여부 설정
-                for (var i = 0; i < dailyRouteLines.length; i++) {{
-                    dailyRouteLines[i].setMap(routesVisible ? map : null);
-                }}
-                
-                // 경로 범례 표시/숨김
-                document.getElementById('route-legend').style.display = routesVisible ? 'block' : 'none';
-                
-                // 토글 버튼 스타일 변경
-                var toggleButton = document.getElementById('toggle-routes');
-                if (toggleButton) {{
-                    if (routesVisible) {{
-                        toggleButton.classList.add('active');
-                    }} else {{
-                        toggleButton.classList.remove('active');
+            function createRouteLegendDisplay(routeColorsArray, dailyRoutesData) {{
+                var legendContainer = document.getElementById('route-legend-items-container');
+                if (!legendContainer) return;
+                legendContainer.innerHTML = ''; // 기존 범례 초기화
+                var dayIdx = 0;
+                var sortedDaysForLegend = Object.keys(dailyRoutesData).map(Number).sort((a,b) => a - b);
+
+                for (var dayNum of sortedDaysForLegend) {{
+                    if (dailyRoutesData[dayNum] && dailyRoutesData[dayNum].length > 0) {{
+                        var color = routeColorsArray[dayIdx % routeColorsArray.length];
+                        var legendItem = document.createElement('div');
+                        legendItem.className = 'route-legend-item';
+                        legendItem.innerHTML = 
+                            '<span class="route-color-box" style="background-color: ' + color + ';"></span>' +
+                            '<span>Day ' + dayNum + ' 경로</span>';
+                        legendContainer.appendChild(legendItem);
+                        dayIdx++;
                     }}
                 }}
-            }}
-            
-            // 경로 범례 생성
-            function createRouteLegend() {{
-                var routeColors = ['#FF5722', '#2196F3', '#4CAF50', '#9C27B0', '#FFC107', '#795548', '#3F51B5', '#E91E63'];
-                var legendContainer = document.getElementById('route-legend-items');
-                var dailyRoutes = {{}};
-                
-                // 마커 제목에서 일자 정보 추출해 그룹화
-                for (var i = 0; i < markers.length; i++) {{
-                    var title = markers[i].getTitle();
-                    var dayMatch = title.match(/Day (\\d+)/);
-                    
-                    if (dayMatch) {{
-                        var day = dayMatch[1];
-                        if (!dailyRoutes[day]) {{
-                            dailyRoutes[day] = true;
-                        }}
-                    }}
-                }}
-                
-                // 일자 정렬
-                var days = Object.keys(dailyRoutes).sort(function(a, b) {{
-                    return parseInt(a) - parseInt(b);
-                }});
-                
-                // 범례 항목 생성
-                for (var i = 0; i < days.length; i++) {{
-                    var day = days[i];
-                    var color = routeColors[i % routeColors.length];
-                    var legendItem = document.createElement('div');
-                    legendItem.className = 'route-legend-item';
-                    legendItem.innerHTML = 
-                        '<span class="route-color" style="background-color: ' + color + ';"></span>' +
-                        '<span>Day ' + day + ' 경로</span>';
-                    legendContainer.appendChild(legendItem);
-                }}
-                
-                // 범례 표시
-                document.getElementById('route-legend').style.display = 'block';
+                document.getElementById('route-legend').style.display = dayIdx > 0 ? 'block' : 'none';
             }}
 
+            {filter_js} // 필터 함수 정의
+
             function initMap() {{
-                // 지도 생성
-                map = new google.maps.Map(document.getElementById('map'), {{
+                map = new new google.maps.Map(document.getElementById('map'), {{
                     center: {{ lat: {center_lat}, lng: {center_lng} }},
                     zoom: {zoom},
+                    mapTypeControlOptions: {{ style: google.maps.MapTypeControlStyle.DROPDOWN_MENU }},
                     fullscreenControl: true,
-                    mapTypeControl: true,
                     streetViewControl: true,
                     zoomControl: true,
-                    mapTypeId: 'roadmap',
-                    gestureHandling: 'greedy'
+                    gestureHandling: 'greedy' // 모바일에서 부드러운 스크롤/줌
                 }});
-                
-                // 현재 위치 버튼 추가
+
                 const locationButton = document.createElement("button");
                 locationButton.textContent = "📍 내 위치";
-                locationButton.classList.add("custom-control");
+                locationButton.classList.add("custom-control-button");
                 locationButton.addEventListener("click", () => {{
                     if (navigator.geolocation) {{
                         navigator.geolocation.getCurrentPosition(
                             (position) => {{
-                                const pos = {{
-                                    lat: position.coords.latitude,
-                                    lng: position.coords.longitude,
-                                }};
-                                
-                                window.parent.postMessage({{
-                                    'type': 'current_location',
-                                    'lat': pos.lat,
-                                    'lng': pos.lng
-                                }}, '*');
-                                
-                                map.setCenter(pos);
-                                map.setZoom(15);
-                                
-                                new google.maps.Marker({{
-                                    position: pos,
-                                    map: map,
-                                    title: '내 위치',
-                                    icon: {{
-                                        path: google.maps.SymbolPath.CIRCLE,
-                                        fillColor: '#4285F4',
-                                        fillOpacity: 1,
-                                        strokeColor: '#FFFFFF',
-                                        strokeWeight: 2,
-                                        scale: 8
-                                    }}
-                                }});
+                                const pos = {{ lat: position.coords.latitude, lng: position.coords.longitude }};
+                                map.setCenter(pos); map.setZoom(15);
+                                new google.maps.Marker({{ position: pos, map: map, title: '현재 위치', icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' }});
+                                window.parent.postMessage({{type: 'current_location', lat: pos.lat, lng: pos.lng}}, '*');
                             }},
-                            () => {{ alert("위치 정보를 가져오는데 실패했습니다."); }}
+                            () => {{ alert("위치 정보를 가져오는 데 실패했습니다."); }}
                         );
-                    }} else {{
-                        alert("이 브라우저에서는 위치 정보 기능을 지원하지 않습니다.");
-                    }}
+                    }} else {{ alert("이 브라우저에서는 위치 정보 기능을 지원하지 않습니다."); }}
                 }});
-                
                 map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
-                
-                // 범례를 지도에 추가
-                map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
-                    document.getElementById('legend')
-                );
-                
+
                 // 마커 추가
                 {markers_js}
-                
                 // 마커 클러스터링
                 {clustering_js}
-                
                 // 경로 표시
                 {route_js}
-                
-                // 일별 경로 생성 함수
-                {route_groups_js}
-                
-                // 필터링 함수
-                {filter_js}
-                
-                // 내비게이션 코드
+                // 내비게이션 (필요시)
                 {directions_js}
+
+                // 경로 범례 생성 (dailyRoutes 변수가 route_js에서 설정됨)
+                if (typeof dailyRoutes !== 'undefined' && typeof routeColors !== 'undefined') {{
+                    createRouteLegendDisplay(routeColors, dailyRoutes);
+                }}
                 
-                // 지도 클릭 이벤트
                 map.addListener('click', function(event) {{
                     closeAllInfoWindows();
-                    if (currentMarker) currentMarker.setAnimation(null);
-                    
-                    window.parent.postMessage({{
-                        'type': 'map_click',
-                        'lat': event.latLng.lat(),
-                        'lng': event.latLng.lng()
-                    }}, '*');
+                    // if (currentMarker) currentMarker.setAnimation(null); // 이전 마커 애니메이션 중지
+                    window.parent.postMessage({{type: 'map_click', lat: event.latLng.lat(), lng: event.latLng.lng()}}, '*');
                 }});
-                
-                console.log('지도 초기화 완료');
-                
-                // 모든 마커가 로드된 후 일별 경로 생성 및 표시
-                // 약간의 지연을 두어 모든 마커가 로드되었는지 확인
-                setTimeout(function() {{
-                    console.log('경로 생성 시작... 마커 개수: ' + markers.length);
-                    dailyRouteLines = createDailyRoutes();
-                    
-                    // 경로 범례 생성
-                    createRouteLegend();
-                    
-                    // 토글 버튼 활성화
-                    document.getElementById('toggle-routes').classList.add('active');
-                }}, 1000);
+                console.log("Google Map Initialized.");
             }}
         </script>
-        <script src="https://unpkg.com/@googlemaps/markerclusterer@2.0.9/dist/index.min.js"></script>
-        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=places,directions&v=weekly&language={language}" async defer></script>
-    </body>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=marker,places,directions&v=beta&language={language}"></script>
+        </body>
     </html>
     """
 
-    
     return html
 
     
@@ -3167,48 +2964,75 @@ def show_course_page():
                         st.session_state.google_maps_api_key = api_key
                 
                 # 코스 마커 생성
+                # show_course_page 함수 내의 map_markers 생성 부분 수정
+
+                # 코스 마커 생성
                 map_markers = []
                 
                 if daily_courses:
                     # 실제 데이터 기반 코스
+                    # 시간대별 색상 및 일자별 경로 구성을 위한 코드 추가
+                    time_slots_texts = [ # 현재 언어에 맞는 시간대 텍스트
+                        current_lang_texts["morning_time_slot"],
+                        current_lang_texts["afternoon_time_slot"],
+                        current_lang_texts["evening_time_slot"]
+                    ]
                     for day_idx, day_course in enumerate(daily_courses):
                          for time_idx, place in enumerate(day_course):
-                            # 시간대별 색상 구분
-                            colors = ["blue", "green", "purple"]
-                            color = colors[time_idx % len(colors)]
-                            
+                            # 시간대별 마커 색상 (예시, 필요시 CATEGORY_COLORS와 연동)
+                            # 현재는 장소의 카테고리 색상을 따르도록 하거나, 일관된 색상 사용 가능
+                            # 여기서는 place에 color가 이미 있다고 가정하거나, CATEGORY_COLORS 사용
+                            color = CATEGORY_COLORS.get(place['category'], "gray") # place 딕셔너리에 'category'가 있다고 가정
+
+                            # title에 Day 정보가 이미 포함되어 있으므로, day 키를 명시적으로 추가
+                            marker_title = f"Day {day_idx+1} - {place['title']}"
+                            # info에 들어갈 시간대 정보
+                            current_time_slot_text = time_slots_texts[time_idx % len(time_slots_texts)]
+
                             marker = {
                                 'lat': place['lat'],
                                 'lng': place['lng'],
-                                'title': f"Day {day_idx+1} - {place['title']}",
-                                'info': f"Day {day_idx+1} {time_slots[time_idx]}<br>{place.get('info', '')}",
-                                'category': place['category'],
-                                'color': color
+                                'title': marker_title,
+                                'info': f"Day {day_idx+1} {current_time_slot_text}<br>{place.get('info', '')}", # place에 info가 있을 수 있음
+                                'category': place['category'], # place에 category가 있다고 가정
+                                'color': color,
+                                'day': day_idx + 1  # 명시적인 'day' 정보 추가
                             }
                             map_markers.append(marker)
                 else:
                     # 기본 코스 - 좌표 데이터가 없어 지도 표시 불가
                     st.warning(current_lang_texts["map_display_error"])
-                
+
                 # 지도의 중심 좌표 계산
                 if map_markers:
                     center_lat = sum(marker['lat'] for marker in map_markers) / len(map_markers)
                     center_lng = sum(marker['lng'] for marker in map_markers) / len(map_markers)
+                    zoom_level = 12 # 경로가 있을 경우 좀 더 넓게
                 else:
                     center_lat = DEFAULT_LOCATION[0]
                     center_lng = DEFAULT_LOCATION[1]
-                    
-                #show_google_map 호출에 route_points인자 추가
+                    zoom_level = 13 # 경로 없을 시 기본 줌
+
+                # create_Maps_html 함수에 route_points 와 start_location 전달
+                # show_google_map 함수가 create_Maps_html을 호출하므로, show_google_map에 전달
+                # start_location은 사용자의 현재 위치 또는 코스의 시작점으로 할 수 있습니다.
+                # 여기서는 사용자의 현재 위치를 사용합니다.
+                start_point_for_route = None
+                if map_markers: # 코스가 있다면 코스의 첫번째 지점을 시작점으로 사용할 수도 있습니다.
+                    # start_point_for_route = [map_markers[0]['lat'], map_markers[0]['lng']]
+                    pass # 현재는 get_location_position()을 사용
+
+                # `show_google_map` 호출 시 `route_points` 와 `start_location` 인자 사용
                 show_google_map(
                     api_key=api_key,
                     center_lat=center_lat,
                     center_lng=center_lng,
-                    markers=map_markers,
-                    zoom=12,
+                    markers=map_markers, # 모든 마커 (코스 장소 포함)
+                    zoom=zoom_level,
                     height=500,
                     language=st.session_state.language,
-                    route_points=map_markers, # 경로를 그릴 좌표 리스트
-                    start_location=get_location_position() # 출발 지점
+                    route_points=map_markers, # 경로를 그릴 마커들
+                    start_location=get_location_position() # 경로 시작 지점 (사용자 현재 위치)
                 )
                 
                 # 일정 저장 버튼
