@@ -150,8 +150,7 @@ REVERSE_STYLE_MAP = {
     "自然型": "travel_style_nature"
 }
 
-# 공통 키로 변환
-normalized_styles = [REVERSE_STYLE_MAP.get(style, style) for style in travel_styles]
+
 
 
 #################################################
@@ -2050,6 +2049,8 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
     #     course_type = current_lang_texts["course_active"]
     # else:
     #     course_type = current_lang_texts["course_healing"]
+    # 공통 키로 변환
+    normalized_styles = [REVERSE_STYLE_MAP.get(style, style) for style in travel_styles]
 
     if "travel_style_history_culture" in normalized_styles:
         course_type = current_lang_texts["course_history_culture"]
