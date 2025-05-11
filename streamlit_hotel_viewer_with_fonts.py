@@ -1141,7 +1141,7 @@ def build_info_html(row, name, address, category):
     
 def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko", 
                            navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
-    """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정"""
+    """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정, 일별 경로 연결선 추가"""
     if markers is None:
         markers = []
     
@@ -1246,6 +1246,72 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         
         markers_js += curr_marker_js
     
+    # 일별 경로 연결을 위한 경로 그룹화
+    # 'Day X' 형식으로 제목에서 일자 추출해서 그룹화
+    route_groups_js = """
+        // 일별 경로 연결을 위한 그룹화
+        function createDailyRoutes() {
+            // 'Day X'로 시작하는 마커 제목을 기준으로 일자별 그룹화
+            var dailyRoutes = {};
+            var routeColors = ['#FF5722', '#2196F3', '#4CAF50', '#9C27B0', '#FFC107', '#795548', '#3F51B5', '#E91E63'];
+            
+            // 모든 마커를 순회하면서 일자별로 그룹화
+            for (var i = 0; i < markers.length; i++) {
+                var title = markers[i].getTitle();
+                var dayMatch = title.match(/Day (\\d+)/);
+                
+                if (dayMatch) {
+                    var day = dayMatch[1];
+                    if (!dailyRoutes[day]) {
+                        dailyRoutes[day] = [];
+                    }
+                    
+                    // 마커의 위치 정보를 저장
+                    dailyRoutes[day].push({
+                        position: markers[i].getPosition(),
+                        marker: markers[i]
+                    });
+                }
+            }
+            
+            // 각 일자별로 경로 그리기
+            var dayRouteLines = [];
+            var routeIndex = 0;
+            
+            for (var day in dailyRoutes) {
+                if (dailyRoutes.hasOwnProperty(day) && dailyRoutes[day].length > 1) {
+                    var dayLocations = dailyRoutes[day];
+                    var routePath = [];
+                    
+                    // 경로 색상 (순환)
+                    var routeColor = routeColors[routeIndex % routeColors.length];
+                    routeIndex++;
+                    
+                    // 위치 순서로 정렬 (마커 생성 순서가 시간순이라고 가정)
+                    for (var i = 0; i < dayLocations.length; i++) {
+                        routePath.push(dayLocations[i].position);
+                    }
+                    
+                    // polyline 생성하여 지도에 표시
+                    var dayRoute = new google.maps.Polyline({
+                        path: routePath,
+                        geodesic: true,
+                        strokeColor: routeColor,
+                        strokeOpacity: 0.8,
+                        strokeWeight: 3
+                    });
+                    
+                    dayRoute.setMap(map);
+                    dayRouteLines.push(dayRoute);
+                    
+                    console.log('경로 생성 완료: Day ' + day);
+                }
+            }
+            
+            return dayRouteLines;
+        }
+    """
+    
     # 필터링 함수
     filter_js = """
         function filterMarkers(category) {
@@ -1293,6 +1359,9 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         safe_id = cat.replace(' ', '-').replace('/', '-').replace('(', '').replace(')', '')
         safe_id = ''.join(c for c in safe_id if c.isalnum() or c in '-_').lower()
         filter_buttons += f' <button id="filter-{safe_id}" class="filter-button" onclick="filterMarkers(\'{cat}\')">{cat}</button>'
+    
+    # 경로 표시 토글 버튼 추가
+    filter_buttons += ' <button id="toggle-routes" class="filter-button" onclick="toggleRoutes()">경로 표시/숨김</button>'
     
     # 내비게이션 JavaScript 코드 - 수정됨
     directions_js = ""
@@ -1440,6 +1509,32 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             .direction-step:last-child {{
                 border-bottom: none;
             }}
+            /* 경로 범례 스타일 */
+            #route-legend {{
+                font-family: 'Noto Sans KR', Arial, sans-serif;
+                background-color: white;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                bottom: 160px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                font-size: 12px;
+                padding: 10px;
+                position: absolute;
+                right: 10px;
+                z-index: 5;
+                max-width: 180px;
+            }}
+            .route-legend-item {{
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+            }}
+            .route-color {{
+                width: 20px;
+                height: 4px;
+                margin-right: 5px;
+                display: inline-block;
+            }}
         </style>
     </head>
     <body>
@@ -1455,6 +1550,12 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         <div id="legend">
             <div style="font-weight: bold; margin-bottom: 8px;">지도 범례</div>
             {legend_html}
+        </div>
+        
+        <!-- 경로 범례 (동적 생성) -->
+        <div id="route-legend" style="display: none;">
+            <div style="font-weight: bold; margin-bottom: 8px;">일별 경로</div>
+            <div id="route-legend-items"></div>
         </div>
         
         <!-- 내비게이션 패널 -->
@@ -1479,12 +1580,77 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             var markerCategories = [];
             var infoWindows = [];
             var currentMarker = null;
+            var dailyRouteLines = []; // 일별 경로 선 저장
+            var routesVisible = true; // 경로 표시 여부
             
             // 모든 정보창 닫기
             function closeAllInfoWindows() {{
                 for (var i = 0; i < infoWindows.length; i++) {{
                     infoWindows[i].close();
                 }}
+            }}
+            
+            // 경로 표시/숨김 토글
+            function toggleRoutes() {{
+                routesVisible = !routesVisible;
+                
+                // 모든 경로에 대해 표시 여부 설정
+                for (var i = 0; i < dailyRouteLines.length; i++) {{
+                    dailyRouteLines[i].setMap(routesVisible ? map : null);
+                }}
+                
+                // 경로 범례 표시/숨김
+                document.getElementById('route-legend').style.display = routesVisible ? 'block' : 'none';
+                
+                // 토글 버튼 스타일 변경
+                var toggleButton = document.getElementById('toggle-routes');
+                if (toggleButton) {{
+                    if (routesVisible) {{
+                        toggleButton.classList.add('active');
+                    }} else {{
+                        toggleButton.classList.remove('active');
+                    }}
+                }}
+            }}
+            
+            // 경로 범례 생성
+            function createRouteLegend() {{
+                var routeColors = ['#FF5722', '#2196F3', '#4CAF50', '#9C27B0', '#FFC107', '#795548', '#3F51B5', '#E91E63'];
+                var legendContainer = document.getElementById('route-legend-items');
+                var dailyRoutes = {};
+                
+                // 마커 제목에서 일자 정보 추출해 그룹화
+                for (var i = 0; i < markers.length; i++) {{
+                    var title = markers[i].getTitle();
+                    var dayMatch = title.match(/Day (\\d+)/);
+                    
+                    if (dayMatch) {{
+                        var day = dayMatch[1];
+                        if (!dailyRoutes[day]) {{
+                            dailyRoutes[day] = true;
+                        }}
+                    }}
+                }}
+                
+                // 일자 정렬
+                var days = Object.keys(dailyRoutes).sort(function(a, b) {{
+                    return parseInt(a) - parseInt(b);
+                }});
+                
+                // 범례 항목 생성
+                for (var i = 0; i < days.length; i++) {{
+                    var day = days[i];
+                    var color = routeColors[i % routeColors.length];
+                    var legendItem = document.createElement('div');
+                    legendItem.className = 'route-legend-item';
+                    legendItem.innerHTML = 
+                        '<span class="route-color" style="background-color: ' + color + ';"></span>' +
+                        '<span>Day ' + day + ' 경로</span>';
+                    legendContainer.appendChild(legendItem);
+                }}
+                
+                // 범례 표시
+                document.getElementById('route-legend').style.display = 'block';
             }}
             
             function initMap() {{
@@ -1556,6 +1722,9 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 // 마커 클러스터링
                 {clustering_js}
                 
+                // 일별 경로 생성 함수
+                {route_groups_js}
+                
                 // 필터링 함수
                 {filter_js}
                 
@@ -1573,6 +1742,15 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                         'lng': event.latLng.lng()
                     }}, '*');
                 }});
+                
+                // 일별 경로 생성 및 표시
+                dailyRouteLines = createDailyRoutes();
+                
+                // 경로 범례 생성
+                createRouteLegend();
+                
+                // 토글 버튼 활성화
+                document.getElementById('toggle-routes').classList.add('active');
                 
                 console.log('지도 초기화 완료');
             }}
