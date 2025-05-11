@@ -418,7 +418,14 @@ def init_session_state():
                 "travel_people_count": "여행 인원",
                 "travel_with_children": "아이 동반",
                 "travel_style": "여행 스타일",
-                "travel_days_total": "총 {days}일 일정"
+                "travel_days_total": "총 {days}일 일정",
+                "course_history_culture": "서울 역사/문화 탐방 코스",
+                "course_shopping_food": "서울 쇼핑과 미식 코스",
+                "course_shopping": "서울 쇼핑 중심 코스", 
+                "course_food": "서울 미식 여행 코스",
+                "course_nature": "서울의 자연 코스",
+                "course_active": "액티브 서울 코스",
+                "course_healing": "서울 힐링 여행 코스",
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -550,7 +557,14 @@ def init_session_state():
                 "travel_people_count": "旅行人数",
                 "travel_with_children": "携带儿童",
                 "travel_style": "旅行风格",
-                "travel_days_total": "共{days}天行程"
+                "travel_days_total": "共{days}天行程",
+                "course_history_culture": "首尔历史/文化探索路线",
+                "course_shopping_food": "首尔购物与美食路线",
+                "course_shopping": "首尔购物中心路线",
+                "course_food": "首尔美食之旅路线",
+                "course_nature": "首尔自然风光路线",
+                "course_active": "活力首尔路线",
+                "course_healing": "首尔治愈之旅路线"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -682,7 +696,14 @@ def init_session_state():
                 "travel_people_count": "Number of Travelers",
                 "travel_with_children": "Traveling with Children",
                 "travel_style": "Travel Style",
-                "travel_days_total": "Total {days} day itinerary"
+                "travel_days_total": "Total {days} day itinerary",
+                "course_history_culture": "Seoul History & Culture Exploration Course",
+                "course_shopping_food": "Seoul Shopping & Gastronomy Course",
+                "course_shopping": "Seoul Shopping-Focused Course",
+                "course_food": "Seoul Culinary Tour Course",
+                "course_nature": "Seoul Nature Course",
+                "course_active": "Active Seoul Course",
+                "course_healing": "Seoul Healing Travel Course"
             }
         }
     if 'clicked_location' not in st.session_state:
