@@ -126,29 +126,7 @@ EXCEL_FILES = [
     "서울시립미술관 전시정보 한국어영어중국어 1.xlsx"
 ]
 
-# 다국어 -> 공통 키 매핑 (예시로 한국어, 영어, 중국어 처리)
-REVERSE_STYLE_MAP = {
-    "활동적인": "travel_style_active",
-    "휴양": "travel_style_relaxation",
-    "맛집": "travel_style_food",
-    "쇼핑": "travel_style_shopping",
-    "역사/문화": "travel_style_history_culture",
-    "자연": "travel_style_nature",
 
-    "Active": "travel_style_active",
-    "Relaxation": "travel_style_relaxation",
-    "Food": "travel_style_food",
-    "Shopping": "travel_style_shopping",
-    "History/Culture": "travel_style_history_culture",
-    "Nature": "travel_style_nature",
-
-    "活动型": "travel_style_active",
-    "休闲型": "travel_style_relaxation",
-    "美食型": "travel_style_food",
-    "购物型": "travel_style_shopping",
-    "历史/文化型": "travel_style_history_culture",
-    "自然型": "travel_style_nature"
-}
 
 
 
@@ -1937,174 +1915,171 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
     """
     # 언어 설정에 따른 텍스트 가져오기
     current_lang_texts = st.session_state.texts[st.session_state.language]
-    
-    # 스타일 이름 표준화 (이전 스타일 이름이 있을 경우 새 형식으로 변환)
-    normalized_styles = []
-    for style in travel_styles:
-        if style in REVERSE_STYLE_MAP:  # 수정: REVERSE_STYLE_MAP 사용
-            normalized_styles.append(REVERSE_STYLE_MAP[style])
-        else:
-            normalized_styles.append(style)  # 이미 새 형식이면 그대로 사용
-    
+
     if not data:
         st.warning(current_lang_texts["no_tourist_data"])
         # 기본 코스 반환
-        if "travel_style_history_culture" in normalized_styles:
-            course_type = "문화 코스"
-        elif "travel_style_shopping" in normalized_styles:
-            course_type = "쇼핑 코스"
-        elif "travel_style_nature" in normalized_styles:
-            course_type = "자연 코스"
+        if any(style in travel_styles for style in ["역사/문화", "History/Culture", "历史/文化型"]):
+            course_type = current_lang_texts["course_history_culture"]
+        elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]) and any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
+            course_type = current_lang_texts["course_shopping_food"]
+        elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]):
+            course_type = current_lang_texts["course_shopping"]
+        elif any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
+            course_type = current_lang_texts["course_food"]
+        elif any(style in travel_styles for style in ["자연", "Nature", "自然型"]):
+            course_type = current_lang_texts["course_nature"]
+        elif any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
+            course_type = current_lang_texts["course_active"]
         else:
-            course_type = "대중적 코스"
-            
+            course_type = current_lang_texts["course_healing"]
         return RECOMMENDATION_COURSES.get(course_type, []), course_type, []
-    
+
     # 장소별 점수 계산
     scored_places = []
-    
+
     for place in data:
         # 기본 점수는 중요도
         score = place.get('importance', 1.0)
-        
+
         # 여행 스타일에 따른 가중치 적용
         style_match = False
-        for style in normalized_styles:
+        for style in travel_styles:
             if style in STYLE_CATEGORY_WEIGHTS:
                 category_weights = STYLE_CATEGORY_WEIGHTS[style]
                 if place['category'] in category_weights:
                     score *= category_weights[place['category']]
                     style_match = True
-        
+
         # 여행 스타일과 맞지 않는 장소는 점수 감소
         if not style_match:
             score *= 0.5
-        
+
         # 체육시설 점수 조정: 활동적인 스타일이 아니면 점수 대폭 감소
-        if place['category'] == "체육시설" and "travel_style_active" not in normalized_styles:
+        if place['category'] == "체육시설" and not any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
             score *= 0.3  # 더 강력하게 감소
-        
+
         # 아이 동반인 경우 가족 친화적인 장소 선호 (미술관/전시)
         if include_children and place['category'] == "미술관/전시":
             score *= 1.2
-        
+
         # 최종 점수 저장
         scored_place = place.copy()
         scored_place['score'] = score
         scored_places.append(scored_place)
-    
+
     # 점수별 정렬
     scored_places.sort(key=lambda x: x['score'], reverse=True)
-    
+
     # 일수에 따른 장소 선택
     # 하루당 3곳 방문 가정 (아침, 점심, 저녁)
     places_per_day = 3
     total_places = num_days * places_per_day
-    
+
     # 카테고리 다양성 확보: 같은 카테고리 장소가 너무 많이 선택되지 않도록 함
     category_counts = {}
     for place in scored_places[:total_places * 2]:  # 상위 후보에서만 카운트
         category = place['category']
         category_counts[category] = category_counts.get(category, 0) + 1
-    
+
     # 특정 카테고리가 너무 많으면 일부 제외
     MAX_PLACES_PER_CATEGORY = max(2, total_places // 3)  # 최소 2개, 또는 총 장소의 1/3
-    
+
     # 체육시설은 활동적인 스타일이 아니면 더 적게 포함
-    if "travel_style_active" not in normalized_styles:
+    if not any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
         MAX_PLACES_PER_CATEGORY_GYM = 1  # 최대 1개로 제한
     else:
         MAX_PLACES_PER_CATEGORY_GYM = MAX_PLACES_PER_CATEGORY
-    
+
     filtered_places = []
     category_added = {}
-    
+
     # 고득점 순으로 다양한 카테고리 장소 선택
     for place in scored_places:
         category = place['category']
         max_for_category = MAX_PLACES_PER_CATEGORY_GYM if category == "체육시설" else MAX_PLACES_PER_CATEGORY
-        
+
         if category_added.get(category, 0) < max_for_category:
             filtered_places.append(place)
             category_added[category] = category_added.get(category, 0) + 1
-        
+
         # 충분한 장소를 모았으면 중단
         if len(filtered_places) >= total_places * 2:
             break
-    
+
     # 필터링된 장소가 충분하지 않으면 원래 목록 사용
     if len(filtered_places) < total_places:
         filtered_places = scored_places[:total_places * 2]
-    
+
     # 동선 최적화: 그리디 알고리즘
     # 서울시청을 시작점으로 설정 (모든 날 아침에 숙소/시청에서 출발한다고 가정)
     seoul_city_hall = {"lat": 37.5665, "lng": 126.9780}
-    
+
     daily_courses = []
-    
+
     for day in range(num_days):
         daily_course = []
         current_position = seoul_city_hall
-        
+
         # 이미 선택된 장소는 제외
         available_places = [p for p in filtered_places if not any(p['title'] == dp['title'] for dc in daily_courses for dp in dc)]
-        
+
         if not available_places:
             break
-        
+
         # 각 시간대별 최적 장소 선택
         for time_slot in range(places_per_day):
             if not available_places:
                 break
-                
+
             # 거리 가중치가 적용된 점수 계산
             for place in available_places:
                 distance = geodesic(
-                    (current_position['lat'], current_position['lng']), 
+                    (current_position['lat'], current_position['lng']),
                     (place['lat'], place['lng'])
                 ).kilometers
-                
+
                 # 거리에 따른 점수 감소 (너무 먼 곳은 피함)
                 distance_factor = max(0.5, 1 - (distance / 10))  # 10km 이상이면 점수 절반으로
                 place['adjusted_score'] = place.get('score', 1.0) * distance_factor
-            
+
             # 조정된 점수로 재정렬
             available_places.sort(key=lambda x: x.get('adjusted_score', 0), reverse=True)
-            
+
             # 최고 점수 장소 선택
             next_place = available_places[0]
             daily_course.append(next_place)
-            
+
             # 선택된 장소 제거
             available_places.remove(next_place)
-            
+
             # 현재 위치 업데이트
             current_position = {"lat": next_place['lat'], "lng": next_place['lng']}
-        
+
         daily_courses.append(daily_course)
-    
+
     # 코스 이름 결정
-    if "travel_style_history_culture" in normalized_styles:
+    if any(style in travel_styles for style in ["역사/문화", "History/Culture", "历史/文化型"]):
         course_type = current_lang_texts["course_history_culture"]
-    elif "travel_style_shopping" in normalized_styles and "travel_style_food" in normalized_styles:
+    elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]) and any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
         course_type = current_lang_texts["course_shopping_food"]
-    elif "travel_style_shopping" in normalized_styles:
+    elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]):
         course_type = current_lang_texts["course_shopping"]
-    elif "travel_style_food" in normalized_styles:
+    elif any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
         course_type = current_lang_texts["course_food"]
-    elif "travel_style_nature" in normalized_styles:
+    elif any(style in travel_styles for style in ["자연", "Nature", "自然型"]):
         course_type = current_lang_texts["course_nature"]
-    elif "travel_style_active" in normalized_styles:
+    elif any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
         course_type = current_lang_texts["course_active"]
     else:
         course_type = current_lang_texts["course_healing"]
-    
+
     # 추천 장소 이름 목록 생성
     recommended_places = []
     for day_course in daily_courses:
         for place in day_course:
             recommended_places.append(place['title'])
-    
+
     return recommended_places, course_type, daily_courses
 
 #################################################
