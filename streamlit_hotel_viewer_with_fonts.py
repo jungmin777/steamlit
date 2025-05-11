@@ -1941,8 +1941,8 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
     # 스타일 이름 표준화 (이전 스타일 이름이 있을 경우 새 형식으로 변환)
     normalized_styles = []
     for style in travel_styles:
-        if style in STYLE_MAP:
-            normalized_styles.append(STYLE_MAP[style])
+        if style in REVERSE_STYLE_MAP:  # 수정: REVERSE_STYLE_MAP 사용
+            normalized_styles.append(REVERSE_STYLE_MAP[style])
         else:
             normalized_styles.append(style)  # 이미 새 형식이면 그대로 사용
     
