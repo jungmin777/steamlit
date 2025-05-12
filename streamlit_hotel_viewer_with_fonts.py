@@ -435,7 +435,8 @@ def init_session_state():
                 "tourist_map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
                 "tourist_map_button": "관광 장소 지도 보기",
                 "congestion_map_title": "📊 서울 장소 혼잡도 지도",
-                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요."
+                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요.",
+                "congestion_map_link_text": "서울시 공식 사이트 새 탭에서 전체 화면으로 보기"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -579,7 +580,8 @@ def init_session_state():
                 "tourist_map_description": "在地图上查找首尔的主要旅游景点并使用导航前往。",
                 "tourist_map_button": "旅游景点地图查看",
                 "congestion_map_title": "📊 首尔地点拥挤度地图",
-                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。"
+                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。",
+                "congestion_map_link_text": "在首尔官方网站的新标签页中全屏查看"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -723,7 +725,8 @@ def init_session_state():
                 "tourist_map_description": "Find major tourist attractions in Seoul on the map and navigate to them.",
                 "tourist_map_button": "View Tourist Map",
                 "congestion_map_title": "📊 Seoul Congestion Map",
-                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul."
+                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul.",
+                "congestion_map_link_text": "View full screen on the Seoul official website in a new tab"
             }
         }
     if 'clicked_location' not in st.session_state:
@@ -2052,7 +2055,8 @@ def show_login_page():
                 "tourist_map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
                 "tourist_map_button": "관광 장소 지도 보기",
                 "congestion_map_title": "📊 서울 장소 혼잡도 지도",
-                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요."
+                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요.",
+                "congestion_map_link_text": "서울시 공식 사이트 새 탭에서 전체 화면으로 보기"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -2196,7 +2200,8 @@ def show_login_page():
                 "tourist_map_description": "在地图上查找首尔的主要旅游景点并使用导航前往。",
                 "tourist_map_button": "旅游景点地图查看",
                 "congestion_map_title": "📊 首尔地点拥挤度地图",
-                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。"
+                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。",
+                "congestion_map_link_text": "在首尔官方网站的新标签页中全屏查看"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -2340,7 +2345,8 @@ def show_login_page():
                 "tourist_map_description": "Find major tourist attractions in Seoul on the map and navigate to them.",
                 "tourist_map_button": "View Tourist Map",
                 "congestion_map_title": "📊 Seoul Congestion Map",
-                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul."
+                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul.",
+                "congestion_map_link_text": "View full screen on the Seoul official website in a new tab"
             }
         }
     
@@ -3272,14 +3278,20 @@ def show_history_page():
 
 
 def show_congestion_page():
-    st.title("📊 서울시 실시간 혼잡도 지도")
+    """서울시 혼잡도 지도 페이지 표시"""
 
-    if st.button("← 메뉴로 돌아가기"):
-        st.session_state.current_page = "menu"
+    # 언어 설정에 따른 텍스트 가져오기
+    current_lang_texts = st.session_state.texts[st.session_state.language]
+
+    page_header(current_lang_texts["congestion_map_title"])
+
+    if st.button(current_lang_texts["map_back_to_menu"]):
+        change_page("menu")
         st.rerun()
 
-    st.info("서울특별시 공식 실시간 혼잡도 지도를 확인하세요.")
+    st.info(current_lang_texts["congestion_map_description"])
 
+    # 서울시 혼잡도 지도 iframe 코드
     iframe_code = """
     <div style="position: relative; width: 100%; padding-bottom: 63.6%; height: 0; overflow: hidden;">
       <iframe src="https://data.seoul.go.kr/SeoulRtd/map"
@@ -3290,7 +3302,7 @@ def show_congestion_page():
     st.components.v1.html(iframe_code, height=700)
 
     st.markdown(
-        "[👉 서울시 공식 사이트 새 탭에서 전체 화면으로 보기](https://data.seoul.go.kr/SeoulRtd/map)"
+        f"[👉 {current_lang_texts['congestion_map_link_text']}](https://data.seoul.go.kr/SeoulRtd/map)"
     )
 
 #################################################
@@ -3330,6 +3342,8 @@ def main():
         show_course_page()
     elif st.session_state.current_page == "history":
         show_history_page()
+    elif st.session_state.current_page == "congestion":
+        show_congestion_page()
     else:
         show_menu_page()  # 기본값
 
