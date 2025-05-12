@@ -431,6 +431,11 @@ def init_session_state():
                 "course_nature": "서울의 자연 코스",
                 "course_active": "액티브 서울 코스",
                 "course_healing": "서울 힐링 여행 코스",
+                "tourist_map_title": "🗺️ 관광 장소 지도",
+                "tourist_map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
+                "tourist_map_button": "관광 장소 지도 보기",
+                "congestion_map_title": "📊 서울 장소 혼잡도 지도",
+                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요."
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -569,7 +574,12 @@ def init_session_state():
                 "course_food": "首尔美食之旅路线",
                 "course_nature": "首尔自然风光路线",
                 "course_active": "活力首尔路线",
-                "course_healing": "首尔治愈之旅路线"
+                "course_healing": "首尔治愈之旅路线",
+                "tourist_map_title": "🗺️ 旅游景点地图",
+                "tourist_map_description": "在地图上查找首尔的主要旅游景点并使用导航前往。",
+                "tourist_map_button": "旅游景点地图查看",
+                "congestion_map_title": "📊 首尔地点拥挤度地图",
+                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -708,7 +718,12 @@ def init_session_state():
                 "course_food": "Seoul Culinary Tour Course",
                 "course_nature": "Seoul Nature Course",
                 "course_active": "Active Seoul Course",
-                "course_healing": "Seoul Healing Travel Course"
+                "course_healing": "Seoul Healing Travel Course",
+                "tourist_map_title": "🗺️ Tourist Attraction Map",
+                "tourist_map_description": "Find major tourist attractions in Seoul on the map and navigate to them.",
+                "tourist_map_button": "View Tourist Map",
+                "congestion_map_title": "📊 Seoul Congestion Map",
+                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul."
             }
         }
     if 'clicked_location' not in st.session_state:
@@ -2033,6 +2048,11 @@ def show_login_page():
                 "course_nature": "서울의 자연 코스",
                 "course_active": "액티브 서울 코스",
                 "course_healing": "서울 힐링 여행 코스",
+                "tourist_map_title": "🗺️ 관광 장소 지도",
+                "tourist_map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
+                "tourist_map_button": "관광 장소 지도 보기",
+                "congestion_map_title": "📊 서울 장소 혼잡도 지도",
+                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요."
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -2159,7 +2179,6 @@ def show_login_page():
                 "map_display_error": "由于路线地点缺少坐标信息，无法在地图上显示。",
                 "save_course_button": "保存此路线",
                 "course_saved_success": "路线已保存！",
-                "travel_info_input": "旅行信息输入",
                 "travel_date_start": "旅行开始日期",
                 "travel_date_end": "旅行结束日期",
                 "travel_people_count": "旅行人数",
@@ -2172,7 +2191,12 @@ def show_login_page():
                 "course_food": "首尔美食之旅路线",
                 "course_nature": "首尔自然风光路线",
                 "course_active": "活力首尔路线",
-                "course_healing": "首尔治愈之旅路线"
+                "course_healing": "首尔治愈之旅路线",
+                "tourist_map_title": "🗺️ 旅游景点地图",
+                "tourist_map_description": "在地图上查找首尔的主要旅游景点并使用导航前往。",
+                "tourist_map_button": "旅游景点地图查看",
+                "congestion_map_title": "📊 首尔地点拥挤度地图",
+                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -2311,7 +2335,12 @@ def show_login_page():
                 "course_food": "Seoul Culinary Tour Course",
                 "course_nature": "Seoul Nature Course",
                 "course_active": "Active Seoul Course",
-                "course_healing": "Seoul Healing Travel Course"
+                "course_healing": "Seoul Healing Travel Course",
+                "tourist_map_title": "🗺️ Tourist Attraction Map",
+                "tourist_map_description": "Find major tourist attractions in Seoul on the map and navigate to them.",
+                "tourist_map_button": "View Tourist Map",
+                "congestion_map_title": "📊 Seoul Congestion Map",
+                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul."
             }
         }
     
@@ -2459,6 +2488,19 @@ def show_menu_page():
         
         if st.button(current_lang_texts['view_history_button'], key="history_button", use_container_width=True):
             change_page("history")
+            st.rerun()
+
+    with col2:
+        # 추가: 혼잡도 기능 버튼 2025.05.08
+        st.markdown("""
+        <div class="card">
+            <h3>{current_lang_texts['congestion_map_title']}</h3>
+            <p>{current_lang_texts['congestion_map_description']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button({current_lang_texts['congestion_map_title']}, use_container_width=True, key="congestion_map_button"):
+            st.session_state.current_page = "congestion"
             st.rerun()
             
     # 로그아웃 버튼
@@ -3227,6 +3269,29 @@ def show_history_page():
             
             st.success(current_lang_texts["sample_data_success"].format(total_xp=total_xp))
             st.rerun()
+
+
+def show_congestion_page():
+    st.title("📊 서울시 실시간 혼잡도 지도")
+
+    if st.button("← 메뉴로 돌아가기"):
+        st.session_state.current_page = "menu"
+        st.rerun()
+
+    st.info("서울특별시 공식 실시간 혼잡도 지도를 확인하세요.")
+
+    iframe_code = """
+    <div style="position: relative; width: 100%; padding-bottom: 63.6%; height: 0; overflow: hidden;">
+      <iframe src="https://data.seoul.go.kr/SeoulRtd/map"
+        style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;"
+        allowfullscreen="" loading="lazy"></iframe>
+    </div>
+    """
+    st.components.v1.html(iframe_code, height=700)
+
+    st.markdown(
+        "[👉 서울시 공식 사이트 새 탭에서 전체 화면으로 보기](https://data.seoul.go.kr/SeoulRtd/map)"
+    )
 
 #################################################
 # 메인 앱 로직
