@@ -1641,6 +1641,12 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
         # 디버깅 정보
         if navigation_mode:
             st.info(f"내비게이션 모드: {transport_mode}, 출발: ({start_location['lat']:.4f}, {start_location['lng']:.4f}), 도착: ({end_location['lat']:.4f}, {end_location['lng']:.4f})")
+
+        if markers is None:
+            markers = []
+        
+        if daily_routes is None:
+            daily_routes = []
         
         # HTML 생성
         map_html = create_google_maps_html(
@@ -1651,9 +1657,8 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
             zoom=zoom,
             language=lang_code,
             navigation_mode=navigation_mode,
-            start_location=start_location,
-            end_location=end_location,
-            transport_mode=transport_mode
+            daily_routes=daily_routes,  # 일별 경로 데이터 전달
+            transport_mode=transport_mode  # 교통 수단 정보 전달
         )
         
         # HTML 컴포넌트로 표시
@@ -2933,6 +2938,22 @@ def show_course_page():
             if st.checkbox(style, key=f"style_{style}"):
                 selected_styles.append(style)
     
+    # 교통 수단 선택
+    transport_mode = "DRIVING"  # 기본값
+    transport_options = {
+        "DRIVING": current_lang_texts.get("transport_mode_driving", "자동차"),
+        "TRANSIT": current_lang_texts.get("transport_mode_transit", "대중교통"),
+        "WALKING": current_lang_texts.get("transport_mode_walking", "도보")
+    }
+    
+    st.markdown(f"### {current_lang_texts.get('transport_mode_title', '교통 수단')}")
+    transport_mode = st.radio(
+        label=current_lang_texts.get("transport_mode_select", "이동 방법을 선택하세요"),
+        options=list(transport_options.keys()),
+        format_func=lambda x: transport_options[x],
+        horizontal=True
+    )
+    
     # 코스 생성 버튼
     st.markdown("---")
     generate_course = st.button(current_lang_texts["generate_course_button"], type="primary", use_container_width=True)
@@ -2958,13 +2979,19 @@ def show_course_page():
                 
                 # 일별 코스 표시
                 if daily_courses:
-                    # 실제 데이터 기반 일별 코스 표시
+                    # 일별 경로 데이터 준비
+                    daily_routes = []
+                    map_markers = []
+                    
                     for day_idx, day_course in enumerate(daily_courses):
                         st.markdown(f"### Day {day_idx + 1}")
                         
                         if not day_course:
                             st.info(current_lang_texts["insufficient_recommendations"])
                             continue
+                        
+                        # 이 날의 경로 장소들 추가
+                        day_route = []
                         
                         # 시간대별 장소 표시
                         time_slots = [
@@ -2988,6 +3015,32 @@ def show_course_page():
                                     if len(place['address']) > 20:
                                         info_text = info_text[:20] + "..."
                                 st.caption(info_text)
+                                
+                                # 시간대별 색상 구분
+                                colors = ["blue", "green", "purple"]
+                                color = colors[time_idx % len(colors)]
+                                
+                                # 마커 데이터 추가
+                                marker = {
+                                    'lat': place['lat'],
+                                    'lng': place['lng'],
+                                    'title': f"Day {day_idx+1} - {place['title']}",
+                                    'info': f"Day {day_idx+1} {time_slots[time_idx]}<br>{place.get('info', '')}",
+                                    'category': place['category'],
+                                    'color': color
+                                }
+                                map_markers.append(marker)
+                                
+                                # 경로 데이터 추가
+                                day_route.append({
+                                    'lat': place['lat'],
+                                    'lng': place['lng'],
+                                    'title': place['title']
+                                })
+                        
+                        # 이 날의 경로를 전체 일별 경로에 추가
+                        if day_route:
+                            daily_routes.append(day_route)
                 else:
                     # 기본 코스 데이터 표시
                     for day in range(1, min(delta+1, 4)):  # 최대 3일까지
@@ -3021,6 +3074,10 @@ def show_course_page():
                                 st.markdown(f"**{time_slot}**")
                                 st.markdown(f"**{spot_name}**")
                                 st.caption(current_lang_texts.get("tourist_spot", "관광지"))
+                    
+                    # 지도 데이터 준비 (기본 코스는 좌표가 없어 빈 마커와 경로 사용)
+                    map_markers = []
+                    daily_routes = []
                 
                 # 지도에 코스 표시
                 st.markdown(f"### {current_lang_texts['course_map_title']}")
@@ -3033,37 +3090,13 @@ def show_course_page():
                     if api_key:
                         st.session_state.google_maps_api_key = api_key
                 
-                # 코스 마커 생성
-                map_markers = []
-                
-                if daily_courses:
-                    # 실제 데이터 기반 코스
-                    for day_idx, day_course in enumerate(daily_courses):
-                        for time_idx, place in enumerate(day_course):
-                            # 시간대별 색상 구분
-                            colors = ["blue", "green", "purple"]
-                            color = colors[time_idx % len(colors)]
-                            
-                            marker = {
-                                'lat': place['lat'],
-                                'lng': place['lng'],
-                                'title': f"Day {day_idx+1} - {place['title']}",
-                                'info': f"Day {day_idx+1} {time_slots[time_idx]}<br>{place.get('info', '')}",
-                                'category': place['category'],
-                                'color': color
-                            }
-                            map_markers.append(marker)
-                else:
-                    # 기본 코스 - 좌표 데이터가 없어 지도 표시 불가
-                    st.warning(current_lang_texts["map_display_error"])
-                
                 # 지도 표시
                 if map_markers:
                     # 지도 중심 좌표 계산 (마커들의 평균)
                     center_lat = sum(m['lat'] for m in map_markers) / len(map_markers)
                     center_lng = sum(m['lng'] for m in map_markers) / len(map_markers)
                     
-                    # 지도 표시
+                    # 지도 표시 - daily_routes 파라미터 추가
                     show_google_map(
                         api_key=api_key,
                         center_lat=center_lat,
@@ -3071,8 +3104,12 @@ def show_course_page():
                         markers=map_markers,
                         zoom=12,
                         height=500,
-                        language=st.session_state.language
+                        language=st.session_state.language,
+                        daily_routes=daily_routes,  # 일별 경로 데이터 전달
+                        transport_mode=transport_mode  # 교통 수단 정보 전달
                     )
+                else:
+                    st.warning("Error!!")
                 
                 # 일정 저장 버튼
                 if st.button(current_lang_texts["save_course_button"], use_container_width=True):
