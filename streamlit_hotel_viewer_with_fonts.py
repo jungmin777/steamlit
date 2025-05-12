@@ -1184,10 +1184,13 @@ def build_info_html(row, name, address, category):
     return info
     
 def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko", 
-                           navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
+                           navigation_mode=False, start_location=None, end_location=None, transport_mode=None, daily_routes=None):
     """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정"""
     if markers is None:
         markers = []
+
+    if daily_routes is None:
+        daily_routes = []
     
     # 카테고리별 마커 그룹화
     categories = {}
@@ -1632,7 +1635,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
 
     
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
-                   navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
+                   navigation_mode=False, start_location=None, end_location=None, transport_mode=None, daily_routes=None):
     """Google Maps 컴포넌트 표시 - 내비게이션 기능 추가"""
     # 언어 코드 변환
     lang_code = LANGUAGE_CODES.get(language, "ko")
