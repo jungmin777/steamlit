@@ -1901,6 +1901,78 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     
     return html
 
+
+def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
+                   navigation_mode=False, start_location=None, end_location=None, transport_mode=None, daily_routes=None):
+    """Google Maps 컴포넌트 표시 - 내비게이션 기능 추가"""
+    # 언어 코드 변환
+    lang_code = LANGUAGE_CODES.get(language, "ko")
+    
+    try:
+        # 디버깅 정보
+        if navigation_mode:
+            st.info(f"내비게이션 모드: {transport_mode}, 출발: ({start_location['lat']:.4f}, {start_location['lng']:.4f}), 도착: ({end_location['lat']:.4f}, {end_location['lng']:.4f})")
+
+        if markers is None:
+            markers = []
+        
+        if daily_routes is None:
+            daily_routes = []
+        
+        # HTML 생성
+        map_html = create_google_maps_html(
+            api_key=api_key,
+            center_lat=center_lat,
+            center_lng=center_lng,
+            markers=markers,
+            zoom=zoom,
+            language=lang_code,
+            navigation_mode=navigation_mode,
+            daily_routes=daily_routes,  # 일별 경로 데이터 전달
+            transport_mode=transport_mode  # 교통 수단 정보 전달
+        )
+        
+        # HTML 컴포넌트로 표시
+        st.components.v1.html(map_html, height=height, scrolling=False)
+        return True
+        
+    except Exception as e:
+        st.error(f"지도 렌더링 오류: {str(e)}")
+        st.error("지도 로딩에 실패했습니다. 아래 대체 옵션을 사용해보세요.")
+        
+        # 대체 지도 옵션: folium 사용
+        try:
+            import folium
+            from streamlit_folium import folium_static
+            
+            st.info("대체 지도를 로드합니다...")
+            m = folium.Map(location=[center_lat, center_lng], zoom_start=zoom)
+            
+            # 마커 추가
+            if markers:
+                for marker in markers:
+                    folium.Marker(
+                        [marker['lat'], marker['lng']], 
+                        popup=marker.get('title', ''),
+                        tooltip=marker.get('title', ''),
+                        icon=folium.Icon(color=marker.get('color', 'red'))
+                    ).add_to(m)
+            
+            # folium 지도 표시
+            folium_static(m)
+            return True
+            
+        except Exception as e2:
+            st.error(f"대체 지도 로딩도 실패했습니다: {str(e2)}")
+            
+            # 비상용 텍스트 지도 표시
+            st.warning("텍스트 기반 위치 정보:")
+            if markers:
+                for i, marker in enumerate(markers[:10]):  # 상위 10개만
+                    st.text(f"{i+1}. {marker.get('title', '무제')} - 좌표: ({marker['lat']}, {marker['lng']})")
+            return False
+
+
 def display_visits(visits, current_lang_texts):
     """방문 기록 표시 함수"""
     if not visits:
