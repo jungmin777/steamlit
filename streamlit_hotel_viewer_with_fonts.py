@@ -2503,7 +2503,7 @@ def show_menu_page():
 
     with col2:
         # 추가: 혼잡도 기능 버튼 2025.05.08
-        st.markdown("""
+        st.markdown(f"""
         <div class="card">
             <h3>{current_lang_texts['congestion_map_title']}</h3>
             <p>{current_lang_texts['congestion_map_description']}</p>
@@ -2511,7 +2511,7 @@ def show_menu_page():
         """, unsafe_allow_html=True)
 
         if st.button({current_lang_texts['congestion_map_title']}, use_container_width=True, key="congestion_map_button"):
-            st.session_state.current_page = "congestion"
+            change_page("congestion")
             st.rerun()
             
     # 로그아웃 버튼
