@@ -2510,9 +2510,11 @@ def show_menu_page():
         </div>
         """, unsafe_allow_html=True)
 
-        if st.button({current_lang_texts['congestion_map_title']}, use_container_width=True, key="congestion_map_button"):
+        if st.button(current_lang_texts['congestion_map_title'], use_container_width=True, key="congestion_map_button"):
             change_page("congestion")
             st.rerun()
+
+    st.markdown("")
             
     # 로그아웃 버튼
     st.markdown("---")
