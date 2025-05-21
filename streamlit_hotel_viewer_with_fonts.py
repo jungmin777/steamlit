@@ -2708,8 +2708,10 @@ def show_map_page():
                         st.session_state.transport_mode = None
                         st.rerun()
                     
+
+# 1. show_course_page 함수 수정
 def show_course_page():
-    """개선된 관광 코스 추천 페이지 - 간소화된 버전"""
+    """개선된 관광 코스 추천 페이지 - 일자 선택 및 지도 표시 문제 해결"""
     # 언어 설정에 따른 텍스트 가져오기
     current_lang_texts = st.session_state.texts[st.session_state.language]
     
@@ -2738,14 +2740,14 @@ def show_course_page():
         if main_image_path.exists():
             st.image(main_image_path, use_container_width=True)
         else:
-            st.info(current_lang_texts["course_image_not_found"])
+            st.info(current_lang_texts.get("course_image_not_found", "이미지를 찾을 수 없습니다"))
     with col2:
         st.markdown(f"### {current_lang_texts['course_ai_recommendation_title']}")
-        st.markdown(current_lang_texts["course_ai_recommendation_description"])
+        st.markdown(current_lang_texts.get("course_ai_recommendation_description", "AI가 당신의 취향에 맞는 최적의 여행 코스를 추천해 드립니다."))
     
     # 여행 정보 입력 섹션
     st.markdown("---")
-    st.subheader(current_lang_texts["travel_info_input"])
+    st.subheader(current_lang_texts.get("travel_info_input", "여행 정보 입력"))
     
     col1, col2 = st.columns(2)
     
@@ -2817,13 +2819,13 @@ def show_course_page():
     
     # 코스 생성 버튼
     st.markdown("---")
-    generate_course = st.button(current_lang_texts["generate_course_button"], type="primary", use_container_width=True)
+    generate_course = st.button(current_lang_texts.get("generate_course_button", "코스 생성하기"), type="primary", use_container_width=True)
     
     if generate_course:
         if not selected_styles:
-            st.warning(current_lang_texts["select_travel_style_warning"])
+            st.warning(current_lang_texts.get("select_travel_style_warning", "최소 하나 이상의 여행 스타일을 선택해주세요."))
         else:
-            with st.spinner(current_lang_texts["generating_course_spinner"]):
+            with st.spinner(current_lang_texts.get("generating_course_spinner", "최적의 관광 코스를 생성 중입니다...")):
                 # 코스 추천 실행
                 recommended_places, course_type, daily_courses = recommend_courses(
                     st.session_state.all_markers if hasattr(st.session_state, 'all_markers') else [],
@@ -2838,12 +2840,12 @@ def show_course_page():
                 st.session_state.course_type = course_type
                 st.session_state.selected_day_index = 0  # 첫 번째 날 기본 선택
                 
-                st.success(current_lang_texts["course_generation_complete"])
+                st.success(current_lang_texts.get("course_generation_complete", "코스 생성 완료!"))
     
     # 코스 생성 결과가 있는 경우 표시
     if st.session_state.daily_courses:
         # 코스 표시
-        st.markdown(f"## {current_lang_texts['recommended_course_title']}")
+        st.markdown(f"## {current_lang_texts.get('recommended_course_title', '추천 코스')}")
         st.markdown(f"**{st.session_state.course_type}** - {delta}일 일정")
         
         # 일별 코스 선택을 위한 탭
@@ -2854,7 +2856,7 @@ def show_course_page():
             for day_idx, day_tab in enumerate(day_tabs):
                 with day_tab:
                     # 해당 일자의 코스 정보
-                    show_day_course(
+                    display_day_course(
                         day_idx, 
                         st.session_state.daily_courses[day_idx],
                         current_lang_texts,
@@ -2862,15 +2864,18 @@ def show_course_page():
                     )
         else:
             # 하루짜리 코스인 경우 바로 표시
-            show_day_course(
+            display_day_course(
                 0, 
                 st.session_state.daily_courses[0],
                 current_lang_texts,
                 transport_mode
             )
         
+        # 전체 코스 요약 표시
+        display_all_courses_summary(st.session_state.daily_courses, current_lang_texts)
+        
         # 일정 저장 버튼
-        if st.button(current_lang_texts["save_course_button"], use_container_width=True):
+        if st.button(current_lang_texts.get("save_course_button", "이 코스 저장하기"), use_container_width=True):
             if 'saved_courses' not in st.session_state:
                 st.session_state.saved_courses = []
             
@@ -2891,13 +2896,14 @@ def show_course_page():
             st.session_state.saved_courses.append(course_info)
             save_session_data()  # 세션 데이터 저장
             
-            st.success(current_lang_texts["course_saved_success"])
+            st.success(current_lang_texts.get("course_saved_success", "코스가 저장되었습니다!"))
 
 
-def show_day_course(day_idx, day_course, current_lang_texts, transport_mode):
-    """일별 코스 정보 표시 함수"""
+# 2. 일별 코스 표시 함수
+def display_day_course(day_idx, day_course, current_lang_texts, transport_mode):
+    """일별 코스 정보 및 지도 표시 함수"""
     if not day_course:
-        st.info(current_lang_texts["insufficient_recommendations"])
+        st.info(current_lang_texts.get("insufficient_recommendations", "추천 장소가 부족합니다."))
         return
     
     # 일자 제목
@@ -2905,9 +2911,9 @@ def show_day_course(day_idx, day_course, current_lang_texts, transport_mode):
     
     # 시간대별 장소 표시
     time_slots = [
-        current_lang_texts["morning_time_slot"],
-        current_lang_texts["afternoon_time_slot"],
-        current_lang_texts["evening_time_slot"]
+        current_lang_texts.get("morning_time_slot", "오전 (09:00-12:00)"),
+        current_lang_texts.get("afternoon_time_slot", "오후 (13:00-16:00)"),
+        current_lang_texts.get("evening_time_slot", "저녁 (16:00-19:00)")
     ]
     
     # 장소 정보를 카드 형태로 표시
@@ -2924,47 +2930,17 @@ def show_day_course(day_idx, day_course, current_lang_texts, transport_mode):
             <div style="border:1px solid #ddd; border-radius:8px; padding:15px; margin-bottom:10px;">
                 <h4 style="margin-top:0; color:#1976D2;">{time_slots[time_idx]}</h4>
                 <h3 style="margin:5px 0;">{place['title']}</h3>
-                <p style="color:#666; margin:5px 0;">{current_lang_texts["category_label"].format(category=place['category'])}</p>
+                <p style="color:#666; margin:5px 0;">{current_lang_texts.get("category_label", "분류: {category}").format(category=place['category'])}</p>
             </div>
             """, unsafe_allow_html=True)
     
     # 선택된 일자의 장소 간 경로 계산 및 지도 표시
-    st.markdown(f"### {current_lang_texts['course_map_title']} - Day {day_idx + 1}")
+    st.markdown(f"### {current_lang_texts.get('course_map_title', '코스 지도')} - Day {day_idx + 1}")
     
     # 마커 및 경로 데이터 준비
-    selected_day_markers = []
-    day_route = []
-    
-    # 시간대별 색상 구분
-    colors = ["blue", "green", "purple"]
-    
-    for i, place in enumerate(day_course):
-        time_idx = min(i, len(time_slots) - 1)
-        color = colors[time_idx % len(colors)]
-        
-        # 마커 데이터 추가
-        marker = {
-            'lat': place['lat'],
-            'lng': place['lng'],
-            'title': f"{time_slots[time_idx]} - {place['title']}",
-            'info': f"<b>{time_slots[time_idx]}</b><br>{place['title']}<br>{place.get('category', '')}",
-            'category': place['category'],
-            'color': color
-        }
-        selected_day_markers.append(marker)
-        
-        # 경로 데이터 추가
-        day_route.append({
-            'lat': place['lat'],
-            'lng': place['lng'],
-            'title': place['title']
-        })
-    
-    # 지도 표시
-    if selected_day_markers:
-        # 지도 중심 좌표 계산 (마커들의 평균)
-        center_lat = sum(m['lat'] for m in selected_day_markers) / len(selected_day_markers)
-        center_lng = sum(m['lng'] for m in selected_day_markers) / len(selected_day_markers)
+    if len(day_course) >= 2:
+        # 시간대별 색상 구분
+        colors = ["blue", "green", "purple"]
         
         # API 키 확인
         api_key = st.session_state.google_maps_api_key
@@ -2974,151 +2950,39 @@ def show_day_course(day_idx, day_course, current_lang_texts, transport_mode):
             if api_key:
                 st.session_state.google_maps_api_key = api_key
         
-        # 간단한 지도 표시 방식으로 변경 - 지도 표시 문제 해결
+        # 간단한 지도 표시 방식으로 변경
         try:
-            # 지도 HTML 생성 - 간소화된 버전 사용
-            map_html = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>서울 관광 지도</title>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                    #map {{
-                        height: 100%;
-                        width: 100%;
-                        margin: 0;
-                        padding: 0;
-                    }}
-                    html, body {{
-                        height: 100%;
-                        margin: 0;
-                        padding: 0;
-                        font-family: Arial, sans-serif;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div id="map"></div>
-                <script>
-                    function initMap() {{
-                        // 지도 생성
-                        var map = new google.maps.Map(document.getElementById('map'), {{
-                            center: {{ lat: {center_lat}, lng: {center_lng} }},
-                            zoom: 13
-                        }});
-                        
-                        // 마커 생성
-                        var markers = [];
-                        {
-                            ''.join([
-                                f"""
-                                var marker{i} = new google.maps.Marker({{
-                                    position: {{ lat: {marker['lat']}, lng: {marker['lng']} }},
-                                    map: map,
-                                    title: '{marker['title'].replace("'", "\\'")}',
-                                    icon: 'https://maps.google.com/mapfiles/ms/icons/{marker['color']}-dot.png'
-                                }});
-                                markers.push(marker{i});
-                                """
-                                for i, marker in enumerate(selected_day_markers)
-                            ])
-                        }
-                        
-                        // 경로 생성
-                        var directionsService = new google.maps.DirectionsService();
-                        var directionsRenderer = new google.maps.DirectionsRenderer({{
-                            map: map,
-                            suppressMarkers: true  // 마커 숨기기 (이미 추가함)
-                        }});
-                        
-                        // 웨이포인트 설정
-                        var waypoints = [];
-                        {
-                            ''.join([
-                                f"""
-                                waypoints.push({{
-                                    location: new google.maps.LatLng({place['lat']}, {place['lng']}),
-                                    stopover: true
-                                }});
-                                """
-                                for place in day_route[1:-1]
-                            ]) if len(day_route) > 2 else ''
-                        }
-                        
-                        // 경로 계산 요청
-                        directionsService.route({{
-                            origin: {{ lat: {day_route[0]['lat']}, lng: {day_route[0]['lng']} }},
-                            destination: {{ lat: {day_route[-1]['lat']}, lng: {day_route[-1]['lng']} }},
-                            waypoints: waypoints,
-                            optimizeWaypoints: false,
-                            travelMode: '{transport_mode}'
-                        }}, function(response, status) {{
-                            if (status === 'OK') {{
-                                directionsRenderer.setDirections(response);
-                            }} else {{
-                                window.alert('경로를 계산할 수 없습니다: ' + status);
-                            }}
-                        }});
-                    }}
-                </script>
-                <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap" async defer></script>
-            </body>
-            </html>
-            """
+            # 지도 중심 좌표 계산 (마커들의 평균)
+            center_lat = sum(place['lat'] for place in day_course) / len(day_course)
+            center_lng = sum(place['lng'] for place in day_course) / len(day_course)
+            
+            # 지도 HTML 생성
+            map_html = generate_map_html(day_course, api_key, center_lat, center_lng, time_slots, colors, transport_mode)
             
             # HTML 지도 표시
             st.components.v1.html(map_html, height=500, scrolling=False)
             
-            # 일별 코스 정보 표 형태로 요약 표시
-            st.markdown("#### 일별 코스 요약")
-            
-            # 장소 목록을 테이블로 표시
-            import pandas as pd
-            place_data = []
-            for i, place in enumerate(day_course):
-                place_data.append({
-                    "순서": i + 1,
-                    "시간대": time_slots[min(i, len(time_slots) - 1)],
-                    "장소명": place['title'],
-                    "분류": place.get('category', '-')
-                })
-            
-            # 데이터프레임으로 변환하여 표시
-            df = pd.DataFrame(place_data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            
         except Exception as e:
             st.error(f"지도 표시 오류: {str(e)}")
-            
-            # 오류 발생 시 일별 코스 정보만 표 형태로 표시
-            st.warning("지도 로딩에 실패했습니다. 코스 정보만 표시합니다.")
-            
-            # 장소 목록을 테이블로 표시
-            import pandas as pd
-            place_data = []
-            for i, place in enumerate(day_course):
-                place_data.append({
-                    "순서": i + 1,
-                    "시간대": time_slots[min(i, len(time_slots) - 1)],
-                    "장소명": place['title'],
-                    "분류": place.get('category', '-'),
-                    "좌표": f"({place['lat']:.4f}, {place['lng']:.4f})"
-                })
-            
-            # 데이터프레임으로 변환하여 표시
-            df = pd.DataFrame(place_data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-    
+            import traceback
+            st.error(traceback.format_exc())
     else:
-        st.warning(current_lang_texts.get("map_display_error", "지도에 표시할 장소 정보가 부족합니다."))
+        st.warning(current_lang_texts.get("map_display_error", "지도에 표시할 장소 정보가 부족합니다. 최소 2개 이상의 장소가 필요합니다."))
     
-    # 모든 일자의 코스 간략 요약 표시
+    # 일별 코스 정보 표 형태로 요약 표시
+    display_course_table(day_course, time_slots, current_lang_texts)
+
+
+# 3. 모든 일별 코스 요약 표시 함수
+def display_all_courses_summary(daily_courses, current_lang_texts):
+    """모든 일자의 코스 간략 요약 표시"""
+    if not daily_courses:
+        return
+        
     st.markdown("### 📅 전체 일정 요약")
     
     # 모든 일자의 코스 정보를 한번에 표시
-    for d_idx, d_course in enumerate(st.session_state.daily_courses):
+    for d_idx, d_course in enumerate(daily_courses):
         if d_course:
             # 일자별 행 생성
             col1, col2 = st.columns([1, 5])
@@ -3133,8 +2997,190 @@ def show_day_course(day_idx, day_course, current_lang_texts, transport_mode):
                 st.markdown(" → ".join(place_names))
             
             # 구분선 추가 (마지막 일자 제외)
-            if d_idx < len(st.session_state.daily_courses) - 1:
+            if d_idx < len(daily_courses) - 1:
                 st.markdown("---")
+
+
+# 4. 코스 정보 테이블 표시 함수
+def display_course_table(day_course, time_slots, current_lang_texts):
+    """일별 코스 정보를 테이블로 표시"""
+    st.markdown("#### 일별 코스 요약")
+    
+    # 장소 목록을 테이블로 표시
+    import pandas as pd
+    place_data = []
+    for i, place in enumerate(day_course):
+        place_data.append({
+            "순서": i + 1,
+            "시간대": time_slots[min(i, len(time_slots) - 1)],
+            "장소명": place['title'],
+            "분류": place.get('category', '-')
+        })
+    
+    # 데이터프레임으로 변환하여 표시
+    df = pd.DataFrame(place_data)
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+
+# 5. 지도 HTML 생성 함수
+def generate_map_html(day_course, api_key, center_lat, center_lng, time_slots, colors, transport_mode):
+    """지도 HTML 생성 함수 - 경로 표시 포함"""
+    map_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>서울 관광 지도</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            #map {{
+                height: 100%;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }}
+            html, body {{
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+            }}
+            #info-panel {{
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                background-color: rgba(255, 255, 255, 0.9);
+                padding: 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                max-height: 100px;
+                overflow-y: auto;
+            }}
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div id="info-panel"></div>
+        <script>
+            function initMap() {{
+                // 지도 생성
+                var map = new google.maps.Map(document.getElementById('map'), {{
+                    center: {{ lat: {center_lat}, lng: {center_lng} }},
+                    zoom: 13,
+                    mapTypeControl: true,
+                    fullscreenControl: true
+                }});
+                
+                // 정보 패널
+                var infoPanel = document.getElementById('info-panel');
+                
+                // 마커 생성
+                var markers = [];
+                {
+                    ''.join([
+                        f"""
+                        var marker{i} = new google.maps.Marker({{
+                            position: {{ lat: {place['lat']}, lng: {place['lng']} }},
+                            map: map,
+                            title: '{place['title'].replace("'", "\\'")}',
+                            icon: 'https://maps.google.com/mapfiles/ms/icons/{colors[min(i, len(time_slots) - 1) % len(colors)]}-dot.png'
+                        }});
+                        
+                        var infowindow{i} = new google.maps.InfoWindow({{
+                            content: '<div style="padding: 10px;"><b>{place['title'].replace("'", "\\'")}</b><br>{place.get('category', '')}</div>'
+                        }});
+                        
+                        marker{i}.addListener('click', function() {{
+                            // 다른 정보창 닫기
+                            markers.forEach(function(m) {{
+                                if (m.infowindow) m.infowindow.close();
+                            }});
+                            
+                            infowindow{i}.open(map, marker{i});
+                        }});
+                        
+                        marker{i}.infowindow = infowindow{i};
+                        markers.push(marker{i});
+                        """
+                        for i, place in enumerate(day_course)
+                    ])
+                }
+                
+                // 경로 표시
+                var directionsService = new google.maps.DirectionsService();
+                var directionsRenderer = new google.maps.DirectionsRenderer({{
+                    map: map,
+                    suppressMarkers: true,  // 마커 숨기기 (이미 추가함)
+                    polylineOptions: {{
+                        strokeColor: '#4285F4',
+                        strokeWeight: 5,
+                        strokeOpacity: 0.7
+                    }}
+                }});
+                
+                // 웨이포인트 설정
+                var waypoints = [];
+                {
+                    ''.join([
+                        f"""
+                        waypoints.push({{
+                            location: new google.maps.LatLng({place['lat']}, {place['lng']}),
+                            stopover: true
+                        }});
+                        """
+                        for place in day_course[1:-1]
+                    ]) if len(day_course) > 2 else ''
+                }
+                
+                // 경로 계산 요청
+                directionsService.route({{
+                    origin: {{ lat: {day_course[0]['lat']}, lng: {day_course[0]['lng']} }},
+                    destination: {{ lat: {day_course[-1]['lat']}, lng: {day_course[-1]['lng']} }},
+                    waypoints: waypoints,
+                    optimizeWaypoints: false,
+                    travelMode: '{transport_mode}'
+                }}, function(response, status) {{
+                    if (status === 'OK') {{
+                        directionsRenderer.setDirections(response);
+                        
+                        // 경로 정보 표시
+                        var route = response.routes[0];
+                        var totalDistance = 0;
+                        var totalDuration = 0;
+                        
+                        var routeInfo = '<strong>경로 정보:</strong><br>';
+                        
+                        route.legs.forEach(function(leg, i) {{
+                            totalDistance += leg.distance.value;
+                            totalDuration += leg.duration.value;
+                            
+                            if (i < markers.length - 1) {{
+                                routeInfo += markers[i].getTitle() + ' → ' + 
+                                          markers[i+1].getTitle() + ': ' + 
+                                          leg.distance.text + ' / ' + 
+                                          leg.duration.text + '<br>';
+                            }}
+                        }});
+                        
+                        routeInfo += '<br><strong>총 거리:</strong> ' + (totalDistance / 1000).toFixed(1) + 'km, ' +
+                                   '<strong>총 소요 시간:</strong> ' + Math.floor(totalDuration / 60) + '분';
+                        
+                        infoPanel.innerHTML = routeInfo;
+                    }} else {{
+                        infoPanel.innerHTML = '<span style="color: red;">경로를 계산할 수 없습니다: ' + status + '</span>';
+                        console.error('경로 계산 실패: ' + status);
+                    }}
+                }});
+            }}
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap" async defer></script>
+    </body>
+    </html>
+    """
+    
+    return map_html
+
 
 
 def show_history_page():
