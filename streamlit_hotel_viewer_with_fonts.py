@@ -1355,28 +1355,31 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         
         daily_tabs_html += "</div>"
     
-    # 경로 계산 JavaScript 함수
+    # 경로 계산 JavaScript 함수 - 개선된 Directions API 활용
     directions_js = """
     // 전역 경로 변수
     var directionsService;
     var directionsRenderer;
     var currentRouteDay = 1;
     var dailyRoutes = [];
+    var activeDirectionsRenderers = []; // 활성화된 directionsRenderer 배열
     
     function initDirectionsService() {
         directionsService = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer({
-            panel: document.getElementById('directions-panel'),
-            suppressMarkers: false  // 마커 표시 (시작, 끝, 중간지점)
-        });
-        directionsRenderer.setMap(map);
+        // DirectionsRenderer는 필요할 때 생성
     }
     
     function clearDirections() {
-        if (directionsRenderer) {
-            directionsRenderer.setMap(null);
-            directionsRenderer = null;
-            document.getElementById('directions-panel').innerHTML = '';
+        // 모든 활성 DirectionsRenderer 제거
+        for (var i = 0; i < activeDirectionsRenderers.length; i++) {
+            activeDirectionsRenderers[i].setMap(null);
+        }
+        activeDirectionsRenderers = [];
+        
+        // 패널 내용 제거
+        var directionsPanel = document.getElementById('directions-panel');
+        if (directionsPanel) {
+            directionsPanel.innerHTML = '';
         }
     }
     
@@ -1390,42 +1393,48 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         // 현재 일자 업데이트
         currentRouteDay = dayNum;
         
+        // 기존 경로 제거
+        clearDirections();
+        
         // 경로 계산 및 표시
         calculateAndDisplayRoute(dailyRoutes[dayNum-1]);
     }
     
     function calculateAndDisplayRoute(routePoints) {
         if (!routePoints || routePoints.length < 2) {
-            document.getElementById('directions-panel').innerHTML = '<div class="no-route">이 날에는 경로 정보가 없습니다.</div>';
-            clearDirections();
+            var directionsPanel = document.getElementById('directions-panel');
+            if (directionsPanel) {
+                directionsPanel.innerHTML = '<div class="no-route">이 날에는 경로 정보가 없습니다.</div>';
+            }
             return;
         }
         
-        // 기존 방향 렌더러 초기화
-        clearDirections();
-        
-        // 새 렌더러 생성
-        directionsRenderer = new google.maps.DirectionsRenderer({
-            panel: document.getElementById('directions-panel'),
-            suppressMarkers: false
-        });
-        directionsRenderer.setMap(map);
-        
-        // 웨이포인트 생성
-        var waypoints = [];
-        for (var i = 1; i < routePoints.length - 1; i++) {
-            waypoints.push({
-                location: new google.maps.LatLng(routePoints[i].lat, routePoints[i].lng),
-                stopover: true
-            });
+        // 경로 요약 정보 초기화
+        var summaryPanel = document.getElementById('route-summary');
+        if (summaryPanel) {
+            summaryPanel.innerHTML = '<div class="summary-loading">경로 계산 중...</div>';
         }
         
-        // 출발지와 목적지
-        var origin = new google.maps.LatLng(routePoints[0].lat, routePoints[0].lng);
-        var destination = new google.maps.LatLng(
-            routePoints[routePoints.length - 1].lat, 
-            routePoints[routePoints.length - 1].lng
-        );
+        // 좌표 간 경로 계산을 위한 준비
+        // 지점이 많을 경우 여러 개의 DirectionsRequest로 나눠서 처리
+        // (Directions API는 한 번에 최대 10개의 waypoint 제한이 있음)
+        var maxWaypoints = 8; // 출발지, 목적지 외에 최대 웨이포인트 수
+        var routeSegments = [];
+        
+        // 지점이 많은 경우 여러 세그먼트로 분할
+        if (routePoints.length > maxWaypoints + 2) {
+            for (var i = 0; i < routePoints.length - 1; i += maxWaypoints) {
+                var end = Math.min(i + maxWaypoints + 1, routePoints.length);
+                routeSegments.push(routePoints.slice(i, end));
+            }
+        } else {
+            routeSegments.push(routePoints);
+        }
+        
+        // 각 세그먼트에 대해 경로 계산 및 렌더링
+        var totalDistance = 0;
+        var totalDuration = 0;
+        var segmentSummaries = [];
         
         // 교통 수단 설정
         var travelMode = google.maps.TravelMode.DRIVING;
@@ -1434,61 +1443,135 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             travelMode = google.maps.TravelMode[transportSelect.value];
         }
         
-        // 경로 요청
-        directionsService.route({
-            origin: origin,
-            destination: destination,
-            waypoints: waypoints,
-            optimizeWaypoints: false,  // 경유지 최적화하지 않음
-            travelMode: travelMode
-        }, function(response, status) {
-            if (status === 'OK') {
-                directionsRenderer.setDirections(response);
-                
-                // 경로 요약 표시
-                var route = response.routes[0];
-                var summaryPanel = document.getElementById('route-summary');
+        // 색상 배열 정의 (여러 세그먼트를 다른 색상으로 표시)
+        var routeColors = ['#4285F4', '#0F9D58', '#DB4437', '#F4B400', '#4A148C', '#006064'];
+        
+        // 각 세그먼트별 경로 계산 
+        processRouteSegment(0);
+        
+        function processRouteSegment(segmentIndex) {
+            if (segmentIndex >= routeSegments.length) {
+                // 모든 세그먼트 처리 완료
                 if (summaryPanel) {
-                    summaryPanel.innerHTML = "";
+                    // 총 정보 업데이트
+                    if (segmentSummaries.length > 0) {
+                        summaryPanel.innerHTML = segmentSummaries.join('') + 
+                            '<div class="route-total">' +
+                            '<div><strong>총 거리:</strong> ' + (totalDistance / 1000).toFixed(1) + 'km</div>' +
+                            '<div><strong>총 소요 시간:</strong> ' + Math.floor(totalDuration / 60) + '분</div>' +
+                            '</div>';
+                    } else {
+                        summaryPanel.innerHTML = '<div class="no-route">경로 계산 중 오류가 발생했습니다.</div>';
+                    }
+                }
+                return;
+            }
+            
+            var segment = routeSegments[segmentIndex];
+            if (segment.length < 2) {
+                // 다음 세그먼트 처리
+                processRouteSegment(segmentIndex + 1);
+                return;
+            }
+            
+            // 웨이포인트 생성
+            var waypoints = [];
+            for (var i = 1; i < segment.length - 1; i++) {
+                waypoints.push({
+                    location: new google.maps.LatLng(segment[i].lat, segment[i].lng),
+                    stopover: true
+                });
+            }
+            
+            // 출발지와 목적지
+            var origin = new google.maps.LatLng(segment[0].lat, segment[0].lng);
+            var destination = new google.maps.LatLng(segment[segment.length - 1].lat, segment[segment.length - 1].lng);
+            
+            // 새 DirectionsRenderer 생성 및 색상 설정
+            var renderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: false,
+                preserveViewport: true,
+                polylineOptions: {
+                    strokeColor: routeColors[segmentIndex % routeColors.length],
+                    strokeWeight: 4,
+                    strokeOpacity: 0.7
+                }
+            });
+            
+            // 활성 렌더러 목록에 추가
+            activeDirectionsRenderers.push(renderer);
+            
+            // 경로 요청
+            directionsService.route({
+                origin: origin,
+                destination: destination,
+                waypoints: waypoints,
+                optimizeWaypoints: false,  // 경유지 최적화하지 않음
+                travelMode: travelMode
+            }, function(response, status) {
+                if (status === 'OK') {
+                    renderer.setDirections(response);
                     
-                    // 총 거리와 시간
-                    var totalDistance = 0;
-                    var totalDuration = 0;
+                    // 경로 요약 정보 수집
+                    var route = response.routes[0];
+                    
+                    var segmentHtml = '<div class="route-segment">';
+                    segmentHtml += '<div class="segment-header">구간 ' + (segmentIndex + 1) + '</div>';
                     
                     // 각 구간 정보
+                    var segTotalDistance = 0;
+                    var segTotalDuration = 0;
+                    
                     for (var i = 0; i < route.legs.length; i++) {
                         var routeSegment = i + 1;
                         var leg = route.legs[i];
                         
-                        totalDistance += leg.distance.value;
-                        totalDuration += leg.duration.value;
+                        segTotalDistance += leg.distance.value;
+                        segTotalDuration += leg.duration.value;
                         
-                        var segmentHtml = 
-                            '<div class="route-segment">' +
-                            '<div class="segment-header">구간 ' + routeSegment + '</div>' +
-                            '<div class="segment-locations">' + leg.start_address.split(',')[0] + ' → ' + leg.end_address.split(',')[0] + '</div>' +
-                            '<div class="segment-stats">' + leg.distance.text + ' / ' + leg.duration.text + '</div>' +
+                        // 출발-도착지 이름 표시
+                        var startName = segment[i].title || leg.start_address.split(',')[0];
+                        var endName = segment[i+1].title || leg.end_address.split(',')[0];
+                        
+                        segmentHtml += 
+                            '<div class="leg-info">' +
+                            '<div class="leg-endpoints">' + startName + ' → ' + endName + '</div>' +
+                            '<div class="leg-stats">' + leg.distance.text + ' / ' + leg.duration.text + '</div>' +
                             '</div>';
-                        
-                        summaryPanel.innerHTML += segmentHtml;
                     }
                     
-                    // 총계 표시
-                    summaryPanel.innerHTML += 
-                        '<div class="route-total">' +
-                        '<div><strong>총 거리:</strong> ' + (totalDistance / 1000).toFixed(1) + 'km</div>' +
-                        '<div><strong>총 소요 시간:</strong> ' + Math.floor(totalDuration / 60) + '분</div>' +
+                    // 세그먼트 요약
+                    segmentHtml += 
+                        '<div class="segment-summary">' +
+                        '<div><strong>구간 거리:</strong> ' + (segTotalDistance / 1000).toFixed(1) + 'km</div>' +
+                        '<div><strong>구간 소요 시간:</strong> ' + Math.floor(segTotalDuration / 60) + '분</div>' +
                         '</div>';
+                        
+                    segmentHtml += '</div>';
+                    segmentSummaries.push(segmentHtml);
+                    
+                    // 총계에 추가
+                    totalDistance += segTotalDistance;
+                    totalDuration += segTotalDuration;
+                    
+                    // 다음 세그먼트 처리
+                    processRouteSegment(segmentIndex + 1);
+                } else {
+                    console.error('경로 안내를 가져오는데 실패했습니다: ' + status);
+                    
+                    // 오류 메시지 추가
+                    segmentSummaries.push('<div class="route-error">구간 ' + (segmentIndex + 1) + ' 경로 계산 오류: ' + status + '</div>');
+                    
+                    // 다음 세그먼트 시도
+                    processRouteSegment(segmentIndex + 1);
                 }
-            } else {
-                window.alert('경로 안내를 가져오는데 실패했습니다: ' + status);
-                document.getElementById('directions-panel').innerHTML = '<div class="error-msg">경로를 가져올 수 없습니다.</div>';
-            }
-        });
+            });
+        }
     }
     """
     
-    # 일별 경로 데이터 JavaScript
+    # 일별 경로 데이터 JavaScript - 좀 더 자세한 정보 포함
     daily_routes_js = ""
     if daily_routes:
         daily_routes_js = "dailyRoutes = ["
@@ -1502,15 +1585,25 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 if point_idx > 0:
                     daily_routes_js += ","
                 
-                # 경로 포인트 정보
+                # 경로 포인트 정보 (제목, 카테고리 등 추가 정보 포함)
                 title = point.get('title', '').replace("'", "\\'")
-                daily_routes_js += f"{{lat: {point['lat']}, lng: {point['lng']}, title: '{title}'}}"
+                category = point.get('category', '').replace("'", "\\'") if 'category' in point else ''
+                address = point.get('address', '').replace("'", "\\'") if 'address' in point else ''
+                
+                # 포인트 정보 JSON 객체로 구성
+                daily_routes_js += f"""{{
+                    lat: {point['lat']}, 
+                    lng: {point['lng']}, 
+                    title: '{title}',
+                    category: '{category}',
+                    address: '{address}'
+                }}"""
             
             daily_routes_js += "]"
         
         daily_routes_js += "];"
     
-    # 교통 수단 선택 HTML
+    # 교통 수단 선택 HTML - 레이블 개선
     transport_select_html = """
     <div class="transport-controls">
         <div style="font-weight: bold; margin-bottom: 8px;">교통 수단</div>
@@ -1522,6 +1615,20 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
         </select>
     </div>
     """
+    
+    # 내비게이션 모드인 경우 추가 정보
+    navigation_info = ""
+    if navigation_mode and start_location and end_location:
+        navigation_info = f"""
+        <script>
+        // 내비게이션 모드 초기 설정
+        var navigationInfo = {{
+            start: {{ lat: {start_location['lat']}, lng: {start_location['lng']} }},
+            end: {{ lat: {end_location['lat']}, lng: {end_location['lng']} }},
+            mode: '{transport_mode or "DRIVING"}'
+        }};
+        </script>
+        """
     
     # HTML 템플릿
     html = f"""
@@ -1571,6 +1678,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 border: 1px solid #dadce0;
                 border-radius: 4px;
                 cursor: pointer;
+                transition: all 0.2s ease;
             }}
             .filter-button:hover {{
                 background-color: #e8eaed;
@@ -1594,6 +1702,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 border: 1px solid #dadce0;
                 border-radius: 4px;
                 cursor: pointer;
+                transition: all 0.2s ease;
             }}
             .day-tab:hover {{
                 background-color: #e8eaed;
@@ -1649,7 +1758,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 height: 40px;
                 cursor: pointer;
             }}
-            /* 내비게이션 패널 스타일 */
+            /* 내비게이션 패널 스타일 - 개선된 디자인 */
             #directions-container {{
                 width: 300px;
                 height: calc(100% - 20px);
@@ -1672,21 +1781,41 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                 margin-bottom: 10px;
                 overflow-y: auto;
                 max-height: 30%;
+                font-size: 13px;
             }}
             .route-segment {{
-                padding: 5px 0;
-                border-bottom: 1px dashed #e0e0e0;
-                margin-bottom: 5px;
+                padding: 8px;
+                border-radius: 4px;
+                background-color: #f5f5f5;
+                margin-bottom: 8px;
             }}
             .segment-header {{
                 font-weight: bold;
                 color: #4285F4;
+                margin-bottom: 5px;
+            }}
+            .leg-info {{
+                padding: 4px 0;
+                border-bottom: 1px dashed #e0e0e0;
+                font-size: 12px;
+            }}
+            .leg-endpoints {{
+                font-weight: bold;
+            }}
+            .leg-stats {{
+                color: #666;
             }}
             .route-total {{
                 margin-top: 10px;
-                padding-top: 5px;
-                border-top: 1px solid #e0e0e0;
+                padding: 8px;
+                border-radius: 4px;
+                background-color: #e8f0fe;
                 font-weight: bold;
+            }}
+            .segment-summary {{
+                margin-top: 5px;
+                font-size: 12px;
+                color: #666;
             }}
             #directions-panel {{
                 flex: 1;
@@ -1708,6 +1837,22 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             .adp-step, .adp-substep {{
                 padding: 5px 3px;
                 border-top: 1px solid #f1f3f4;
+            }}
+            .no-route {{
+                padding: 10px;
+                background-color: #fff3e0;
+                border-radius: 4px;
+                color: #e65100;
+                text-align: center;
+            }}
+            .summary-loading {{
+                text-align: center;
+                color: #888;
+                padding: 10px;
+            }}
+            .route-error {{
+                color: #c62828;
+                margin: 5px 0;
             }}
             /* 반응형 디자인 */
             @media (max-width: 768px) {{
@@ -1754,6 +1899,8 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
             <div id="route-summary"></div>
             <div id="directions-panel"></div>
         </div>''' if daily_routes else ''}
+        
+        {navigation_info}
         
         <script>
             // 디버깅용 로그 설정
@@ -1875,6 +2022,25 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
                     }}, 500);
                 }}
                 
+                // 내비게이션 모드인 경우 - 직접 경로 표시
+                if (typeof navigationInfo !== 'undefined') {{
+                    directionsService.route({{
+                        origin: navigationInfo.start,
+                        destination: navigationInfo.end,
+                        travelMode: google.maps.TravelMode[navigationInfo.mode]
+                    }}, function(response, status) {{
+                        if (status === 'OK') {{
+                            var directionsRenderer = new google.maps.DirectionsRenderer({{
+                                suppressMarkers: false,
+                                panel: document.getElementById('directions-panel')
+                            }});
+                            directionsRenderer.setMap(map);
+                            directionsRenderer.setDirections(response);
+                            activeDirectionsRenderers.push(directionsRenderer);
+                        }}
+                    }});
+                }}
+                
                 // 지도 클릭 이벤트
                 map.addListener('click', function(event) {{
                     closeAllInfoWindows();
@@ -1898,13 +2064,13 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
     </html>
     """
 
-    
+    # 생성된 HTML 반환
     return html
 
 
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
                    navigation_mode=False, start_location=None, end_location=None, transport_mode=None, daily_routes=None):
-    """Google Maps 컴포넌트 표시 - 내비게이션 기능 추가"""
+    """Google Maps 컴포넌트 표시 - 일별 경로 기능 개선"""
     # 언어 코드 변환
     lang_code = LANGUAGE_CODES.get(language, "ko")
     
@@ -1919,6 +2085,15 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
         if daily_routes is None:
             daily_routes = []
         
+        # 일별 경로가 있으면 정보 출력
+        if daily_routes:
+            num_days = len(daily_routes)
+            total_places = sum(len(route) for route in daily_routes)
+            st.caption(f"총 {num_days}일 일정, {total_places}개 장소를 포함한 코스입니다.")
+            
+            # 표시할 내용을 위한 팁 추가
+            st.caption("일별 탭을 클릭하면 해당 일의 경로가 보입니다. 교통 수단을 변경하면 경로가 업데이트됩니다.")
+        
         # HTML 생성
         map_html = create_google_maps_html(
             api_key=api_key,
@@ -1928,6 +2103,8 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
             zoom=zoom,
             language=lang_code,
             navigation_mode=navigation_mode,
+            start_location=start_location,
+            end_location=end_location,
             daily_routes=daily_routes,  # 일별 경로 데이터 전달
             transport_mode=transport_mode  # 교통 수단 정보 전달
         )
@@ -1938,6 +2115,9 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
         
     except Exception as e:
         st.error(f"지도 렌더링 오류: {str(e)}")
+        import traceback
+        st.error(traceback.format_exc())
+        
         st.error("지도 로딩에 실패했습니다. 아래 대체 옵션을 사용해보세요.")
         
         # 대체 지도 옵션: folium 사용
@@ -1958,6 +2138,17 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
                         icon=folium.Icon(color=marker.get('color', 'red'))
                     ).add_to(m)
             
+            # 일별 경로 추가 (간단한 선으로 표시)
+            if daily_routes and len(daily_routes) > 0:
+                current_day = 0  # 첫 번째 일자를 기본으로 표시
+                points = [(point['lat'], point['lng']) for point in daily_routes[current_day]]
+                folium.PolyLine(
+                    points,
+                    color="blue",
+                    weight=2.5,
+                    opacity=0.7
+                ).add_to(m)
+            
             # folium 지도 표시
             folium_static(m)
             return True
@@ -1970,6 +2161,15 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
             if markers:
                 for i, marker in enumerate(markers[:10]):  # 상위 10개만
                     st.text(f"{i+1}. {marker.get('title', '무제')} - 좌표: ({marker['lat']}, {marker['lng']})")
+            
+            # 일별 경로 텍스트 정보
+            if daily_routes and len(daily_routes) > 0:
+                st.warning("일별 경로 정보:")
+                for day_idx, route in enumerate(daily_routes):
+                    st.write(f"Day {day_idx+1}:")
+                    for point_idx, point in enumerate(route):
+                        st.text(f"  {point_idx+1}. {point.get('title', '무제 장소')} - 좌표: ({point['lat']}, {point['lng']})")
+            
             return False
 
 
@@ -3228,6 +3428,10 @@ def show_course_page():
         horizontal=True
     )
     
+    # 선택된 일자 저장을 위한 세션 변수 초기화
+    if 'selected_day' not in st.session_state:
+        st.session_state.selected_day = 1
+    
     # 코스 생성 버튼
     st.markdown("---")
     generate_course = st.button(current_lang_texts["generate_course_button"], type="primary", use_container_width=True)
@@ -3257,66 +3461,169 @@ def show_course_page():
                     daily_routes = []
                     map_markers = []
                     
-                    for day_idx, day_course in enumerate(daily_courses):
-                        st.markdown(f"### Day {day_idx + 1}")
+                    # 일별 탭 버튼 생성 - 일자 선택을 위한 수평 버튼 그룹
+                    st.markdown("### 일별 코스 선택")
+                    
+                    day_cols = st.columns(min(len(daily_courses), 7))  # 최대 7일까지 한 줄에 표시
+                    
+                    # 선택된 일자 처리를 위한 버튼 생성
+                    for day_idx in range(len(daily_courses)):
+                        day_num = day_idx + 1
+                        with day_cols[day_idx % len(day_cols)]:
+                            # 현재 선택된 일자와 동일하면 다른 스타일 적용
+                            if st.session_state.selected_day == day_num:
+                                button_style = "primary"
+                            else:
+                                button_style = "secondary"
+                            
+                            # 일자 선택 버튼
+                            if st.button(f"Day {day_num}", key=f"day_btn_{day_num}", 
+                                        type=button_style, use_container_width=True):
+                                st.session_state.selected_day = day_num
+                                st.rerun()
+                    
+                    # 현재 선택된 일자의 코스 표시
+                    selected_day_idx = st.session_state.selected_day - 1
+                    
+                    # 선택된 일자가 유효한지 확인
+                    if 0 <= selected_day_idx < len(daily_courses):
+                        st.markdown(f"### Day {st.session_state.selected_day} 상세 일정")
                         
-                        if not day_course:
+                        selected_day_course = daily_courses[selected_day_idx]
+                        
+                        if not selected_day_course:
                             st.info(current_lang_texts["insufficient_recommendations"])
-                            continue
-                        
-                        # 이 날의 경로 장소들 추가
+                        else:
+                            # 선택된 일자의 경로 장소들 추가
+                            day_route = []
+                            selected_day_markers = []
+                            
+                            # 시간대별 장소 표시
+                            time_slots = [
+                                current_lang_texts["morning_time_slot"],
+                                current_lang_texts["afternoon_time_slot"],
+                                current_lang_texts["evening_time_slot"]
+                            ]
+                            
+                            # 선택된 일자의 장소 정보를 카드 형태로 표시
+                            st.markdown("#### 방문 장소")
+                            
+                            # 3열 레이아웃으로 장소 카드 표시
+                            place_cols = st.columns(min(len(selected_day_course), 3))
+                            
+                            for i, place in enumerate(selected_day_course):
+                                with place_cols[i % len(place_cols)]:
+                                    time_idx = min(i, len(time_slots) - 1)
+                                    
+                                    # 카드 스타일 컴포넌트
+                                    st.markdown(f"""
+                                    <div style="border:1px solid #ddd; border-radius:8px; padding:15px; margin-bottom:10px;">
+                                        <h4 style="margin-top:0; color:#1976D2;">{time_slots[time_idx]}</h4>
+                                        <h3 style="margin:5px 0;">{place['title']}</h3>
+                                        <p style="color:#666; margin:5px 0;">{current_lang_texts["category_label"].format(category=place['category'])}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    # 시간대별 색상 구분
+                                    colors = ["blue", "green", "purple"]
+                                    color = colors[time_idx % len(colors)]
+                                    
+                                    # 마커 데이터 추가
+                                    marker = {
+                                        'lat': place['lat'],
+                                        'lng': place['lng'],
+                                        'title': f"{time_slots[time_idx]} - {place['title']}",
+                                        'info': f"<b>{time_slots[time_idx]}</b><br>{place['title']}<br>{place.get('category', '')}",
+                                        'category': place['category'],
+                                        'color': color
+                                    }
+                                    selected_day_markers.append(marker)
+                                    
+                                    # 경로 데이터 추가
+                                    day_route.append({
+                                        'lat': place['lat'],
+                                        'lng': place['lng'],
+                                        'title': place['title']
+                                    })
+                            
+                            # 지도에 선택된 일자의 마커와 경로만 표시
+                            st.markdown(f"### {current_lang_texts['course_map_title']} - Day {st.session_state.selected_day}")
+                            
+                            # API 키 확인
+                            api_key = st.session_state.google_maps_api_key
+                            if not api_key or api_key == "YOUR_GOOGLE_MAPS_API_KEY":
+                                st.error(current_lang_texts["map_api_key_missing"])
+                                api_key = st.text_input(current_lang_texts["map_api_key_input"], type="password")
+                                if api_key:
+                                    st.session_state.google_maps_api_key = api_key
+                            
+                            # 지도 표시 - 선택된 일자의 마커와 경로만 표시
+                            if selected_day_markers:
+                                # 지도 중심 좌표 계산 (마커들의 평균)
+                                center_lat = sum(m['lat'] for m in selected_day_markers) / len(selected_day_markers)
+                                center_lng = sum(m['lng'] for m in selected_day_markers) / len(selected_day_markers)
+                                
+                                # 선택된 일자의 경로만 포함하는 일별 경로 데이터
+                                selected_daily_routes = [day_route]
+                                
+                                # 지도 표시 - 일별 경로 기능 활용
+                                show_google_map(
+                                    api_key=api_key,
+                                    center_lat=center_lat,
+                                    center_lng=center_lng,
+                                    markers=selected_day_markers,
+                                    zoom=13,
+                                    height=600,
+                                    language=st.session_state.language,
+                                    daily_routes=selected_daily_routes,
+                                    transport_mode=transport_mode
+                                )
+                                
+                                # 경로 안내를 위한 추가 정보
+                                st.info("👆 지도에서 경로와 각 장소를 확인할 수 있습니다. 장소를 클릭하면 추가 정보가 표시됩니다.")
+                            else:
+                                st.warning(current_lang_texts["map_display_error"])
+                    
+                    # 모든 일자의 경로를 전체 일별 경로에 추가 (지도 아래에서 표시하기 위함)
+                    for day_idx, day_course in enumerate(daily_courses):
                         day_route = []
-                        
-                        # 시간대별 장소 표시
-                        time_slots = [
-                            current_lang_texts["morning_time_slot"],
-                            current_lang_texts["afternoon_time_slot"],
-                            current_lang_texts["evening_time_slot"]
-                        ]
-                        timeline = st.columns(len(day_course))
-                        
-                        for i, place in enumerate(day_course):
-                            with timeline[i]:
-                                time_idx = min(i, len(time_slots) - 1)
-                                st.markdown(f"**{time_slots[time_idx]}**")
-                                st.markdown(f"**{place['title']}**")
-                                st.caption(current_lang_texts["category_label"].format(category=place['category']))
-                                
-                                # 간단한 설명 추가
-                                info_text = ""
-                                if 'address' in place and place['address']:
-                                    info_text += current_lang_texts["location_label"].format(address=place['address'])
-                                    if len(place['address']) > 20:
-                                        info_text = info_text[:20] + "..."
-                                st.caption(info_text)
-                                
-                                # 시간대별 색상 구분
-                                colors = ["blue", "green", "purple"]
-                                color = colors[time_idx % len(colors)]
-                                
-                                # 마커 데이터 추가
-                                marker = {
-                                    'lat': place['lat'],
-                                    'lng': place['lng'],
-                                    'title': f"Day {day_idx+1} - {place['title']}",
-                                    'info': f"Day {day_idx+1} {time_slots[time_idx]}<br>{place.get('info', '')}",
-                                    'category': place['category'],
-                                    'color': color
-                                }
-                                map_markers.append(marker)
-                                
-                                # 경로 데이터 추가
-                                day_route.append({
-                                    'lat': place['lat'],
-                                    'lng': place['lng'],
-                                    'title': place['title']
-                                })
-                        
-                        # 이 날의 경로를 전체 일별 경로에 추가
+                        for place in day_course:
+                            day_route.append({
+                                'lat': place['lat'],
+                                'lng': place['lng'],
+                                'title': place['title']
+                            })
                         if day_route:
                             daily_routes.append(day_route)
+                            
+                    # 일정 저장 버튼
+                    if st.button(current_lang_texts["save_course_button"], use_container_width=True):
+                        if 'saved_courses' not in st.session_state:
+                            st.session_state.saved_courses = []
+                        
+                        # 코스 정보 저장
+                        course_info = {
+                            "type": course_type,
+                            "days": delta,
+                            "date": start_date.strftime("%Y-%m-%d"),
+                            "styles": selected_styles,
+                            "daily_places": []
+                        }
+                        
+                        # 실제 데이터 기반 코스 저장
+                        for day in daily_courses:
+                            day_places = [place['title'] for place in day]
+                            course_info["daily_places"].append(day_places)
+                        
+                        st.session_state.saved_courses.append(course_info)
+                        save_session_data()  # 세션 데이터 저장
+                        
+                        st.success(current_lang_texts["course_saved_success"])
+                        
                 else:
-                    # 기본 코스 데이터 표시
+                    # 기본 코스 데이터 표시 (충분한 데이터가 없는 경우)
+                    st.warning("코스 데이터가 충분하지 않습니다. 기본 코스를 표시합니다.")
+                    
                     for day in range(1, min(delta+1, 4)):  # 최대 3일까지
                         st.markdown(f"### Day {day}")
                         
@@ -3345,73 +3652,13 @@ def show_course_page():
                             time_slot = time_slots[i % 3]
                             
                             with timeline[i]:
-                                st.markdown(f"**{time_slot}**")
-                                st.markdown(f"**{spot_name}**")
-                                st.caption(current_lang_texts.get("tourist_spot", "관광지"))
-                    
-                    # 지도 데이터 준비 (기본 코스는 좌표가 없어 빈 마커와 경로 사용)
-                    map_markers = []
-                    daily_routes = []
-                
-                # 지도에 코스 표시
-                st.markdown(f"### {current_lang_texts['course_map_title']}")
-                
-                # API 키 확인
-                api_key = st.session_state.google_maps_api_key
-                if not api_key or api_key == "YOUR_GOOGLE_MAPS_API_KEY":
-                    st.error(current_lang_texts["map_api_key_missing"])
-                    api_key = st.text_input(current_lang_texts["map_api_key_input"], type="password")
-                    if api_key:
-                        st.session_state.google_maps_api_key = api_key
-                
-                # 지도 표시
-                if map_markers:
-                    # 지도 중심 좌표 계산 (마커들의 평균)
-                    center_lat = sum(m['lat'] for m in map_markers) / len(map_markers)
-                    center_lng = sum(m['lng'] for m in map_markers) / len(map_markers)
-                    
-                    # 지도 표시 - daily_routes 파라미터 추가
-                    show_google_map(
-                        api_key=api_key,
-                        center_lat=center_lat,
-                        center_lng=center_lng,
-                        markers=map_markers,
-                        zoom=12,
-                        height=500,
-                        language=st.session_state.language,
-                        daily_routes=daily_routes,  # 일별 경로 데이터 전달
-                        transport_mode=transport_mode  # 교통 수단 정보 전달
-                    )
-                else:
-                    st.warning("Error!!")
-                
-                # 일정 저장 버튼
-                if st.button(current_lang_texts["save_course_button"], use_container_width=True):
-                    if 'saved_courses' not in st.session_state:
-                        st.session_state.saved_courses = []
-                    
-                    # 코스 정보 저장
-                    course_info = {
-                        "type": course_type,
-                        "days": delta,
-                        "date": start_date.strftime("%Y-%m-%d"),
-                        "styles": selected_styles
-                    }
-                    
-                    if daily_courses:
-                        # 실제 데이터 기반 코스
-                        course_info["daily_places"] = []
-                        for day in daily_courses:
-                            day_places = [place['title'] for place in day]
-                            course_info["daily_places"].append(day_places)
-                    else:
-                        # 기본 코스
-                        course_info["places"] = recommended_places
-                    
-                    st.session_state.saved_courses.append(course_info)
-                    save_session_data()  # 세션 데이터 저장
-                    
-                    st.success(current_lang_texts["course_saved_success"])
+                                st.markdown(f"""
+                                <div style="border:1px solid #ddd; border-radius:8px; padding:15px;">
+                                    <h4 style="margin-top:0; color:#1976D2;">{time_slot}</h4>
+                                    <h3 style="margin:5px 0;">{spot_name}</h3>
+                                    <p style="color:#666; margin:5px 0;">{current_lang_texts.get("tourist_spot", "관광지")}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
 
 
 def show_history_page():
