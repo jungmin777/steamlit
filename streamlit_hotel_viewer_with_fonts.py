@@ -126,6 +126,11 @@ EXCEL_FILES = [
     "서울시립미술관 전시정보 한국어영어중국어 1.xlsx"
 ]
 
+
+
+
+
+
 #################################################
 # 유틸리티 함수
 #################################################
@@ -418,7 +423,20 @@ def init_session_state():
                 "travel_people_count": "여행 인원",
                 "travel_with_children": "아이 동반",
                 "travel_style": "여행 스타일",
-                "travel_days_total": "총 {days}일 일정"
+                "travel_days_total": "총 {days}일 일정",
+                "course_history_culture": "서울 역사/문화 탐방 코스",
+                "course_shopping_food": "서울 쇼핑과 미식 코스",
+                "course_shopping": "서울 쇼핑 중심 코스", 
+                "course_food": "서울 미식 여행 코스",
+                "course_nature": "서울의 자연 코스",
+                "course_active": "액티브 서울 코스",
+                "course_healing": "서울 힐링 여행 코스",
+                "tourist_map_title": "🗺️ 관광 장소 지도",
+                "tourist_map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
+                "tourist_map_button": "관광 장소 지도 보기",
+                "congestion_map_title": "📊 서울 장소 혼잡도 지도",
+                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요.",
+                "congestion_map_link_text": "서울시 공식 사이트 새 탭에서 전체 화면으로 보기"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -550,7 +568,20 @@ def init_session_state():
                 "travel_people_count": "旅行人数",
                 "travel_with_children": "携带儿童",
                 "travel_style": "旅行风格",
-                "travel_days_total": "共{days}天行程"
+                "travel_days_total": "共{days}天行程",
+                "course_history_culture": "首尔历史/文化探索路线",
+                "course_shopping_food": "首尔购物与美食路线",
+                "course_shopping": "首尔购物中心路线",
+                "course_food": "首尔美食之旅路线",
+                "course_nature": "首尔自然风光路线",
+                "course_active": "活力首尔路线",
+                "course_healing": "首尔治愈之旅路线",
+                "tourist_map_title": "🗺️ 旅游景点地图",
+                "tourist_map_description": "在地图上查找首尔的主要旅游景点并使用导航前往。",
+                "tourist_map_button": "旅游景点地图查看",
+                "congestion_map_title": "📊 首尔地点拥挤度地图",
+                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。",
+                "congestion_map_link_text": "在首尔官方网站的新标签页中全屏查看"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -682,7 +713,20 @@ def init_session_state():
                 "travel_people_count": "Number of Travelers",
                 "travel_with_children": "Traveling with Children",
                 "travel_style": "Travel Style",
-                "travel_days_total": "Total {days} day itinerary"
+                "travel_days_total": "Total {days} day itinerary",
+                "course_history_culture": "Seoul History & Culture Exploration Course",
+                "course_shopping_food": "Seoul Shopping & Gastronomy Course",
+                "course_shopping": "Seoul Shopping-Focused Course",
+                "course_food": "Seoul Culinary Tour Course",
+                "course_nature": "Seoul Nature Course",
+                "course_active": "Active Seoul Course",
+                "course_healing": "Seoul Healing Travel Course",
+                "tourist_map_title": "🗺️ Tourist Attraction Map",
+                "tourist_map_description": "Find major tourist attractions in Seoul on the map and navigate to them.",
+                "tourist_map_button": "View Tourist Map",
+                "congestion_map_title": "📊 Seoul Congestion Map",
+                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul.",
+                "congestion_map_link_text": "View full screen on the Seoul official website in a new tab"
             }
         }
     if 'clicked_location' not in st.session_state:
@@ -1585,6 +1629,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
 
     
     return html
+
     
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
                    navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
@@ -1596,6 +1641,12 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
         # 디버깅 정보
         if navigation_mode:
             st.info(f"내비게이션 모드: {transport_mode}, 출발: ({start_location['lat']:.4f}, {start_location['lng']:.4f}), 도착: ({end_location['lat']:.4f}, {end_location['lng']:.4f})")
+
+        if markers is None:
+            markers = []
+        
+        if daily_routes is None:
+            daily_routes = []
         
         # HTML 생성
         map_html = create_google_maps_html(
@@ -1606,9 +1657,8 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
             zoom=zoom,
             language=lang_code,
             navigation_mode=navigation_mode,
-            start_location=start_location,
-            end_location=end_location,
-            transport_mode=transport_mode
+            daily_routes=daily_routes,  # 일별 경로 데이터 전달
+            transport_mode=transport_mode  # 교통 수단 정보 전달
         )
         
         # HTML 컴포넌트로 표시
@@ -1689,125 +1739,171 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
     """
     # 언어 설정에 따른 텍스트 가져오기
     current_lang_texts = st.session_state.texts[st.session_state.language]
-    
+
     if not data:
         st.warning(current_lang_texts["no_tourist_data"])
         # 기본 코스 반환
-        if "역사/문화" in travel_styles:
-            course_type = "문화 코스"
-        elif "쇼핑" in travel_styles:
-            course_type = "쇼핑 코스"
-        elif "자연" in travel_styles:
-            course_type = "자연 코스"
+        if any(style in travel_styles for style in ["역사/문화", "History/Culture", "历史/文化型"]):
+            course_type = current_lang_texts["course_history_culture"]
+        elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]) and any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
+            course_type = current_lang_texts["course_shopping_food"]
+        elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]):
+            course_type = current_lang_texts["course_shopping"]
+        elif any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
+            course_type = current_lang_texts["course_food"]
+        elif any(style in travel_styles for style in ["자연", "Nature", "自然型"]):
+            course_type = current_lang_texts["course_nature"]
+        elif any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
+            course_type = current_lang_texts["course_active"]
         else:
-            course_type = "대중적 코스"
-            
+            course_type = current_lang_texts["course_healing"]
         return RECOMMENDATION_COURSES.get(course_type, []), course_type, []
-    
+
     # 장소별 점수 계산
     scored_places = []
-    
+
     for place in data:
         # 기본 점수는 중요도
         score = place.get('importance', 1.0)
-        
+
         # 여행 스타일에 따른 가중치 적용
+        style_match = False
         for style in travel_styles:
             if style in STYLE_CATEGORY_WEIGHTS:
                 category_weights = STYLE_CATEGORY_WEIGHTS[style]
                 if place['category'] in category_weights:
                     score *= category_weights[place['category']]
-        
-        # 아이 동반인 경우 가족 친화적인 장소 선호 (미술관/체육시설)
-        if include_children:
-            if place['category'] in ["미술관/전시", "체육시설"]:
-                score *= 1.2
-        
+                    style_match = True
+
+        # 여행 스타일과 맞지 않는 장소는 점수 감소
+        if not style_match:
+            score *= 0.5
+
+        # 체육시설 점수 조정: 활동적인 스타일이 아니면 점수 대폭 감소
+        if place['category'] == "체육시설" and not any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
+            score *= 0.3  # 더 강력하게 감소
+
+        # 아이 동반인 경우 가족 친화적인 장소 선호 (미술관/전시)
+        if include_children and place['category'] == "미술관/전시":
+            score *= 1.2
+
         # 최종 점수 저장
         scored_place = place.copy()
         scored_place['score'] = score
         scored_places.append(scored_place)
-    
+
     # 점수별 정렬
     scored_places.sort(key=lambda x: x['score'], reverse=True)
-    
+
     # 일수에 따른 장소 선택
     # 하루당 3곳 방문 가정 (아침, 점심, 저녁)
     places_per_day = 3
     total_places = num_days * places_per_day
-    
-    # 상위 N개 장소 선택 (N = total_places * 2 for more options)
-    top_places = scored_places[:min(len(scored_places), total_places * 2)]
-    
+
+    # 카테고리 다양성 확보: 같은 카테고리 장소가 너무 많이 선택되지 않도록 함
+    category_counts = {}
+    for place in scored_places[:total_places * 2]:  # 상위 후보에서만 카운트
+        category = place['category']
+        category_counts[category] = category_counts.get(category, 0) + 1
+
+    # 특정 카테고리가 너무 많으면 일부 제외
+    MAX_PLACES_PER_CATEGORY = max(2, total_places // 3)  # 최소 2개, 또는 총 장소의 1/3
+
+    # 체육시설은 활동적인 스타일이 아니면 더 적게 포함
+    if not any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
+        MAX_PLACES_PER_CATEGORY_GYM = 1  # 최대 1개로 제한
+    else:
+        MAX_PLACES_PER_CATEGORY_GYM = MAX_PLACES_PER_CATEGORY
+
+    filtered_places = []
+    category_added = {}
+
+    # 고득점 순으로 다양한 카테고리 장소 선택
+    for place in scored_places:
+        category = place['category']
+        max_for_category = MAX_PLACES_PER_CATEGORY_GYM if category == "체육시설" else MAX_PLACES_PER_CATEGORY
+
+        if category_added.get(category, 0) < max_for_category:
+            filtered_places.append(place)
+            category_added[category] = category_added.get(category, 0) + 1
+
+        # 충분한 장소를 모았으면 중단
+        if len(filtered_places) >= total_places * 2:
+            break
+
+    # 필터링된 장소가 충분하지 않으면 원래 목록 사용
+    if len(filtered_places) < total_places:
+        filtered_places = scored_places[:total_places * 2]
+
     # 동선 최적화: 그리디 알고리즘
     # 서울시청을 시작점으로 설정 (모든 날 아침에 숙소/시청에서 출발한다고 가정)
     seoul_city_hall = {"lat": 37.5665, "lng": 126.9780}
-    
+
     daily_courses = []
-    
+
     for day in range(num_days):
         daily_course = []
         current_position = seoul_city_hall
-        
+
         # 이미 선택된 장소는 제외
-        available_places = [p for p in top_places if not any(p['title'] == dp['title'] for dc in daily_courses for dp in dc)]
-        
+        available_places = [p for p in filtered_places if not any(p['title'] == dp['title'] for dc in daily_courses for dp in dc)]
+
         if not available_places:
             break
-        
+
         # 각 시간대별 최적 장소 선택
         for time_slot in range(places_per_day):
             if not available_places:
                 break
-                
+
             # 거리 가중치가 적용된 점수 계산
             for place in available_places:
                 distance = geodesic(
-                    (current_position['lat'], current_position['lng']), 
+                    (current_position['lat'], current_position['lng']),
                     (place['lat'], place['lng'])
                 ).kilometers
-                
+
                 # 거리에 따른 점수 감소 (너무 먼 곳은 피함)
                 distance_factor = max(0.5, 1 - (distance / 10))  # 10km 이상이면 점수 절반으로
                 place['adjusted_score'] = place.get('score', 1.0) * distance_factor
-            
+
             # 조정된 점수로 재정렬
             available_places.sort(key=lambda x: x.get('adjusted_score', 0), reverse=True)
-            
+
             # 최고 점수 장소 선택
             next_place = available_places[0]
             daily_course.append(next_place)
-            
+
             # 선택된 장소 제거
             available_places.remove(next_place)
-            
+
             # 현재 위치 업데이트
             current_position = {"lat": next_place['lat'], "lng": next_place['lng']}
-        
+
         daily_courses.append(daily_course)
-    
+
     # 코스 이름 결정
-    if "역사/문화" in travel_styles:
+    if any(style in travel_styles for style in ["역사/문화", "History/Culture", "历史/文化型"]):
         course_type = current_lang_texts["course_history_culture"]
-    elif "쇼핑" in travel_styles and "맛집" in travel_styles:
+    elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]) and any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
         course_type = current_lang_texts["course_shopping_food"]
-    elif "쇼핑" in travel_styles:
+    elif any(style in travel_styles for style in ["쇼핑", "Shopping", "购物型"]):
         course_type = current_lang_texts["course_shopping"]
-    elif "맛집" in travel_styles:
+    elif any(style in travel_styles for style in ["맛집", "Food", "美食型"]):
         course_type = current_lang_texts["course_food"]
-    elif "자연" in travel_styles:
+    elif any(style in travel_styles for style in ["자연", "Nature", "自然型"]):
         course_type = current_lang_texts["course_nature"]
-    elif "활동적인" in travel_styles:
+    elif any(style in travel_styles for style in ["활동적인", "Active", "活动型"]):
         course_type = current_lang_texts["course_active"]
     else:
         course_type = current_lang_texts["course_healing"]
-    
+
     # 추천 장소 이름 목록 생성
     recommended_places = []
     for day_course in daily_courses:
         for place in day_course:
             recommended_places.append(place['title'])
-    
+
     return recommended_places, course_type, daily_courses
 
 #################################################
@@ -1951,7 +2047,21 @@ def show_login_page():
                 "travel_date_end": "여행 종료일",
                 "travel_people_count": "여행 인원",
                 "travel_with_children": "아이 동반",
-                "travel_style": "여행 스타일"
+                "travel_style": "여행 스타일",
+                "travel_days_total": "총 {days}일 일정",
+                "course_history_culture": "서울 역사/문화 탐방 코스",
+                "course_shopping_food": "서울 쇼핑과 미식 코스",
+                "course_shopping": "서울 쇼핑 중심 코스", 
+                "course_food": "서울 미식 여행 코스",
+                "course_nature": "서울의 자연 코스",
+                "course_active": "액티브 서울 코스",
+                "course_healing": "서울 힐링 여행 코스",
+                "tourist_map_title": "🗺️ 관광 장소 지도",
+                "tourist_map_description": "서울의 주요 관광지를 지도에서 찾고 내비게이션으로 이동해보세요.",
+                "tourist_map_button": "관광 장소 지도 보기",
+                "congestion_map_title": "📊 서울 장소 혼잡도 지도",
+                "congestion_map_description": "서울 주요 관광지·지하철역의 실시간 혼잡도를 확인하세요.",
+                "congestion_map_link_text": "서울시 공식 사이트 새 탭에서 전체 화면으로 보기"
             },
             "중국어": {
                 "app_title": "首尔旅游应用",
@@ -2078,12 +2188,25 @@ def show_login_page():
                 "map_display_error": "由于路线地点缺少坐标信息，无法在地图上显示。",
                 "save_course_button": "保存此路线",
                 "course_saved_success": "路线已保存！",
-                "travel_info_input": "旅行信息输入",
                 "travel_date_start": "旅行开始日期",
                 "travel_date_end": "旅行结束日期",
                 "travel_people_count": "旅行人数",
                 "travel_with_children": "携带儿童",
-                "travel_style": "旅行风格"
+                "travel_style": "旅行风格",
+                "travel_days_total": "共{days}天行程",
+                "course_history_culture": "首尔历史/文化探索路线",
+                "course_shopping_food": "首尔购物与美食路线",
+                "course_shopping": "首尔购物中心路线",
+                "course_food": "首尔美食之旅路线",
+                "course_nature": "首尔自然风光路线",
+                "course_active": "活力首尔路线",
+                "course_healing": "首尔治愈之旅路线",
+                "tourist_map_title": "🗺️ 旅游景点地图",
+                "tourist_map_description": "在地图上查找首尔的主要旅游景点并使用导航前往。",
+                "tourist_map_button": "旅游景点地图查看",
+                "congestion_map_title": "📊 首尔地点拥挤度地图",
+                "congestion_map_description": "请查看首尔主要旅游景点和地铁站的实时拥挤情况。",
+                "congestion_map_link_text": "在首尔官方网站的新标签页中全屏查看"
             },
             "영어": {
                 "app_title": "Seoul Tourist App",
@@ -2214,7 +2337,21 @@ def show_login_page():
                 "travel_date_end": "Travel End Date",
                 "travel_people_count": "Number of Travelers",
                 "travel_with_children": "Traveling with Children",
-                "travel_style": "Travel Style"
+                "travel_style": "Travel Style",
+                "travel_days_total": "Total {days} day itinerary",
+                "course_history_culture": "Seoul History & Culture Exploration Course",
+                "course_shopping_food": "Seoul Shopping & Gastronomy Course",
+                "course_shopping": "Seoul Shopping-Focused Course",
+                "course_food": "Seoul Culinary Tour Course",
+                "course_nature": "Seoul Nature Course",
+                "course_active": "Active Seoul Course",
+                "course_healing": "Seoul Healing Travel Course",
+                "tourist_map_title": "🗺️ Tourist Attraction Map",
+                "tourist_map_description": "Find major tourist attractions in Seoul on the map and navigate to them.",
+                "tourist_map_button": "View Tourist Map",
+                "congestion_map_title": "📊 Seoul Congestion Map",
+                "congestion_map_description": "Check real-time congestion levels at major tourist attractions and subway stations in Seoul.",
+                "congestion_map_link_text": "View full screen on the Seoul official website in a new tab"
             }
         }
     
@@ -2363,6 +2500,21 @@ def show_menu_page():
         if st.button(current_lang_texts['view_history_button'], key="history_button", use_container_width=True):
             change_page("history")
             st.rerun()
+
+    with col2:
+        # 추가: 혼잡도 기능 버튼 2025.05.08
+        st.markdown(f"""
+        <div class="card">
+            <h3>{current_lang_texts['congestion_map_title']}</h3>
+            <p>{current_lang_texts['congestion_map_description']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button(current_lang_texts['congestion_map_title'], use_container_width=True, key="congestion_map_button"):
+            change_page("congestion")
+            st.rerun()
+
+    st.markdown("")
             
     # 로그아웃 버튼
     st.markdown("---")
@@ -2788,6 +2940,22 @@ def show_course_page():
             if st.checkbox(style, key=f"style_{style}"):
                 selected_styles.append(style)
     
+    # 교통 수단 선택
+    transport_mode = "DRIVING"  # 기본값
+    transport_options = {
+        "DRIVING": current_lang_texts.get("transport_mode_driving", "자동차"),
+        "TRANSIT": current_lang_texts.get("transport_mode_transit", "대중교통"),
+        "WALKING": current_lang_texts.get("transport_mode_walking", "도보")
+    }
+    
+    st.markdown(f"### {current_lang_texts.get('transport_mode_title', '교통 수단')}")
+    transport_mode = st.radio(
+        label=current_lang_texts.get("transport_mode_select", "이동 방법을 선택하세요"),
+        options=list(transport_options.keys()),
+        format_func=lambda x: transport_options[x],
+        horizontal=True
+    )
+    
     # 코스 생성 버튼
     st.markdown("---")
     generate_course = st.button(current_lang_texts["generate_course_button"], type="primary", use_container_width=True)
@@ -2813,13 +2981,19 @@ def show_course_page():
                 
                 # 일별 코스 표시
                 if daily_courses:
-                    # 실제 데이터 기반 일별 코스 표시
+                    # 일별 경로 데이터 준비
+                    daily_routes = []
+                    map_markers = []
+                    
                     for day_idx, day_course in enumerate(daily_courses):
                         st.markdown(f"### Day {day_idx + 1}")
                         
                         if not day_course:
                             st.info(current_lang_texts["insufficient_recommendations"])
                             continue
+                        
+                        # 이 날의 경로 장소들 추가
+                        day_route = []
                         
                         # 시간대별 장소 표시
                         time_slots = [
@@ -2843,6 +3017,32 @@ def show_course_page():
                                     if len(place['address']) > 20:
                                         info_text = info_text[:20] + "..."
                                 st.caption(info_text)
+                                
+                                # 시간대별 색상 구분
+                                colors = ["blue", "green", "purple"]
+                                color = colors[time_idx % len(colors)]
+                                
+                                # 마커 데이터 추가
+                                marker = {
+                                    'lat': place['lat'],
+                                    'lng': place['lng'],
+                                    'title': f"Day {day_idx+1} - {place['title']}",
+                                    'info': f"Day {day_idx+1} {time_slots[time_idx]}<br>{place.get('info', '')}",
+                                    'category': place['category'],
+                                    'color': color
+                                }
+                                map_markers.append(marker)
+                                
+                                # 경로 데이터 추가
+                                day_route.append({
+                                    'lat': place['lat'],
+                                    'lng': place['lng'],
+                                    'title': place['title']
+                                })
+                        
+                        # 이 날의 경로를 전체 일별 경로에 추가
+                        if day_route:
+                            daily_routes.append(day_route)
                 else:
                     # 기본 코스 데이터 표시
                     for day in range(1, min(delta+1, 4)):  # 최대 3일까지
@@ -2876,6 +3076,10 @@ def show_course_page():
                                 st.markdown(f"**{time_slot}**")
                                 st.markdown(f"**{spot_name}**")
                                 st.caption(current_lang_texts.get("tourist_spot", "관광지"))
+                    
+                    # 지도 데이터 준비 (기본 코스는 좌표가 없어 빈 마커와 경로 사용)
+                    map_markers = []
+                    daily_routes = []
                 
                 # 지도에 코스 표시
                 st.markdown(f"### {current_lang_texts['course_map_title']}")
@@ -2888,37 +3092,13 @@ def show_course_page():
                     if api_key:
                         st.session_state.google_maps_api_key = api_key
                 
-                # 코스 마커 생성
-                map_markers = []
-                
-                if daily_courses:
-                    # 실제 데이터 기반 코스
-                    for day_idx, day_course in enumerate(daily_courses):
-                        for time_idx, place in enumerate(day_course):
-                            # 시간대별 색상 구분
-                            colors = ["blue", "green", "purple"]
-                            color = colors[time_idx % len(colors)]
-                            
-                            marker = {
-                                'lat': place['lat'],
-                                'lng': place['lng'],
-                                'title': f"Day {day_idx+1} - {place['title']}",
-                                'info': f"Day {day_idx+1} {time_slots[time_idx]}<br>{place.get('info', '')}",
-                                'category': place['category'],
-                                'color': color
-                            }
-                            map_markers.append(marker)
-                else:
-                    # 기본 코스 - 좌표 데이터가 없어 지도 표시 불가
-                    st.warning(current_lang_texts["map_display_error"])
-                
                 # 지도 표시
                 if map_markers:
                     # 지도 중심 좌표 계산 (마커들의 평균)
                     center_lat = sum(m['lat'] for m in map_markers) / len(map_markers)
                     center_lng = sum(m['lng'] for m in map_markers) / len(map_markers)
                     
-                    # 지도 표시
+                    # 지도 표시 - daily_routes 파라미터 추가
                     show_google_map(
                         api_key=api_key,
                         center_lat=center_lat,
@@ -2926,8 +3106,12 @@ def show_course_page():
                         markers=map_markers,
                         zoom=12,
                         height=500,
-                        language=st.session_state.language
+                        language=st.session_state.language,
+                        daily_routes=daily_routes,  # 일별 경로 데이터 전달
+                        transport_mode=transport_mode  # 교통 수단 정보 전달
                     )
+                else:
+                    st.warning("Error!!")
                 
                 # 일정 저장 버튼
                 if st.button(current_lang_texts["save_course_button"], use_container_width=True):
@@ -2956,8 +3140,6 @@ def show_course_page():
                     save_session_data()  # 세션 데이터 저장
                     
                     st.success(current_lang_texts["course_saved_success"])
-    
-
 
 
 def show_history_page():
@@ -3133,6 +3315,35 @@ def show_history_page():
             st.success(current_lang_texts["sample_data_success"].format(total_xp=total_xp))
             st.rerun()
 
+
+def show_congestion_page():
+    """서울시 혼잡도 지도 페이지 표시"""
+
+    # 언어 설정에 따른 텍스트 가져오기
+    current_lang_texts = st.session_state.texts[st.session_state.language]
+
+    page_header(current_lang_texts["congestion_map_title"])
+
+    if st.button(current_lang_texts["map_back_to_menu"]):
+        change_page("menu")
+        st.rerun()
+
+    st.info(current_lang_texts["congestion_map_description"])
+
+    # 서울시 혼잡도 지도 iframe 코드
+    iframe_code = """
+    <div style="position: relative; width: 100%; padding-bottom: 63.6%; height: 0; overflow: hidden;">
+      <iframe src="https://data.seoul.go.kr/SeoulRtd/map"
+        style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;"
+        allowfullscreen="" loading="lazy"></iframe>
+    </div>
+    """
+    st.components.v1.html(iframe_code, height=700)
+
+    st.markdown(
+        f"[👉 {current_lang_texts['congestion_map_link_text']}](https://data.seoul.go.kr/SeoulRtd/map)"
+    )
+
 #################################################
 # 메인 앱 로직
 #################################################
@@ -3170,6 +3381,8 @@ def main():
         show_course_page()
     elif st.session_state.current_page == "history":
         show_history_page()
+    elif st.session_state.current_page == "congestion":
+        show_congestion_page()
     else:
         show_menu_page()  # 기본값
 
