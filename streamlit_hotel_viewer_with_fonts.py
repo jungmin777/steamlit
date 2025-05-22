@@ -1900,12 +1900,11 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
 
     
     return html
-            
 
 
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
                    navigation_mode=False, start_location=None, end_location=None, transport_mode=None, daily_routes=None):
-    
+    """Google Maps 컴포넌트 표시 - 내비게이션 기능 추가"""
     # 언어 코드 변환
     lang_code = LANGUAGE_CODES.get(language, "ko")
     
@@ -1938,8 +1937,40 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
         return True
         
     except Exception as e:
-        st.error(f"지도 표시 중 오류가 발생했습니다: {e}")
-        return False
+        st.error(f"지도 렌더링 오류: {str(e)}")
+        st.error("지도 로딩에 실패했습니다. 아래 대체 옵션을 사용해보세요.")
+        
+        # 대체 지도 옵션: folium 사용
+        try:
+            import folium
+            from streamlit_folium import folium_static
+            
+            st.info("대체 지도를 로드합니다...")
+            m = folium.Map(location=[center_lat, center_lng], zoom_start=zoom)
+            
+            # 마커 추가
+            if markers:
+                for marker in markers:
+                    folium.Marker(
+                        [marker['lat'], marker['lng']], 
+                        popup=marker.get('title', ''),
+                        tooltip=marker.get('title', ''),
+                        icon=folium.Icon(color=marker.get('color', 'red'))
+                    ).add_to(m)
+            
+            # folium 지도 표시
+            folium_static(m)
+            return True
+            
+        except Exception as e2:
+            st.error(f"대체 지도 로딩도 실패했습니다: {str(e2)}")
+            
+            # 비상용 텍스트 지도 표시
+            st.warning("텍스트 기반 위치 정보:")
+            if markers:
+                for i, marker in enumerate(markers[:10]):  # 상위 10개만
+                    st.text(f"{i+1}. {marker.get('title', '무제')} - 좌표: ({marker['lat']}, {marker['lng']})")
+            return False
 
 
 def display_visits(visits, current_lang_texts):
@@ -3099,8 +3130,6 @@ def show_map_page():
                         st.session_state.transport_mode = None
                         st.rerun()
                     
-
-
 def show_course_page():
     """개선된 관광 코스 추천 페이지"""
     # 언어 설정에 따른 텍스트 가져오기
@@ -3383,7 +3412,6 @@ def show_course_page():
                     save_session_data()  # 세션 데이터 저장
                     
                     st.success(current_lang_texts["course_saved_success"])
-
 
 
 def show_history_page():
