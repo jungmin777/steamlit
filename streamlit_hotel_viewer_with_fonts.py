@@ -1905,7 +1905,7 @@ def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=
 
 def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, height=600, language="한국어", 
                    navigation_mode=False, start_location=None, end_location=None, transport_mode=None, daily_routes=None):
-    """Google Maps 컴포넌트 표시 - 내비게이션 기능 추가"""
+    
     # 언어 코드 변환
     lang_code = LANGUAGE_CODES.get(language, "ko")
     
@@ -1936,6 +1936,10 @@ def show_google_map(api_key, center_lat, center_lng, markers=None, zoom=13, heig
         # HTML 컴포넌트로 표시
         st.components.v1.html(map_html, height=height, scrolling=False)
         return True
+        
+    except Exception as e:
+        st.error(f"지도 표시 중 오류가 발생했습니다: {e}")
+        return False
 
 
 def display_visits(visits, current_lang_texts):
