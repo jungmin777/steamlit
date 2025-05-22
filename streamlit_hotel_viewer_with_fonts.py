@@ -1184,7 +1184,7 @@ def build_info_html(row, name, address, category):
     return info
     
 def create_google_maps_html(api_key, center_lat, center_lng, markers=None, zoom=13, language="ko", 
-                           navigation_mode=False, start_location=None, end_location=None, transport_mode=None):
+                           navigation_mode=False, start_location=None, end_location=None, transport_mode=None, daily_routes=None):
     """Google Maps HTML 생성 - 내비게이션 기능 추가 및 수정"""
     if markers is None:
         markers = []
