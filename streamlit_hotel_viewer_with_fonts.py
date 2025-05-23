@@ -1906,6 +1906,464 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
 
     return recommended_places, course_type, daily_courses
 
+
+
+
+
+
+
+
+
+def create_course_route_html(api_key, daily_courses, language="ko"):
+    """
+    Google Maps Directions API를 사용하여 일별 경로를 표시하는 HTML 생성
+    각 날짜별로 탭으로 구분하여 표시
+    """
+    # 언어 코드 변환
+    lang_code = LANGUAGE_CODES.get(language, "ko")
+    
+    # 색상 팔레트
+    route_colors = ['#FF0000', '#0000FF', '#00FF00', '#FF00FF', '#00FFFF', '#FFFF00', '#FF8800']
+    
+    # 일별 경로 JavaScript 생성
+    routes_js = []
+    tab_headers = []
+    tab_contents = []
+    
+    for day_idx, day_course in enumerate(daily_courses):
+        if not day_course or len(day_course) < 2:
+            continue
+        
+        day_num = day_idx + 1
+        route_color = route_colors[day_idx % len(route_colors)]
+        
+        # 탭 헤더
+        tab_headers.append(f'<button class="tablink" onclick="openDay(event, \'Day{day_num}\')" {"id=\'defaultOpen\'" if day_idx == 0 else ""}>Day {day_num}</button>')
+        
+        # 경유지 준비
+        waypoints = []
+        if len(day_course) > 2:
+            for place in day_course[1:-1]:
+                waypoints.append({
+                    'location': {'lat': place['lat'], 'lng': place['lng']},
+                    'stopover': True
+                })
+        
+        # 이 날의 경로 JavaScript
+        route_js = f"""
+        function showDay{day_num}Route() {{
+            // 기존 경로 지우기
+            if (window.currentDirectionsRenderer) {{
+                window.currentDirectionsRenderer.setMap(null);
+            }}
+            
+            const directionsService = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer({{
+                suppressMarkers: false,
+                polylineOptions: {{
+                    strokeColor: '{route_color}',
+                    strokeWeight: 5,
+                    strokeOpacity: 0.8
+                }},
+                panel: document.getElementById('directions-panel-{day_num}')
+            }});
+            
+            directionsRenderer.setMap(map);
+            window.currentDirectionsRenderer = directionsRenderer;
+            
+            const waypoints = {json.dumps(waypoints)};
+            
+            const request = {{
+                origin: {{lat: {day_course[0]['lat']}, lng: {day_course[0]['lng']}}},
+                destination: {{lat: {day_course[-1]['lat']}, lng: {day_course[-1]['lng']}}},
+                waypoints: waypoints,
+                optimizeWaypoints: false,
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+                language: '{lang_code}'
+            }};
+            
+            directionsService.route(request, (result, status) => {{
+                if (status === 'OK') {{
+                    directionsRenderer.setDirections(result);
+                    
+                    // 경로 정보 표시
+                    let totalDistance = 0;
+                    let totalDuration = 0;
+                    
+                    result.routes[0].legs.forEach(leg => {{
+                        totalDistance += leg.distance.value;
+                        totalDuration += leg.duration.value;
+                    }});
+                    
+                    const infoDiv = document.getElementById('route-info-{day_num}');
+                    infoDiv.innerHTML = `
+                        <h3>Day {day_num} 경로 정보</h3>
+                        <p>총 거리: ${{(totalDistance / 1000).toFixed(1)}} km</p>
+                        <p>예상 시간: ${{Math.round(totalDuration / 60)}} 분</p>
+                        <h4>방문 장소:</h4>
+                        <ol>
+                            {"".join([f"<li>{place['title']}</li>" for place in day_course])}
+                        </ol>
+                    `;
+                    
+                    // 지도 중심과 줌 조정
+                    const bounds = new google.maps.LatLngBounds();
+                    result.routes[0].overview_path.forEach(point => {{
+                        bounds.extend(point);
+                    }});
+                    map.fitBounds(bounds);
+                    
+                }} else {{
+                    console.error('Directions request failed:', status);
+                    alert('경로를 표시할 수 없습니다: ' + status);
+                }}
+            }});
+        }}
+        """
+        
+        routes_js.append(route_js)
+        
+        # 탭 컨텐츠
+        tab_content = f"""
+        <div id="Day{day_num}" class="tabcontent">
+            <div class="day-content">
+                <div id="route-info-{day_num}" class="route-info"></div>
+                <div id="directions-panel-{day_num}" class="directions-panel"></div>
+            </div>
+        </div>
+        """
+        tab_contents.append(tab_content)
+    
+    # HTML 템플릿
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Course Route Map</title>
+        <style>
+            html, body {{
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+            }}
+            
+            .container {{
+                display: flex;
+                height: 100%;
+            }}
+            
+            #map {{
+                flex: 2;
+                height: 100%;
+            }}
+            
+            .sidebar {{
+                flex: 1;
+                background: #f5f5f5;
+                overflow-y: auto;
+                min-width: 300px;
+                max-width: 400px;
+            }}
+            
+            .tab {{
+                overflow: hidden;
+                border: 1px solid #ccc;
+                background-color: #f1f1f1;
+            }}
+            
+            .tab button {{
+                background-color: inherit;
+                float: left;
+                border: none;
+                outline: none;
+                cursor: pointer;
+                padding: 14px 16px;
+                transition: 0.3s;
+                font-size: 16px;
+                width: 33.33%;
+            }}
+            
+            .tab button:hover {{
+                background-color: #ddd;
+            }}
+            
+            .tab button.active {{
+                background-color: #1976D2;
+                color: white;
+            }}
+            
+            .tabcontent {{
+                display: none;
+                padding: 12px;
+                border: 1px solid #ccc;
+                border-top: none;
+                height: calc(100% - 50px);
+                overflow-y: auto;
+            }}
+            
+            .route-info {{
+                background: white;
+                padding: 15px;
+                margin-bottom: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }}
+            
+            .route-info h3 {{
+                margin-top: 0;
+                color: #1976D2;
+            }}
+            
+            .route-info ol {{
+                margin: 10px 0;
+                padding-left: 20px;
+            }}
+            
+            .directions-panel {{
+                background: white;
+                padding: 15px;
+                border-radius: 5px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }}
+            
+            .adp-placemark {{
+                margin: 10px 0;
+                padding: 10px;
+                background: #f9f9f9;
+                border-left: 3px solid #1976D2;
+            }}
+            
+            @media (max-width: 768px) {{
+                .container {{
+                    flex-direction: column;
+                }}
+                
+                #map {{
+                    height: 60%;
+                }}
+                
+                .sidebar {{
+                    height: 40%;
+                    max-width: 100%;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div id="map"></div>
+            <div class="sidebar">
+                <div class="tab">
+                    {''.join(tab_headers)}
+                </div>
+                {''.join(tab_contents)}
+            </div>
+        </div>
+        
+        <script>
+            let map;
+            window.currentDirectionsRenderer = null;
+            
+            function initMap() {{
+                // 서울 중심 좌표
+                const seoul = {{lat: 37.5665, lng: 126.9780}};
+                
+                map = new google.maps.Map(document.getElementById('map'), {{
+                    zoom: 11,
+                    center: seoul,
+                    mapTypeControl: true,
+                    fullscreenControl: true,
+                    streetViewControl: false
+                }});
+                
+                // 경로 표시 함수들
+                {''.join(routes_js)}
+                
+                // 첫 번째 탭 자동으로 열기
+                document.getElementById("defaultOpen").click();
+            }}
+            
+            function openDay(evt, dayName) {{
+                var i, tabcontent, tablinks;
+                
+                // 모든 탭 컨텐츠 숨기기
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {{
+                    tabcontent[i].style.display = "none";
+                }}
+                
+                // 모든 탭 버튼의 active 클래스 제거
+                tablinks = document.getElementsByClassName("tablink");
+                for (i = 0; i < tablinks.length; i++) {{
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }}
+                
+                // 선택된 탭 표시 및 active 클래스 추가
+                document.getElementById(dayName).style.display = "block";
+                evt.currentTarget.className += " active";
+                
+                // 해당 날짜의 경로 표시
+                const dayNum = dayName.replace('Day', '');
+                if (window['showDay' + dayNum + 'Route']) {{
+                    window['showDay' + dayNum + 'Route']();
+                }}
+            }}
+        </script>
+        
+        <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=places&language={lang_code}">
+        </script>
+    </body>
+    </html>
+    """
+    
+    return html
+
+
+def show_course_route_map(api_key, daily_courses, height=700, language="한국어"):
+    """
+    코스 경로를 표시하는 지도 컴포넌트
+    """
+    try:
+        if not daily_courses or not any(daily_courses):
+            st.warning("표시할 코스 데이터가 없습니다.")
+            return False
+        
+        # HTML 생성
+        route_html = create_course_route_html(
+            api_key=api_key,
+            daily_courses=daily_courses,
+            language=language
+        )
+        
+        # Streamlit 컴포넌트로 표시
+        st.components.v1.html(route_html, height=height, scrolling=False)
+        
+        return True
+        
+    except Exception as e:
+        st.error(f"경로 지도 표시 오류: {str(e)}")
+        return False
+
+
+def create_simple_route_map(api_key, places, day_num, language="ko"):
+    """
+    단일 날짜의 경로를 표시하는 간단한 지도 HTML 생성
+    """
+    if not places or len(places) < 2:
+        return "<div>경로를 표시하기에 충분한 장소가 없습니다.</div>"
+    
+    # 지도 중심 계산
+    center_lat = sum(p['lat'] for p in places) / len(places)
+    center_lng = sum(p['lng'] for p in places) / len(places)
+    
+    # 경유지 준비
+    waypoints = []
+    if len(places) > 2:
+        for place in places[1:-1]:
+            waypoints.append(f"{{location: {{lat: {place['lat']}, lng: {place['lng']}}}, stopover: true}}")
+    
+    waypoints_str = "[" + ", ".join(waypoints) + "]" if waypoints else "[]"
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Day {day_num} Route</title>
+        <style>
+            html, body, #map {{ height: 100%; margin: 0; padding: 0; }}
+            #info {{
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background: white;
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                z-index: 5;
+                max-width: 300px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div id="info">
+            <h3>Day {day_num} 경로</h3>
+            <ol id="places-list">
+                {"".join([f"<li>{place['title']}</li>" for place in places])}
+            </ol>
+            <div id="route-stats"></div>
+        </div>
+        
+        <script>
+            function initMap() {{
+                const map = new google.maps.Map(document.getElementById('map'), {{
+                    zoom: 12,
+                    center: {{lat: {center_lat}, lng: {center_lng}}}
+                }});
+                
+                const directionsService = new google.maps.DirectionsService();
+                const directionsRenderer = new google.maps.DirectionsRenderer({{
+                    polylineOptions: {{
+                        strokeColor: '#1976D2',
+                        strokeWeight: 5
+                    }}
+                }});
+                
+                directionsRenderer.setMap(map);
+                
+                const request = {{
+                    origin: {{lat: {places[0]['lat']}, lng: {places[0]['lng']}}},
+                    destination: {{lat: {places[-1]['lat']}, lng: {places[-1]['lng']}}},
+                    waypoints: {waypoints_str},
+                    travelMode: google.maps.TravelMode.DRIVING
+                }};
+                
+                directionsService.route(request, (result, status) => {{
+                    if (status === 'OK') {{
+                        directionsRenderer.setDirections(result);
+                        
+                        // 경로 통계 표시
+                        let totalDistance = 0;
+                        let totalDuration = 0;
+                        result.routes[0].legs.forEach(leg => {{
+                            totalDistance += leg.distance.value;
+                            totalDuration += leg.duration.value;
+                        }});
+                        
+                        document.getElementById('route-stats').innerHTML = 
+                            `<p>총 거리: ${{(totalDistance/1000).toFixed(1)}}km<br>
+                             예상 시간: ${{Math.round(totalDuration/60)}}분</p>`;
+                    }}
+                }});
+            }}
+        </script>
+        <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap">
+        </script>
+    </body>
+    </html>
+    """
+    
+    return html
+
+
+
+
+
+
+
+
+
+
+
+
+
 #################################################
 # 페이지 함수
 #################################################
@@ -3509,20 +3967,19 @@ def show_course_page():
                     if api_key:
                         st.session_state.google_maps_api_key = api_key
                 
-                # 지도 표시
+                # 지도 표시 - 새로운 함수 사용
                 if daily_courses and any(daily_courses):
-                    # 새로운 Directions API 기반 지도 표시
-                    success = show_course_map_with_routes(
+                    # 새로운 경로 표시 함수 사용
+                    success = show_course_route_map(
                         api_key=api_key,
                         daily_courses=daily_courses,
-                        transport_mode=transport_mode,
-                        height=500,
+                        height=700,
                         language=st.session_state.language
                     )
                     
                     if success:
-                        # 코스 경로 정보 표시
-                        st.markdown("### 📊 Route Information")
+                        # 코스 요약 정보 표시
+                        st.markdown("### 📊 코스 요약")
                         route_info = calculate_course_route_info(daily_courses, transport_mode)
                         
                         if route_info:
@@ -3532,9 +3989,26 @@ def show_course_page():
                                     st.metric(
                                         f"Day {info['day']}",
                                         f"{info['total_distance_km']} km",
-                                        f"~{info['total_time_minutes']:.0f} min"
+                                        f"약 {info['total_time_minutes']:.0f}분"
                                     )
-                                    st.caption(f"{info['places_count']} places")
+                                    st.caption(f"{info['places_count']}개 장소")
+                        
+                        # 일별 경로를 개별적으로도 표시할 수 있는 옵션
+                        with st.expander("일별 경로 개별 보기", expanded=False):
+                            for day_idx, day_course in enumerate(daily_courses):
+                                if day_course and len(day_course) >= 2:
+                                    st.markdown(f"#### Day {day_idx + 1}")
+                                    
+                                    # 간단한 개별 지도 표시
+                                    simple_map_html = create_simple_route_map(
+                                        api_key=api_key,
+                                        places=day_course,
+                                        day_num=day_idx + 1,
+                                        language=LANGUAGE_CODES.get(st.session_state.language, "ko")
+                                    )
+                                    
+                                    st.components.v1.html(simple_map_html, height=400, scrolling=False)
+                                    st.markdown("---")
                 else:
                     st.warning(current_lang_texts.get("map_display_error", "코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다."))
                 
