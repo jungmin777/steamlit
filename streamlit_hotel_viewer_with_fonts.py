@@ -1917,6 +1917,7 @@ def recommend_courses(data, travel_styles, num_days, include_children=False):
 def create_course_route_html(api_key, daily_courses, language="ko"):
     """
     Google Maps Directions API를 사용하여 일별 경로를 표시하는 HTML 생성
+    마커를 먼저 표시하고, 경로는 선택적으로 표시
     """
     import json
     
@@ -1925,6 +1926,7 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
     
     # 색상 팔레트
     route_colors = ['#FF0000', '#0000FF', '#00FF00', '#FF00FF', '#00FFFF', '#FFFF00', '#FF8800']
+    marker_colors = ['red', 'blue', 'green', 'purple', 'orange', 'yellow', 'pink']
     
     # 모든 장소의 중심점 계산
     all_places = []
@@ -1986,7 +1988,7 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
                 padding: 14px 16px;
                 transition: 0.3s;
                 font-size: 16px;
-                width: 33.33%;
+                width: {100/len(daily_courses):.1f}%;
             }}
             
             .tab button:hover {{
@@ -2025,11 +2027,26 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
                 padding-left: 20px;
             }}
             
-            .directions-panel {{
-                background: white;
-                padding: 15px;
-                border-radius: 5px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            .error-msg {{
+                color: #d32f2f;
+                padding: 10px;
+                background: #ffebee;
+                border-radius: 4px;
+                margin: 10px 0;
+            }}
+            
+            .control-btn {{
+                background: #1976D2;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin: 5px;
+            }}
+            
+            .control-btn:hover {{
+                background: #1565C0;
             }}
         </style>
     </head>
@@ -2056,8 +2073,14 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
             day_num = day_idx + 1
             html += f"""
                 <div id="Day{day_num}" class="tabcontent">
-                    <div id="route-info-{day_num}" class="route-info"></div>
-                    <div id="directions-panel-{day_num}" class="directions-panel"></div>
+                    <div id="route-info-{day_num}" class="route-info">
+                        <h3>Day {day_num} 코스</h3>
+                        <button class="control-btn" onclick="showDay{day_num}Markers()">마커 표시</button>
+                        <button class="control-btn" onclick="showDay{day_num}Route()">경로 표시</button>
+                        <button class="control-btn" onclick="showDay{day_num}Polyline()">직선 연결</button>
+                    </div>
+                    <div id="places-list-{day_num}"></div>
+                    <div id="route-status-{day_num}"></div>
                 </div>
             """
     
@@ -2067,8 +2090,10 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
         
         <script>
             let map;
-            let directionsRenderers = {};
             let markers = [];
+            let directionsRenderers = {};
+            let polylines = {};
+            let infoWindows = [];
             
             function initMap() {
     """
@@ -2076,23 +2101,42 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
     html += f"""
                 // 지도 초기화
                 map = new google.maps.Map(document.getElementById('map'), {{
-                    zoom: 12,
+                    zoom: 11,
                     center: {{lat: {center_lat}, lng: {center_lng}}},
                     mapTypeControl: true,
                     fullscreenControl: true,
                     streetViewControl: false
                 }});
                 
-                console.log('Map initialized');
+                console.log('Map initialized at center:', {center_lat}, {center_lng});
     """
     
-    # 각 날짜별 경로 함수 생성
+    # 각 날짜별 마커 및 경로 함수 생성
     for day_idx, day_course in enumerate(daily_courses):
-        if not day_course or len(day_course) < 2:
+        if not day_course:
             continue
             
         day_num = day_idx + 1
         route_color = route_colors[day_idx % len(route_colors)]
+        marker_color = marker_colors[day_idx % len(marker_colors)]
+        
+        # 장소 목록 HTML
+        places_html = "<h4>방문 장소:</h4><ol>"
+        for place in day_course:
+            places_html += f"<li>{place['title']}<br><small>위도: {place['lat']:.6f}, 경도: {place['lng']:.6f}</small></li>"
+        places_html += "</ol>"
+        
+        # 마커 데이터 준비
+        markers_data = []
+        for i, place in enumerate(day_course):
+            markers_data.append({
+                'lat': place['lat'],
+                'lng': place['lng'],
+                'title': place['title'],
+                'label': str(i + 1)
+            })
+        
+        markers_json = json.dumps(markers_data)
         
         # 경유지 준비
         waypoints = []
@@ -2102,29 +2146,77 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
                     'location': {'lat': place['lat'], 'lng': place['lng']},
                     'stopover': True
                 })
-        
         waypoints_json = json.dumps(waypoints)
-        places_list = "<ol>" + "".join([f"<li>{place['title']}</li>" for place in day_course]) + "</ol>"
+        
+        # 폴리라인을 위한 경로 포인트
+        path_points = [{'lat': p['lat'], 'lng': p['lng']} for p in day_course]
+        path_json = json.dumps(path_points)
         
         html += f"""
-                // Day {day_num} 경로 함수
-                window.showDay{day_num}Route = function() {{
-                    console.log('Showing Day {day_num} route');
+                // Day {day_num} 마커 표시 함수
+                window.showDay{day_num}Markers = function() {{
+                    console.log('Showing Day {day_num} markers');
                     
-                    // 기존 경로 숨기기
-                    Object.values(directionsRenderers).forEach(renderer => {{
-                        if (renderer) renderer.setMap(null);
+                    // 모든 마커 제거
+                    clearAllMarkers();
+                    clearAllRoutes();
+                    
+                    // 장소 목록 표시
+                    document.getElementById('places-list-{day_num}').innerHTML = `{places_html}`;
+                    
+                    const markersData = {markers_json};
+                    const bounds = new google.maps.LatLngBounds();
+                    
+                    markersData.forEach((markerData, index) => {{
+                        const marker = new google.maps.Marker({{
+                            position: {{lat: markerData.lat, lng: markerData.lng}},
+                            map: map,
+                            title: markerData.title,
+                            label: markerData.label,
+                            icon: 'https://maps.google.com/mapfiles/ms/icons/{marker_color}-dot.png'
+                        }});
+                        
+                        const infoWindow = new google.maps.InfoWindow({{
+                            content: `<div style="padding: 10px;">
+                                <h4>${{markerData.label}}. ${{markerData.title}}</h4>
+                                <p>위도: ${{markerData.lat.toFixed(6)}}<br>
+                                경도: ${{markerData.lng.toFixed(6)}}</p>
+                            </div>`
+                        }});
+                        
+                        marker.addListener('click', () => {{
+                            infoWindows.forEach(iw => iw.close());
+                            infoWindow.open(map, marker);
+                        }});
+                        
+                        markers.push(marker);
+                        infoWindows.push(infoWindow);
+                        bounds.extend(marker.getPosition());
                     }});
+                    
+                    map.fitBounds(bounds);
+                    document.getElementById('route-status-{day_num}').innerHTML = 
+                        '<p style="color: green;">✓ {len(day_course)}개 마커 표시됨</p>';
+                }};
+                
+                // Day {day_num} 경로 표시 함수
+                window.showDay{day_num}Route = function() {{
+                    console.log('Trying to show Day {day_num} route');
+                    
+                    // 기존 표시 제거
+                    clearAllMarkers();
+                    clearAllRoutes();
+                    
+                    showDay{day_num}Markers(); // 먼저 마커 표시
                     
                     if (!directionsRenderers[{day_num}]) {{
                         directionsRenderers[{day_num}] = new google.maps.DirectionsRenderer({{
-                            suppressMarkers: false,
+                            suppressMarkers: true, // 마커는 이미 표시했으므로
                             polylineOptions: {{
                                 strokeColor: '{route_color}',
                                 strokeWeight: 5,
                                 strokeOpacity: 0.8
-                            }},
-                            panel: document.getElementById('directions-panel-{day_num}')
+                            }}
                         }});
                     }}
                     
@@ -2140,13 +2232,15 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
                         optimizeWaypoints: false,
                         travelMode: google.maps.TravelMode.DRIVING,
                         unitSystem: google.maps.UnitSystem.METRIC,
+                        region: 'KR', // 한국 지역 명시
                         language: '{lang_code}'
                     }};
                     
-                    console.log('Direction request:', request);
+                    document.getElementById('route-status-{day_num}').innerHTML = 
+                        '<p style="color: blue;">경로 검색 중...</p>';
                     
                     directionsService.route(request, (result, status) => {{
-                        console.log('Direction response status:', status);
+                        console.log('Direction response for Day {day_num}:', status);
                         if (status === 'OK') {{
                             directionsRenderers[{day_num}].setDirections(result);
                             
@@ -2159,34 +2253,101 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
                                 totalDuration += leg.duration.value;
                             }});
                             
-                            // 정보 표시
-                            document.getElementById('route-info-{day_num}').innerHTML = `
-                                <h3>Day {day_num} 경로 정보</h3>
-                                <p>총 거리: ${{(totalDistance / 1000).toFixed(1)}} km</p>
-                                <p>예상 시간: ${{Math.round(totalDuration / 60)}} 분</p>
-                                <h4>방문 장소:</h4>
-                                {places_list}
-                            `;
-                            
-                            // 지도 중심 조정
-                            const bounds = new google.maps.LatLngBounds();
-                            result.routes[0].overview_path.forEach(point => {{
-                                bounds.extend(point);
-                            }});
-                            map.fitBounds(bounds);
-                            
+                            document.getElementById('route-status-{day_num}').innerHTML = 
+                                `<p style="color: green;">✓ 경로 표시 완료<br>
+                                총 거리: ${{(totalDistance / 1000).toFixed(1)}} km<br>
+                                예상 시간: ${{Math.round(totalDuration / 60)}} 분</p>`;
+                                
                         }} else {{
                             console.error('Directions request failed:', status);
-                            document.getElementById('route-info-{day_num}').innerHTML = 
-                                '<p style="color: red;">경로를 표시할 수 없습니다: ' + status + '</p>';
+                            let errorMsg = '경로를 찾을 수 없습니다: ' + status;
+                            if (status === 'ZERO_RESULTS') {{
+                                errorMsg = '이 장소들 간의 자동차 경로를 찾을 수 없습니다. 직선 연결을 시도해보세요.';
+                            }}
+                            document.getElementById('route-status-{day_num}').innerHTML = 
+                                `<div class="error-msg">${{errorMsg}}</div>`;
                         }}
                     }});
+                }};
+                
+                // Day {day_num} 직선 연결 함수
+                window.showDay{day_num}Polyline = function() {{
+                    console.log('Showing Day {day_num} polyline');
+                    
+                    // 기존 표시 제거
+                    clearAllMarkers();
+                    clearAllRoutes();
+                    
+                    showDay{day_num}Markers(); // 먼저 마커 표시
+                    
+                    const path = {path_json};
+                    
+                    polylines[{day_num}] = new google.maps.Polyline({{
+                        path: path,
+                        geodesic: true,
+                        strokeColor: '{route_color}',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 4
+                    }});
+                    
+                    polylines[{day_num}].setMap(map);
+                    
+                    // 거리 계산
+                    let totalDistance = 0;
+                    for (let i = 0; i < path.length - 1; i++) {{
+                        const lat1 = path[i].lat;
+                        const lng1 = path[i].lng;
+                        const lat2 = path[i + 1].lat;
+                        const lng2 = path[i + 1].lng;
+                        
+                        totalDistance += getDistanceFromLatLonInKm(lat1, lng1, lat2, lng2);
+                    }}
+                    
+                    document.getElementById('route-status-{day_num}').innerHTML = 
+                        `<p style="color: green;">✓ 직선 경로 표시됨<br>
+                        직선 거리: ${{totalDistance.toFixed(1)}} km</p>`;
                 }};
         """
     
     html += """
             }
             
+            // 거리 계산 함수
+            function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+                const R = 6371; // 지구 반경 (km)
+                const dLat = deg2rad(lat2 - lat1);
+                const dLon = deg2rad(lon2 - lon1);
+                const a = 
+                    Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+            
+            function deg2rad(deg) {
+                return deg * (Math.PI/180);
+            }
+            
+            // 모든 마커 제거
+            function clearAllMarkers() {
+                markers.forEach(marker => marker.setMap(null));
+                markers = [];
+                infoWindows.forEach(iw => iw.close());
+                infoWindows = [];
+            }
+            
+            // 모든 경로 제거
+            function clearAllRoutes() {
+                Object.values(directionsRenderers).forEach(renderer => {
+                    if (renderer) renderer.setMap(null);
+                });
+                Object.values(polylines).forEach(polyline => {
+                    if (polyline) polyline.setMap(null);
+                });
+            }
+            
+            // 탭 전환 함수
             function openDay(evt, dayName) {
                 console.log('Opening tab:', dayName);
                 
@@ -2206,11 +2367,11 @@ def create_course_route_html(api_key, daily_courses, language="ko"):
                 document.getElementById(dayName).style.display = "block";
                 evt.currentTarget.className += " active";
                 
-                // 해당 날짜의 경로 표시
+                // 해당 날짜의 마커 표시
                 const dayNum = dayName.replace('Day', '');
-                const routeFunction = window['showDay' + dayNum + 'Route'];
-                if (routeFunction) {
-                    routeFunction();
+                const markerFunction = window['showDay' + dayNum + 'Markers'];
+                if (markerFunction) {
+                    markerFunction();
                 }
             }
             
@@ -2262,11 +2423,14 @@ def show_course_route_map(api_key, daily_courses, height=700, language="한국�
         # Streamlit 컴포넌트로 표시
         st.components.v1.html(route_html, height=height, scrolling=False)
         
-        # 디버깅 정보
-        st.info(f"총 {len(valid_courses)}일의 경로를 표시합니다.")
-        for i, course in enumerate(valid_courses):
-            places = " → ".join([p['title'] for p in course])
-            st.caption(f"Day {i+1}: {places}")
+        # 사용 안내
+        st.info("""
+        💡 사용 방법:
+        1. 각 Day 탭을 클릭하여 날짜별 코스를 확인하세요.
+        2. '마커 표시' - 방문할 장소들을 지도에 표시합니다.
+        3. '경로 표시' - 실제 도로를 따라가는 경로를 표시합니다. (경로를 찾을 수 없는 경우가 있습니다)
+        4. '직선 연결' - 장소들을 직선으로 연결하여 순서를 확인합니다.
+        """)
         
         return True
         
@@ -2290,16 +2454,18 @@ def create_simple_route_map(api_key, places, day_num, language="ko"):
     center_lat = sum(p['lat'] for p in places) / len(places)
     center_lng = sum(p['lng'] for p in places) / len(places)
     
-    # 경유지 준비
-    waypoints = []
-    if len(places) > 2:
-        for place in places[1:-1]:
-            waypoints.append({
-                'location': {'lat': place['lat'], 'lng': place['lng']},
-                'stopover': True
-            })
+    # 마커 데이터
+    markers_data = []
+    for i, place in enumerate(places):
+        markers_data.append({
+            'lat': place['lat'],
+            'lng': place['lng'],
+            'title': place['title'],
+            'label': str(i + 1)
+        })
     
-    waypoints_json = json.dumps(waypoints)
+    markers_json = json.dumps(markers_data)
+    path_json = json.dumps([{'lat': p['lat'], 'lng': p['lng']} for p in places])
     
     html = f"""
     <!DOCTYPE html>
@@ -2314,11 +2480,24 @@ def create_simple_route_map(api_key, places, day_num, language="ko"):
                 top: 10px;
                 left: 10px;
                 background: white;
-                padding: 10px;
+                padding: 15px;
                 border-radius: 5px;
                 box-shadow: 0 2px 6px rgba(0,0,0,.3);
                 z-index: 5;
-                max-width: 300px;
+                max-width: 350px;
+            }}
+            .control-btn {{
+                background: #1976D2;
+                color: white;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin: 2px;
+                font-size: 12px;
+            }}
+            .control-btn:hover {{
+                background: #1565C0;
             }}
         </style>
     </head>
@@ -2326,6 +2505,11 @@ def create_simple_route_map(api_key, places, day_num, language="ko"):
         <div id="map"></div>
         <div id="info">
             <h3>Day {day_num} 경로</h3>
+            <div>
+                <button class="control-btn" onclick="showMarkers()">마커만</button>
+                <button class="control-btn" onclick="showRoute()">도로 경로</button>
+                <button class="control-btn" onclick="showPolyline()">직선 경로</button>
+            </div>
             <ol id="places-list">
                 {"".join([f"<li>{place['title']}</li>" for place in places])}
             </ol>
@@ -2333,41 +2517,84 @@ def create_simple_route_map(api_key, places, day_num, language="ko"):
         </div>
         
         <script>
+            let map;
+            let markers = [];
+            let directionsRenderer = null;
+            let polyline = null;
+            
             function initMap() {{
-                console.log('Initializing map for Day {day_num}');
+                console.log('Initializing simple map for Day {day_num}');
                 
-                const map = new google.maps.Map(document.getElementById('map'), {{
+                map = new google.maps.Map(document.getElementById('map'), {{
                     zoom: 12,
                     center: {{lat: {center_lat}, lng: {center_lng}}}
                 }});
                 
+                // 시작 시 마커 표시
+                showMarkers();
+            }}
+            
+            function showMarkers() {{
+                clearAll();
+                
+                const markersData = {markers_json};
+                const bounds = new google.maps.LatLngBounds();
+                
+                markersData.forEach((markerData) => {{
+                    const marker = new google.maps.Marker({{
+                        position: {{lat: markerData.lat, lng: markerData.lng}},
+                        map: map,
+                        title: markerData.title,
+                        label: markerData.label
+                    }});
+                    
+                    markers.push(marker);
+                    bounds.extend(marker.getPosition());
+                }});
+                
+                map.fitBounds(bounds);
+                document.getElementById('route-stats').innerHTML = 
+                    '<p style="color: green;">✓ 마커 표시됨</p>';
+            }}
+            
+            function showRoute() {{
+                clearAll();
+                showMarkers();
+                
                 const directionsService = new google.maps.DirectionsService();
-                const directionsRenderer = new google.maps.DirectionsRenderer({{
-                    polylineOptions: {{
-                        strokeColor: '#1976D2',
-                        strokeWeight: 5
-                    }}
+                directionsRenderer = new google.maps.DirectionsRenderer({{
+                    suppressMarkers: true
                 }});
                 
                 directionsRenderer.setMap(map);
                 
-                const waypoints = {waypoints_json};
+                const waypoints = [];
+                const markersData = {markers_json};
+                
+                if (markersData.length > 2) {{
+                    for (let i = 1; i < markersData.length - 1; i++) {{
+                        waypoints.push({{
+                            location: {{lat: markersData[i].lat, lng: markersData[i].lng}},
+                            stopover: true
+                        }});
+                    }}
+                }}
                 
                 const request = {{
-                    origin: {{lat: {places[0]['lat']}, lng: {places[0]['lng']}}},
-                    destination: {{lat: {places[-1]['lat']}, lng: {places[-1]['lng']}}},
+                    origin: {{lat: markersData[0].lat, lng: markersData[0].lng}},
+                    destination: {{lat: markersData[markersData.length-1].lat, lng: markersData[markersData.length-1].lng}},
                     waypoints: waypoints,
-                    travelMode: google.maps.TravelMode.DRIVING
+                    travelMode: google.maps.TravelMode.DRIVING,
+                    region: 'KR'
                 }};
                 
-                console.log('Direction request:', request);
+                document.getElementById('route-stats').innerHTML = 
+                    '<p style="color: blue;">경로 검색 중...</p>';
                 
                 directionsService.route(request, (result, status) => {{
-                    console.log('Direction response:', status);
                     if (status === 'OK') {{
                         directionsRenderer.setDirections(result);
                         
-                        // 경로 통계 표시
                         let totalDistance = 0;
                         let totalDuration = 0;
                         result.routes[0].legs.forEach(leg => {{
@@ -2376,14 +2603,60 @@ def create_simple_route_map(api_key, places, day_num, language="ko"):
                         }});
                         
                         document.getElementById('route-stats').innerHTML = 
-                            `<p>총 거리: ${{(totalDistance/1000).toFixed(1)}}km<br>
-                             예상 시간: ${{Math.round(totalDuration/60)}}분</p>`;
+                            `<p style="color: green;">✓ 도로 경로<br>
+                            거리: ${{(totalDistance/1000).toFixed(1)}}km<br>
+                            시간: ${{Math.round(totalDuration/60)}}분</p>`;
                     }} else {{
-                        console.error('Directions request failed:', status);
                         document.getElementById('route-stats').innerHTML = 
-                            '<p style="color: red;">경로를 표시할 수 없습니다.</p>';
+                            '<p style="color: red;">도로 경로를 찾을 수 없습니다</p>';
                     }}
                 }});
+            }}
+            
+            function showPolyline() {{
+                clearAll();
+                showMarkers();
+                
+                const path = {path_json};
+                
+                polyline = new google.maps.Polyline({{
+                    path: path,
+                    geodesic: true,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3
+                }});
+                
+                polyline.setMap(map);
+                
+                // 직선 거리 계산
+                let totalDistance = 0;
+                for (let i = 0; i < path.length - 1; i++) {{
+                    const lat1 = path[i].lat;
+                    const lng1 = path[i].lng;
+                    const lat2 = path[i + 1].lat;
+                    const lng2 = path[i + 1].lng;
+                    
+                    const R = 6371;
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lng2 - lng1) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    totalDistance += R * c;
+                }}
+                
+                document.getElementById('route-stats').innerHTML = 
+                    `<p style="color: green;">✓ 직선 경로<br>
+                    거리: ${{totalDistance.toFixed(1)}}km</p>`;
+            }}
+            
+            function clearAll() {{
+                markers.forEach(m => m.setMap(null));
+                markers = [];
+                if (directionsRenderer) directionsRenderer.setMap(null);
+                if (polyline) polyline.setMap(null);
             }}
         </script>
         <script async defer
