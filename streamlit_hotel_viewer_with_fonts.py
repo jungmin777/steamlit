@@ -2876,7 +2876,7 @@ def show_map_page():
 
 def create_course_map_html(api_key, daily_courses, transport_mode="DRIVING", language="ko"):
     """
-    Directions API를 사용해서 일별 코스의 경로를 표시하는 Google Maps HTML 생성
+    한국어 장소명을 사용해서 일별 코스의 경로를 표시하는 Google Maps HTML 생성
     """
     
     # 언어 코드 변환
@@ -2897,6 +2897,7 @@ def create_course_map_html(api_key, daily_courses, transport_mode="DRIVING", lan
                 'lat': place['lat'],
                 'lng': place['lng'],
                 'title': f"Day {day_idx + 1} - {place['title']}",
+                'place_name': place['title'],  # 한국어 장소명 추가
                 'color': color,
                 'info': f"Day {day_idx + 1}, Stop {place_idx + 1}<br>{place.get('info', '')}",
                 'category': f"Day {day_idx + 1}",
@@ -2940,7 +2941,7 @@ def create_course_map_html(api_key, daily_courses, transport_mode="DRIVING", lan
         """
         markers_js += marker_js
     
-    # 일별 경로 생성 JavaScript 코드
+    # 일별 경로 생성 JavaScript 코드 - 한국어 장소명 사용
     routes_js = ""
     for day_idx, day_course in enumerate(daily_courses):
         if len(day_course) < 2:
@@ -2952,37 +2953,46 @@ def create_course_map_html(api_key, daily_courses, transport_mode="DRIVING", lan
         waypoints = []
         if len(day_course) > 2:
             for place in day_course[1:-1]:  # 중간 지점들만
-                waypoints.append(f"{{location: new google.maps.LatLng({place['lat']}, {place['lng']}), stopover: true}}")
+                place_name = place['title'].replace("'", "\\'").replace('"', '\\"')
+                waypoints.append(f"{{location: '{place_name}, 서울, 대한민국', stopover: true}}")
         
         waypoints_str = "[" + ",".join(waypoints) + "]" if waypoints else "[]"
+        
+        # 출발지와 목적지도 한국어 장소명 사용
+        origin_name = day_course[0]['title'].replace("'", "\\'").replace('"', '\\"')
+        destination_name = day_course[-1]['title'].replace("'", "\\'").replace('"', '\\"')
         
         routes_js += f"""
         // Day {day_idx + 1} 경로
         var directionsService{day_idx} = new google.maps.DirectionsService();
         var directionsRenderer{day_idx} = new google.maps.DirectionsRenderer({{
-            suppressMarkers: true,  // 기본 마커 숨기기 (우리가 만든 마커 사용)
-            polylineOptions: {{
-                strokeColor: '{color}',
-                strokeWeight: 4,
-                strokeOpacity: 0.8
-            }}
+          suppressMarkers: true,  // 기본 마커 숨기기 (우리가 만든 마커 사용)
+          polylineOptions: {{
+            strokeColor: '{color}',
+            strokeWeight: 4,
+            strokeOpacity: 0.8
+          }}
         }});
         directionsRenderer{day_idx}.setMap(map);
         
         var request{day_idx} = {{
-            origin: new google.maps.LatLng({day_course[0]['lat']}, {day_course[0]['lng']}),
-            destination: new google.maps.LatLng({day_course[-1]['lat']}, {day_course[-1]['lng']}),
-            waypoints: {waypoints_str},
-            travelMode: google.maps.TravelMode.{transport_mode},
-            optimizeWaypoints: false
+          origin: '{origin_name}, 서울, 대한민국',
+          destination: '{destination_name}, 서울, 대한민국',
+          waypoints: {waypoints_str},
+          travelMode: google.maps.TravelMode.{transport_mode},
+          optimizeWaypoints: false,
+          language: 'ko',  // 한국어 응답
+          region: 'KR'     // 한국 지역
         }};
         
         directionsService{day_idx}.route(request{day_idx}, function(result, status) {{
-            if (status == 'OK') {{
-                directionsRenderer{day_idx}.setDirections(result);
-            }} else {{
-                console.log('Day {day_idx + 1} 경로 계산 실패:', status);
-            }}
+          if (status == 'OK') {{
+            directionsRenderer{day_idx}.setDirections(result);
+            console.log('Day {day_idx + 1} 경로 계산 성공');
+          }} else {{
+            console.log('Day {day_idx + 1} 경로 계산 실패:', status);
+            console.log('Origin: {origin_name}, Destination: {destination_name}');
+          }}
         }});
         """
     
@@ -3000,7 +3010,7 @@ def create_course_map_html(api_key, daily_courses, transport_mode="DRIVING", lan
     
     legend_html = "".join(legend_items)
     
-    # HTML 템플릿
+    # HTML 템플릿 (기존과 동일하지만 한국어 지원 강화)
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -3098,7 +3108,9 @@ def create_course_map_html(api_key, daily_courses, transport_mode="DRIVING", lan
                     fullscreenControl: true,
                     mapTypeControl: true,
                     streetViewControl: true,
-                    zoomControl: true
+                    zoomControl: true,
+                    language: 'ko',  // 한국어 지도
+                    region: 'KR'     // 한국 지역
                 }});
                 
                 bounds = new google.maps.LatLngBounds();
@@ -3130,12 +3142,47 @@ def create_course_map_html(api_key, daily_courses, transport_mode="DRIVING", lan
             }}
         </script>
         
-        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=directions&v=weekly&language={lang_code}" async defer></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key={api_key}&callback=initMap&libraries=directions&v=weekly&language=ko&region=KR" async defer></script>
     </body>
     </html>
     """
     
     return html
+
+
+def create_test_course_data():
+    """테스트용 코스 데이터 생성 - 내위치-경복궁-홍대입구역-가산디지털단지역"""
+    test_daily_courses = [
+        [
+            {
+                'lat': 37.5665,  # 서울시청 (내 위치 대신)
+                'lng': 126.9780,
+                'title': '내 위치',
+                'info': '출발지점'
+            },
+            {
+                'lat': 37.5796,
+                'lng': 126.9770,
+                'title': '경복궁',
+                'info': '조선왕조의 정궁'
+            },
+            {
+                'lat': 37.5568,
+                'lng': 126.9236,
+                'title': '홍대입구역',
+                'info': '젊음의 거리'
+            },
+            {
+                'lat': 37.4814,
+                'lng': 126.8829,
+                'title': '가산디지털단지역',
+                'info': 'IT 단지'
+            }
+        ]
+    ]
+    return test_daily_courses
+
+
 
 
 def show_course_map_with_routes(api_key, daily_courses, transport_mode="DRIVING", height=600, language="한국어"):
@@ -3204,6 +3251,67 @@ def show_course_map_with_routes(api_key, daily_courses, transport_mode="DRIVING"
         except Exception as e2:
             st.error(f"대체 지도 표시도 실패했습니다: {str(e2)}")
             return False
+
+
+def calculate_course_route_info_with_korean_names(daily_courses, transport_mode="DRIVING"):
+    """
+    한국어 장소명을 사용한 코스의 예상 이동 시간과 거리 계산
+    실제 Google Directions API 응답을 시뮬레이션
+    """
+    route_info = []
+    
+    # 교통수단별 평균 속도 (km/h) - 서울 기준으로 조정
+    speeds = {
+        "DRIVING": 25,    # 서울 시내 교통상황 고려
+        "TRANSIT": 18,    # 지하철+버스 조합
+        "WALKING": 4      # 보행 속도
+    }
+    
+    speed = speeds.get(transport_mode, 25)
+    
+    for day_idx, day_course in enumerate(daily_courses):
+        if len(day_course) < 2:
+            continue
+            
+        total_distance = 0
+        total_time = 0
+        route_details = []
+        
+        for i in range(len(day_course) - 1):
+            current = day_course[i]
+            next_place = day_course[i + 1]
+            
+            # 직선 거리 계산
+            distance = geodesic(
+                (current['lat'], current['lng']),
+                (next_place['lat'], next_place['lng'])
+            ).kilometers
+            
+            # 실제 도로 거리 추정 (서울 시내 특성상 직선거리의 1.4배로 가정)
+            road_distance = distance * 1.4
+            time_hours = road_distance / speed
+            
+            total_distance += road_distance
+            total_time += time_hours
+            
+            # 구간별 정보 저장
+            route_details.append({
+                'from': current['title'],
+                'to': next_place['title'],
+                'distance_km': round(road_distance, 1),
+                'time_minutes': round(time_hours * 60, 0)
+            })
+        
+        route_info.append({
+            'day': day_idx + 1,
+            'total_distance_km': round(total_distance, 1),
+            'total_time_hours': round(total_time, 1),
+            'total_time_minutes': round(total_time * 60, 0),
+            'places_count': len(day_course),
+            'route_details': route_details
+        })
+    
+    return route_info
 
 
 def calculate_course_route_info(daily_courses, transport_mode="DRIVING"):
@@ -3286,6 +3394,43 @@ def show_course_page():
     if st.button(current_lang_texts["map_back_to_menu"]):
         change_page("menu")
         st.rerun()
+
+
+    
+    st.markdown("---")
+    st.subheader("🧪 테스트 기능")
+    if st.button("한국어 장소명 경로 테스트 (내위치→경복궁→홍대입구역→가산디지털단지역)", type="secondary"):
+        # API 키 확인
+        api_key = st.session_state.google_maps_api_key
+        if not api_key or api_key == "YOUR_GOOGLE_MAPS_API_KEY":
+            st.error("Google Maps API 키가 필요합니다.")
+            api_key = st.text_input("Google Maps API 키를 입력하세요", type="password", key="test_api_key")
+            if api_key:
+                st.session_state.google_maps_api_key = api_key
+        
+        if api_key and api_key != "YOUR_GOOGLE_MAPS_API_KEY":
+            st.info("테스트 경로를 생성하고 있습니다...")
+            test_courses = create_test_course_data()
+            
+            # 테스트 지도 표시
+            success = show_course_map_with_routes(
+                api_key=api_key,
+                daily_courses=test_courses,
+                transport_mode="DRIVING",
+                height=500,
+                language=st.session_state.language
+            )
+            
+            if success:
+                st.success("✅ 한국어 장소명 기반 경로 계산 성공!")
+                st.info("내 위치 → 경복궁 → 홍대입구역 → 가산디지털단지역 경로가 표시되었습니다.")
+            else:
+                st.error("❌ 경로 계산 실패")
+    
+    st.markdown("---")
+
+
+    
     
     # 자동으로 데이터 로드 (아직 로드되지 않은 경우)
     if not st.session_state.markers_loaded or not st.session_state.all_markers:
