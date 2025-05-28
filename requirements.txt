@@ -7,3 +7,4 @@ geopy
 openpyxl
 pillow
 googlemaps
+requests
