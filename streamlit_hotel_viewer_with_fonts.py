@@ -3383,6 +3383,7 @@ def calculate_course_route_info(daily_courses, transport_mode="DRIVING"):
 
 
 
+# 1. show_course_page() 함수 교체 (기존 함수 통째로 교체)
 def show_course_page():
     """개선된 관광 코스 추천 페이지 - Waypoints 최적화 포함"""
     # 언어 설정에 따른 텍스트 가져오기
@@ -3413,7 +3414,7 @@ def show_course_page():
         if main_image_path.exists():
             st.image(main_image_path, use_container_width=True)
         else:
-            st.info(current_lang_texts["course_image_not_found"])
+            st.info("이미지를 찾을 수 없습니다.")
     with col2:
         st.markdown(f"### {current_lang_texts['course_ai_recommendation_title']}")
         st.markdown(current_lang_texts["course_ai_recommendation_description"])
@@ -3465,27 +3466,18 @@ def show_course_page():
                 selected_styles.append(style)
     
     # 교통 수단 선택 (개선됨)
-    st.markdown(f"### {current_lang_texts.get('transport_mode_title', '교통 수단')}")
+    st.markdown(f"### 교통 수단 선택")
     
     transport_options = {
-        "DRIVING": {
-            "name": current_lang_texts.get("transport_mode_driving", "🚗 자동차"),
-            "desc": "가장 빠른 경로, 주차비 고려 필요"
-        },
-        "TRANSIT": {
-            "name": current_lang_texts.get("transport_mode_transit", "🚌 대중교통"), 
-            "desc": "지하철/버스, 요금 정보 포함"
-        },
-        "WALKING": {
-            "name": current_lang_texts.get("transport_mode_walking", "🚶 도보"),
-            "desc": "건강한 여행, 시간 여유 필요"
-        }
+        "DRIVING": "🚗 자동차 (가장 빠른 경로)",
+        "TRANSIT": "🚌 대중교통 (지하철/버스, 요금 포함)", 
+        "WALKING": "🚶 도보 (건강한 여행, 시간 여유 필요)"
     }
     
     transport_mode = st.radio(
-        label=current_lang_texts.get("transport_mode_select", "이동 방법을 선택하세요"),
+        label="이동 방법을 선택하세요",
         options=list(transport_options.keys()),
-        format_func=lambda x: f"{transport_options[x]['name']} - {transport_options[x]['desc']}",
+        format_func=lambda x: transport_options[x],
         horizontal=False
     )
     
@@ -3518,8 +3510,8 @@ def show_course_page():
                 # 2단계: API 키 확인
                 api_key = st.session_state.google_maps_api_key
                 if not api_key or api_key == "YOUR_GOOGLE_MAPS_API_KEY":
-                    st.error(current_lang_texts.get("map_api_key_missing", "Google Maps API 키가 필요합니다."))
-                    api_key = st.text_input(current_lang_texts.get("map_api_key_input", "Google Maps API 키를 입력하세요"), type="password")
+                    st.error("Google Maps API 키가 필요합니다.")
+                    api_key = st.text_input("Google Maps API 키를 입력하세요", type="password")
                     if api_key:
                         st.session_state.google_maps_api_key = api_key
                     else:
@@ -3544,7 +3536,7 @@ def show_course_page():
                 
                 # 4단계: 코스 표시
                 st.markdown(f"## {current_lang_texts['recommended_course_title']}")
-                st.markdown(f"**{course_type}** - {delta}일 일정 ({transport_options[transport_mode]['name']})")
+                st.markdown(f"**{course_type}** - {delta}일 일정 ({transport_options[transport_mode]})")
                 
                 # 5단계: 지도 표시 (새로운 방식!)
                 if optimized_courses and any(optimized_courses):
@@ -3566,14 +3558,7 @@ def show_course_page():
                             
                         except Exception as e:
                             st.error(f"지도 표시 오류: {str(e)}")
-                            # 기존 방식으로 폴백
-                            show_course_map_with_routes(
-                                api_key=api_key,
-                                daily_courses=optimized_courses,
-                                transport_mode=transport_mode,
-                                height=600,
-                                language=st.session_state.language
-                            )
+                            st.error("기본 지도 표시로 전환합니다.")
                     
                     with tab2:
                         # 일별 상세 코스 표시
@@ -3613,11 +3598,11 @@ def show_course_page():
                                     with col1:
                                         # 시간대 표시
                                         if place_idx == 0:
-                                            time_slot = current_lang_texts.get("morning_time_slot", "오전 (09:00-12:00)")
+                                            time_slot = "오전 (09:00-12:00)"
                                         elif place_idx == 1:
-                                            time_slot = current_lang_texts.get("afternoon_time_slot", "오후 (13:00-16:00)")
+                                            time_slot = "오후 (13:00-16:00)"
                                         else:
-                                            time_slot = current_lang_texts.get("evening_time_slot", "저녁 (16:00-19:00)")
+                                            time_slot = "저녁 (16:00-19:00)"
                                         
                                         st.markdown(f"**{place_idx + 1}. {place['title']}** ({time_slot})")
                                         st.caption(f"분류: {place.get('category', '관광지')}")
@@ -3649,7 +3634,7 @@ def show_course_page():
                             
                             st.markdown("---")
                 else:
-                    st.warning(current_lang_texts.get("map_display_error", "코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다."))
+                    st.warning("코스 장소의 좌표 정보가 없어 지도에 표시할 수 없습니다.")
                 
                 # 6단계: 코스 저장 버튼
                 st.markdown("---")
@@ -3689,7 +3674,7 @@ def show_course_page():
                     st.success(current_lang_texts["course_saved_success"])
 
 
-
+# 2. create_optimized_course_routes() 함수 추가
 def create_optimized_course_routes(api_key, daily_courses, transport_mode="DRIVING", optimize_routes=True):
     """
     Google Directions API의 waypoints를 활용한 최적화된 코스 경로 생성
@@ -3727,7 +3712,97 @@ def create_optimized_course_routes(api_key, daily_courses, transport_mode="DRIVI
     return optimized_courses
 
 
+def optimize_single_route(api_key, places, transport_mode="DRIVING", optimize=True):
+    """
+    단일 경로에서 waypoints 최적화
+    """
+    if len(places) < 2:
+        return places
+    
+    try:
+        import requests
+        
+        # 출발지와 목적지 설정
+        origin = f"{places[0]['lat']},{places[0]['lng']}"
+        destination = f"{places[-1]['lat']},{places[-1]['lng']}"
+        
+        # 중간 경유지들 (출발지, 목적지 제외)
+        waypoints_list = []
+        for place in places[1:-1]:
+            waypoints_list.append(f"{place['lat']},{place['lng']}")
+        
+        if not waypoints_list:
+            return places  # 경유지가 없으면 그대로 반환
+        
+        # waypoints 문자열 생성
+        waypoints_str = "|".join(waypoints_list)
+        if optimize:
+            waypoints_str = "optimize:true|" + waypoints_str
+        
+        # Directions API 요청
+        url = "https://maps.googleapis.com/maps/api/directions/json"
+        params = {
+            'origin': origin,
+            'destination': destination,
+            'waypoints': waypoints_str,
+            'mode': transport_mode.lower(),
+            'key': api_key,
+            'language': 'ko'
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if data['status'] == 'OK':
+            route = data['routes'][0]
+            
+            # 최적화된 순서가 있으면 적용
+            if 'waypoint_order' in route:
+                waypoint_order = route['waypoint_order']
+                
+                # 새로운 순서로 places 재배열
+                reordered_places = [places[0]]  # 출발지
+                
+                # 중간 경유지들을 최적 순서로 재배열
+                middle_places = places[1:-1]
+                for idx in waypoint_order:
+                    reordered_places.append(middle_places[idx])
+                
+                reordered_places.append(places[-1])  # 목적지
+                
+                # 경로 정보도 함께 저장
+                for i, place in enumerate(reordered_places):
+                    if i < len(route['legs']):
+                        leg = route['legs'][i]
+                        place['route_info'] = {
+                            'distance': leg.get('distance', {}),
+                            'duration': leg.get('duration', {}),
+                            'fare': leg.get('fare', {})
+                        }
+                
+                return reordered_places
+            else:
+                # 최적화 없이 경로 정보만 추가
+                for i, place in enumerate(places):
+                    if i < len(route['legs']):
+                        leg = route['legs'][i]
+                        place['route_info'] = {
+                            'distance': leg.get('distance', {}),
+                            'duration': leg.get('duration', {}),
+                            'fare': leg.get('fare', {})
+                        }
+                
+                return places
+        else:
+            print(f"경로 최적화 실패: {data.get('status', 'Unknown error')}")
+            return places
+            
+    except Exception as e:
+        print(f"경로 최적화 중 오류: {str(e)}")
+        return places
 
+
+# 3. create_waypoints_map_html() 함수 추가
 def create_waypoints_map_html(api_key, daily_courses, transport_mode="DRIVING", language="ko"):
     """
     Waypoints를 사용한 실제 경로 표시 지도 HTML
@@ -3756,11 +3831,13 @@ def create_waypoints_map_html(api_key, daily_courses, transport_mode="DRIVING", 
         
         # 마커 생성
         for place_idx, place in enumerate(day_course):
+            title = place['title'].replace("'", "\\'").replace('"', '\\"')
+            
             markers_js += f"""
             var marker_{day_idx}_{place_idx} = new google.maps.Marker({{
                 position: {{ lat: {place['lat']}, lng: {place['lng']} }},
                 map: map,
-                title: 'Day {day_idx + 1} - {place["title"]}',
+                title: 'Day {day_idx + 1} - {title}',
                 icon: {{
                     url: 'https://maps.google.com/mapfiles/ms/icons/{color}-dot.png'
                 }},
@@ -3769,13 +3846,10 @@ def create_waypoints_map_html(api_key, daily_courses, transport_mode="DRIVING", 
             
             var infoWindow_{day_idx}_{place_idx} = new google.maps.InfoWindow({{
                 content: `
-                    <div style="padding: 10px;">
+                    <div style="padding: 10px; max-width: 250px;">
                         <h4>Day {day_idx + 1} - Stop {place_idx + 1}</h4>
-                        <p><strong>{place["title"]}</strong></p>
-                        ${place.get("route_info", {}).get("distance", {}).get("text", "") ? 
-                          `<p>거리: ${place["route_info"]["distance"]["text"]}</p>` : ""}
-                        ${place.get("route_info", {}).get("duration", {}).get("text", "") ? 
-                          `<p>시간: ${place["route_info"]["duration"]["text"]}</p>` : ""}
+                        <p><strong>{title}</strong></p>
+                        <p>분류: {place.get('category', '관광지')}</p>
                     </div>
                 `
             }});
@@ -3843,7 +3917,7 @@ def create_waypoints_map_html(api_key, daily_courses, transport_mode="DRIVING", 
         <title>Optimized Seoul Course Map</title>
         <meta charset="utf-8">
         <style>
-            html, body {{ height: 100%; margin: 0; padding: 0; }}
+            html, body {{ height: 100%; margin: 0; padding: 0; font-family: 'Noto Sans KR', Arial, sans-serif; }}
             #map {{ height: 100%; }}
             .route-info {{
                 position: absolute;
@@ -3902,7 +3976,7 @@ def create_waypoints_map_html(api_key, daily_courses, transport_mode="DRIVING", 
                     <h4>Day ${{dayIndex + 1}}</h4>
                     <p><strong>총 거리:</strong> ${{(totalDistance/1000).toFixed(1)} km</p>
                     <p><strong>총 시간:</strong> ${{Math.round(totalDuration/60)} 분</p>
-                    ${{totalFare > 0 ? `<p><strong>예상 요금:</strong> ${{totalFare.toLocaleString()}</p>` : ''}}
+                    ${{totalFare > 0 ? `<p><strong>예상 요금:</strong> ₩${{totalFare.toLocaleString()}}</p>` : ''}}
                 `;
                 
                 routeDetails.appendChild(dayDiv);
@@ -3911,7 +3985,8 @@ def create_waypoints_map_html(api_key, daily_courses, transport_mode="DRIVING", 
             function initMap() {{
                 map = new google.maps.Map(document.getElementById('map'), {{
                     center: {{ lat: {center_lat}, lng: {center_lng} }},
-                    zoom: 12
+                    zoom: 12,
+                    gestureHandling: 'greedy'
                 }});
                 
                 bounds = new google.maps.LatLngBounds();
@@ -3925,7 +4000,10 @@ def create_waypoints_map_html(api_key, daily_courses, transport_mode="DRIVING", 
                 // 지도 범위 조정
                 setTimeout(() => {{
                     map.fitBounds(bounds);
-                }}, 1000);
+                    if (map.getZoom() > 15) {{
+                        map.setZoom(15);
+                    }}
+                }}, 2000);
             }}
         </script>
         
